@@ -825,7 +825,8 @@ final class Tabesh {
         $table = $wpdb->prefix . 'tabesh_book_format_settings';
         
         // Check if we already have settings
-        $existing = $wpdb->get_var("SELECT COUNT(*) FROM $table");
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $existing = $wpdb->get_var("SELECT COUNT(*) FROM $table"); // No user input, safe direct query
         if ($existing > 0) {
             return; // Already initialized
         }
