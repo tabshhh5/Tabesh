@@ -1,0 +1,44 @@
+{
+    "name": "chapco/tabesh",
+    "description": "A comprehensive WordPress plugin for managing book printing orders with WooCommerce integration",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Chapco",
+            "homepage": "https://chapco.ir"
+        }
+    ],
+    "keywords": [
+        "wordpress",
+        "woocommerce",
+        "printing",
+        "order-management",
+        "book-printing"
+    ],
+    "require": {
+        "php": ">=8.2.2"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpcompatibility/php-compatibility": "^9.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "phpcs": "phpcs",
+        "phpcbf": "phpcbf",
+        "test": "phpcs"
+    },
+    "autoload": {
+        "classmap": [
+            "includes/core/",
+            "includes/handlers/",
+            "includes/utils/"
+        ]
+    }
+}

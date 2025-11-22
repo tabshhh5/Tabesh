@@ -1,0 +1,327 @@
+/**
+ * Tabesh Frontend Styles
+ * RTL Support for Persian
+ */
+
+/* General Styles */
+.tabesh-order-form {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+}
+
+.tabesh-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tabesh-form-title {
+    font-size: 28px;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Form Steps */
+.tabesh-form-step {
+    display: none;
+    animation: fadeIn 0.3s;
+}
+
+.tabesh-form-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tabesh-form-step h3 {
+    font-size: 22px;
+    color: #34495e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Form Groups */
+.tabesh-form-group {
+    margin-bottom: 20px;
+}
+
+.tabesh-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Form Controls */
+.tabesh-select,
+.tabesh-input,
+.tabesh-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.tabesh-select:focus,
+.tabesh-input:focus,
+.tabesh-textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.tabesh-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Checkboxes */
+.tabesh-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.tabesh-checkbox input[type="checkbox"] {
+    margin-left: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.tabesh-checkbox span {
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+/* Buttons */
+.tabesh-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.tabesh-btn-primary {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.tabesh-btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.tabesh-btn-secondary {
+    background-color: #95a5a6;
+    color: #fff;
+}
+
+.tabesh-btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.tabesh-btn-success {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.tabesh-btn-success:hover {
+    background-color: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+/* Navigation */
+.tabesh-form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 10px;
+}
+
+/* Progress Bar */
+.tabesh-progress {
+    width: 100%;
+    height: 8px;
+    background-color: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.tabesh-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    transition: width 0.3s ease;
+}
+
+/* Price Result */
+.tabesh-price-result {
+    margin-top: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    color: #fff;
+}
+
+.tabesh-price-result h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.tabesh-price-details {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.price-row:last-child {
+    border-bottom: none;
+}
+
+.price-row.total {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.price-row.discount {
+    color: #f1c40f;
+}
+
+.price-row.extras {
+    color: #3498db;
+    font-style: italic;
+}
+
+.tabesh-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* User Orders - OLD STYLES (Deprecated - Use user-orders-modern.css instead) */
+/* These styles are kept for backward compatibility but should not interfere with modern design */
+/* Moved to user-orders-modern.css - Do not use these classes */
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabesh-form-container {
+        padding: 20px;
+    }
+
+    .tabesh-form-title {
+        font-size: 24px;
+    }
+
+    .tabesh-form-navigation {
+        flex-direction: column;
+    }
+
+    .tabesh-btn {
+        width: 100%;
+    }
+
+    .order-details {
+        grid-template-columns: 1fr;
+    }
+
+    .status-steps {
+        flex-direction: column;
+    }
+
+    .status-step {
+        margin-bottom: 20px;
+    }
+}
+
+/* Loading Spinner */
+.tabesh-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Notifications */
+.tabesh-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 25px;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideDown 0.3s;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.tabesh-notification.success {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.tabesh-notification.error {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.tabesh-notification.info {
+    background-color: #3498db;
+    color: #fff;
+}

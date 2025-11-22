@@ -1,0 +1,964 @@
+/**
+ * Tabesh File Upload CSS
+ *
+ * Styles for file upload interface
+ *
+ * @package Tabesh
+ */
+
+/* File Upload Container */
+.tabesh-file-upload-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tabesh-file-upload-container h2 {
+    margin: 0 0 20px;
+    padding: 0 0 15px;
+    border-bottom: 2px solid #0073aa;
+    color: #23282d;
+}
+
+/* Order Info */
+.tabesh-order-info {
+    background: #f7f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 30px;
+}
+
+.tabesh-order-info p {
+    margin: 5px 0;
+    color: #555;
+}
+
+/* Upload Tasks */
+.tabesh-upload-tasks {
+    margin-bottom: 30px;
+}
+
+.tabesh-upload-tasks > h3 {
+    font-size: 18px;
+    margin: 0 0 20px;
+    color: #23282d;
+}
+
+.tabesh-upload-task {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.tabesh-upload-task h4 {
+    margin: 0 0 10px;
+    color: #0073aa;
+    font-size: 16px;
+}
+
+.tabesh-upload-task .description {
+    color: #666;
+    font-size: 14px;
+    margin: 0 0 15px;
+}
+
+/* File Upload Area */
+.tabesh-file-upload-area {
+    margin: 15px 0;
+}
+
+.tabesh-file-input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.tabesh-file-label {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #0073aa;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.tabesh-file-label:hover {
+    background: #005177;
+}
+
+.tabesh-file-label .dashicons {
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.tabesh-file-info {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.tabesh-file-info p {
+    margin: 5px 0;
+    color: #555;
+}
+
+/* Upload Button */
+.tabesh-upload-btn {
+    margin-top: 15px;
+}
+
+.tabesh-upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Progress Bar */
+.tabesh-upload-progress {
+    margin: 15px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 25px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #00a0d2);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-text {
+    text-align: center;
+    margin: 5px 0 0;
+    font-weight: bold;
+    color: #0073aa;
+}
+
+/* Upload Messages */
+.tabesh-upload-message {
+    margin-top: 15px;
+}
+
+.tabesh-upload-message p {
+    padding: 10px;
+    border-radius: 4px;
+    margin: 5px 0;
+}
+
+.tabesh-upload-message .success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.tabesh-upload-message .error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.tabesh-upload-message .warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.validation-warnings,
+.validation-errors {
+    margin-top: 10px;
+}
+
+.validation-warnings h5,
+.validation-errors h5 {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.validation-warnings ul,
+.validation-errors ul {
+    margin: 0;
+    padding-right: 20px;
+    list-style: disc;
+}
+
+.validation-warnings li,
+.validation-errors li {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+/* Existing Files */
+.tabesh-existing-files {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.tabesh-existing-files h5 {
+    margin: 0 0 15px;
+    color: #23282d;
+}
+
+/* File Item */
+.tabesh-file-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease;
+}
+
+.tabesh-file-item:hover {
+    border-color: #0073aa;
+}
+
+.file-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.file-icon {
+    font-size: 36px;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.file-icon .dashicons {
+    width: 36px;
+    height: 36px;
+    font-size: 36px;
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-info .file-name {
+    margin: 0 0 5px;
+    font-size: 15px;
+    color: #23282d;
+}
+
+.file-info .file-meta,
+.file-info .file-date {
+    margin: 3px 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.file-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.tabesh-status-pending .status-badge {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.tabesh-status-approved .status-badge {
+    background: #d4edda;
+    color: #155724;
+}
+
+.tabesh-status-rejected .status-badge {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* File Details */
+.file-rejection,
+.file-approval,
+.file-pending {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.file-rejection {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.file-rejection .rejection-title {
+    margin: 0 0 8px;
+    font-weight: bold;
+    color: #721c24;
+}
+
+.file-rejection .rejection-reason {
+    margin: 0 0 12px;
+    color: #721c24;
+}
+
+.file-rejection .rejection-timer {
+    margin: 8px 0;
+    font-size: 13px;
+    color: #856404;
+}
+
+.file-rejection .rejection-timer .dashicons {
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.file-approval {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.file-approval p {
+    margin: 5px 0;
+    color: #155724;
+    font-size: 13px;
+}
+
+.file-approval .dashicons {
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.file-pending {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+}
+
+.file-pending p {
+    margin: 0;
+    color: #0c5460;
+    font-size: 13px;
+}
+
+.file-pending .dashicons {
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+/* Validation Data */
+.file-validation-data {
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+}
+
+.file-validation-data h6 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #856404;
+}
+
+.file-validation-data ul {
+    margin: 0;
+    padding-right: 20px;
+    list-style: disc;
+}
+
+.file-validation-data li {
+    margin: 5px 0;
+    font-size: 12px;
+    color: #856404;
+}
+
+.validation-confirmation {
+    margin-top: 10px;
+}
+
+.confirmation-message {
+    font-weight: bold;
+    color: #856404;
+}
+
+.correction-fee {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #d9534f;
+}
+
+/* File Versions */
+.file-versions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.tabesh-view-versions-btn {
+    font-size: 13px;
+}
+
+/* Upload Instructions */
+.tabesh-upload-instructions {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.tabesh-upload-instructions h3 {
+    margin: 0 0 15px;
+    color: #0056b3;
+    font-size: 16px;
+}
+
+.tabesh-upload-instructions ul {
+    margin: 0;
+    padding-right: 20px;
+    list-style: disc;
+}
+
+.tabesh-upload-instructions li {
+    margin: 8px 0;
+    color: #004085;
+    font-size: 14px;
+}
+
+/* Modal/Animation */
+.tabesh-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabesh-modal-content {
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+}
+
+.tabesh-loader {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #0073aa;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: tabesh-spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes tabesh-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.tabesh-modal-content p {
+    margin: 0;
+    font-size: 16px;
+    color: #23282d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabesh-file-upload-container {
+        padding: 15px;
+    }
+    
+    .file-header {
+        flex-direction: column;
+    }
+    
+    .file-status {
+        align-self: flex-start;
+    }
+}
+
+/* RTL Support */
+[dir="rtl"] .tabesh-file-label .dashicons {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+[dir="rtl"] .file-rejection .rejection-timer .dashicons,
+[dir="rtl"] .file-approval .dashicons,
+[dir="rtl"] .file-pending .dashicons {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+[dir="rtl"] .tabesh-upload-instructions ul,
+[dir="rtl"] .validation-warnings ul,
+[dir="rtl"] .validation-errors ul,
+[dir="rtl"] .file-validation-data ul {
+    padding-right: 0;
+    padding-left: 20px;
+}
+
+/* Modal Styles */
+.tabesh-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabesh-modal {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    direction: rtl;
+}
+
+.tabesh-modal .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 15px;
+}
+
+.tabesh-modal-error .dashicons {
+    color: #d32f2f;
+}
+
+.tabesh-modal-warning .dashicons {
+    color: #f57c00;
+}
+
+.tabesh-modal-success .dashicons {
+    color: #4caf50;
+}
+
+.modal-message {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 15px 0 20px;
+    color: #333;
+}
+
+.modal-close-btn {
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.modal-close-btn:hover {
+    background: #005a87;
+}
+
+/* Toast Notification Styles */
+.tabesh-toast {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 6px;
+    padding: 15px 20px;
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    direction: rtl;
+    transition: top 0.3s ease;
+}
+
+.tabesh-toast.show {
+    top: 20px;
+}
+
+.tabesh-toast .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.tabesh-toast-error {
+    border-left: 4px solid #d32f2f;
+}
+
+.tabesh-toast-error .dashicons {
+    color: #d32f2f;
+}
+
+.tabesh-toast-warning {
+    border-left: 4px solid #f57c00;
+}
+
+.tabesh-toast-warning .dashicons {
+    color: #f57c00;
+}
+
+.tabesh-toast-success {
+    border-left: 4px solid #4caf50;
+}
+
+.tabesh-toast-success .dashicons {
+    color: #4caf50;
+}
+
+.toast-message {
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #333;
+}
+
+/* RTL Support for Modal and Toast */
+[dir="rtl"] .tabesh-modal .dashicons,
+[dir="rtl"] .tabesh-toast .dashicons {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+[dir="rtl"] .tabesh-toast {
+    border-left: none;
+    border-right: 4px solid;
+}
+
+[dir="rtl"] .tabesh-toast-error {
+    border-right-color: #d32f2f;
+}
+
+[dir="rtl"] .tabesh-toast-warning {
+    border-right-color: #f57c00;
+}
+
+[dir="rtl"] .tabesh-toast-success {
+    border-right-color: #4caf50;
+}
+
+/* Fallback Message Styles (when no container available) */
+.tabesh-fallback-message {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 6px;
+    padding: 15px 45px 15px 20px;
+    min-width: 300px;
+    max-width: 600px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    direction: rtl;
+    transition: top 0.3s ease;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.tabesh-fallback-message.show {
+    top: 20px;
+}
+
+.tabesh-fallback-error {
+    border-left: 4px solid #d32f2f;
+    color: #721c24;
+}
+
+.tabesh-fallback-warning {
+    border-left: 4px solid #f57c00;
+    color: #856404;
+}
+
+.tabesh-fallback-success {
+    border-left: 4px solid #4caf50;
+    color: #155724;
+}
+
+.fallback-close {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    transition: color 0.2s;
+}
+
+.fallback-close:hover {
+    color: #333;
+}
+
+[dir="rtl"] .tabesh-fallback-message {
+    border-left: none;
+    border-right: 4px solid;
+}
+
+[dir="rtl"] .tabesh-fallback-error {
+    border-right-color: #d32f2f;
+}
+
+[dir="rtl"] .tabesh-fallback-warning {
+    border-right-color: #f57c00;
+}
+
+[dir="rtl"] .tabesh-fallback-success {
+    border-right-color: #4caf50;
+}
+
+[dir="rtl"] .fallback-close {
+    left: auto;
+    right: 10px;
+}
+
+/* ==========================================================================
+   Dynamic Upload Form Styles
+   ========================================================================== */
+
+.tabesh-dynamic-upload .tabesh-order-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.summary-header .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.summary-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.summary-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.summary-item strong {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.summary-item span {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.tasks-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tasks-header .dashicons {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: #667eea;
+}
+
+.tasks-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #2d3748;
+}
+
+.tabesh-upload-task {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.tabesh-upload-task:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.required-task {
+    border-color: #ff9800;
+}
+
+.optional-task {
+    border-color: #9e9e9e;
+}
+
+.task-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #2d3748;
+}
+
+.required-badge,
+.optional-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.required-badge {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: #fff;
+}
+
+.optional-badge {
+    background: #e0e0e0;
+    color: #616161;
+}
+
+.task-description {
+    color: #718096;
+    margin: 0 0 15px;
+    line-height: 1.6;
+}
+
+.task-requirements {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.task-requirements h5 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.task-requirements ul {
+    margin: 0;
+    padding: 0 0 0 20px;
+    list-style-type: disc;
+}
+
+.task-requirements li {
+    color: #4a5568;
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 5px;
+}
+
+.allowed-types {
+    font-size: 12px;
+    color: #718096;
+    opacity: 0.9;
+}
+
+.no-tasks-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    color: #718096;
+}
+
+.no-tasks-message .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 15px;
+    color: #cbd5e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .summary-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .task-requirements ul {
+        padding: 0 0 0 15px;
+    }
+}

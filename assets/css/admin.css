@@ -1,0 +1,678 @@
+/**
+ * Tabesh Admin Styles
+ * RTL Support for Persian
+ */
+
+/* Admin Dashboard */
+.tabesh-admin-dashboard,
+.tabesh-admin-orders,
+.tabesh-admin-archived,
+.tabesh-admin-settings {
+    direction: rtl;
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+}
+
+/* Dynamic Parameter Manager Styles */
+.tabesh-param-manager {
+    max-width: 800px;
+}
+
+.tabesh-param-list {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background: #f9f9f9;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tabesh-param-list:empty {
+    padding: 30px 10px;
+    text-align: center;
+    color: #999;
+}
+
+.tabesh-param-list:empty::before {
+    content: 'هنوز پارامتری اضافه نشده است. از دکمه "افزودن" استفاده کنید.';
+}
+
+.tabesh-param-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    align-items: center;
+    background: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.tabesh-param-item:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 4px rgba(34, 113, 177, 0.1);
+}
+
+.tabesh-param-item:last-child {
+    margin-bottom: 0;
+}
+
+.tabesh-param-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.tabesh-param-input:focus {
+    border-color: #2271b1;
+    outline: none;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.tabesh-param-remove {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
+    color: #b32d2e;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tabesh-param-remove:hover {
+    background: #b32d2e;
+    color: #fff;
+    border-color: #b32d2e;
+}
+
+.tabesh-param-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    margin-top: 5px;
+}
+
+.tabesh-param-add .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.tabesh-param-hidden {
+    display: none !important;
+}
+
+/* Settings Page Enhancements */
+.tabesh-admin-settings .notice-info {
+    border-right: 4px solid #00a0d2;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.tabesh-admin-settings .notice-success {
+    border-right: 4px solid #46b450;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.tabesh-admin-settings .notice-warning {
+    border-right: 4px solid #f0ad4e;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.tabesh-admin-settings .notice-warning.inline {
+    display: inline-block;
+    width: 100%;
+}
+
+.tabesh-admin-settings .tabesh-paper-types-notice {
+    margin: 10px 0;
+    padding: 8px;
+}
+
+.tabesh-admin-settings .notice-info ul,
+.tabesh-admin-settings .notice-success ul {
+    list-style: disc;
+}
+
+.tabesh-admin-settings .dashicons {
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.tabesh-admin-settings .param-count {
+    color: #00a0d2;
+    font-weight: bold;
+}
+
+.tabesh-admin-settings textarea {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.6;
+}
+
+.tabesh-admin-settings textarea::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.tabesh-admin-settings .form-table th {
+    padding: 20px 10px 20px 0;
+    vertical-align: top;
+}
+
+.tabesh-admin-settings .form-table td {
+    padding: 15px 10px;
+}
+
+.tabesh-admin-settings .description {
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+/* Section Headers */
+.tabesh-tab-content h3 {
+    background: linear-gradient(90deg, #f0f0f1 0%, #fff 100%);
+    padding: 12px 15px;
+    margin: 30px 0 15px 0;
+    border-right: 4px solid #2271b1;
+    border-radius: 3px;
+}
+
+/* Statistics Grid */
+.tabesh-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.tabesh-stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.2s;
+}
+
+.tabesh-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.stat-icon .dashicons {
+    font-size: 30px;
+    width: 30px;
+    height: 30px;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.tabesh-stat-card.revenue .stat-value {
+    font-size: 20px;
+}
+
+/* Recent Orders */
+.tabesh-recent-orders {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+}
+
+.tabesh-recent-orders h2 {
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Status Badge */
+.tabesh-status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tabesh-status-badge.status-pending {
+    background-color: #f39c12;
+    color: #fff;
+}
+
+.tabesh-status-badge.status-confirmed {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.tabesh-status-badge.status-processing {
+    background-color: #9b59b6;
+    color: #fff;
+}
+
+.tabesh-status-badge.status-ready {
+    background-color: #1abc9c;
+    color: #fff;
+}
+
+.tabesh-status-badge.status-completed {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.tabesh-status-badge.status-cancelled {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+/* Filter Bar */
+.tabesh-filter-bar {
+    background: #fff;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabesh-filter {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Orders Table */
+.tabesh-orders-table {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabesh-orders-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.tabesh-status-select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* Settings Page */
+.tabesh-settings-tabs {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.nav-tab-wrapper {
+    border-bottom: 1px solid #ccc;
+    padding-right: 20px;
+}
+
+.tabesh-tab-content {
+    display: none;
+    padding: 30px;
+}
+
+.tabesh-tab-content.active {
+    display: block;
+}
+
+.tabesh-tab-content h2 {
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #3498db;
+    margin-bottom: 25px;
+}
+
+/* Modal */
+.tabesh-modal {
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.tabesh-modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 800px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tabesh-modal-close {
+    color: #aaa;
+    float: left;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.tabesh-modal-close:hover,
+.tabesh-modal-close:focus {
+    color: #000;
+}
+
+/* Order Details */
+.order-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.detail-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .tabesh-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .tabesh-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tabesh-modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+}
+
+/* Loading Indicator */
+.tabesh-loading-inline {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #3498db;
+    animation: spin 0.8s ease-in-out infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Success/Error Messages */
+.tabesh-message {
+    padding: 12px 20px;
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+.tabesh-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.tabesh-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Buttons */
+.tabesh-btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Modal Styles */
+.tabesh-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabesh-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    animation: fadeIn 0.3s ease;
+}
+
+.tabesh-modal-dialog {
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1000000;
+    animation: slideIn 0.3s ease;
+}
+
+.tabesh-modal-dialog.tabesh-modal-large {
+    max-width: 700px;
+}
+
+.tabesh-modal-content {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.tabesh-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tabesh-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #23282d;
+}
+
+.tabesh-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.tabesh-modal-close:hover {
+    color: #000;
+}
+
+.tabesh-modal-close .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.tabesh-modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.tabesh-modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    text-align: left;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Comments List */
+.comments-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.comment-item {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.comment-header strong {
+    color: #23282d;
+    font-size: 14px;
+}
+
+.comment-date {
+    color: #999;
+    font-size: 12px;
+}
+
+.comment-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .nav-tab-wrapper,
+    .tabesh-filter-bar,
+    .button,
+    .tabesh-modal-close,
+    .tabesh-modal {
+        display: none !important;
+    }
+
+    .tabesh-modal-content {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+}

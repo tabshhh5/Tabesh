@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست UI مدرن - Tabesh</title>
+    <link rel="stylesheet" href="assets/css/user-orders-modern.css">
+</head>
+<body style="margin:0;padding:0;">
+    <div class="tabesh-user-orders-modern" dir="rtl" data-theme="light">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" id="theme-toggle" aria-label="تغییر تم">
+            <span class="theme-icon-light">☀️</span>
+            <span class="theme-icon-dark">🌙</span>
+        </button>
+
+        <!-- Header Section -->
+        <div class="orders-header">
+            <div class="orders-header-content">
+                <h1 class="orders-title">
+                    <span class="title-icon">📦</span>
+                    سفارشات من
+                </h1>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            id="order-search-input" 
+                            class="search-input" 
+                            placeholder="جستجو بر اساس عنوان کتاب، شماره سفارش، قطع..."
+                            autocomplete="off"
+                        >
+                        <button class="search-clear" id="search-clear-btn" style="display: none;">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-icon">📊</div>
+                    <div class="summary-content">
+                        <div class="summary-label">کل سفارشات</div>
+                        <div class="summary-value">12</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">✅</div>
+                    <div class="summary-content">
+                        <div class="summary-label">تکمیل شده</div>
+                        <div class="summary-value">8</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">⏳</div>
+                    <div class="summary-content">
+                        <div class="summary-label">در حال انجام</div>
+                        <div class="summary-value">4</div>
+                    </div>
+                </div>
+                <div class="summary-card primary">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-content">
+                        <div class="summary-label">مجموع مبلغ</div>
+                        <div class="summary-value">۱۲,۵۰۰,۰۰۰ تومان</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="orders-container">
+            <div class="orders-list">
+                <div class="orders-section">
+                    <h2 class="section-title">
+                        <span class="section-icon">📋</span>
+                        سفارشات فعال
+                    </h2>
+                    
+                    <!-- Sample Order Card 1 -->
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-card-title">
+                                <h3 class="order-book-title">
+                                    📖 کتاب آموزش برنامه‌نویسی پایتون
+                                </h3>
+                                <span class="order-number">#TB-2024-001</span>
+                            </div>
+                            <span class="order-status status-processing">
+                                در حال چاپ
+                            </span>
+                        </div>
+
+                        <div class="order-card-body">
+                            <div class="order-quick-info">
+                                <div class="info-item">
+                                    <span class="info-icon">📄</span>
+                                    <span class="info-text">۲۵۰ صفحه</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-icon">📚</span>
+                                    <span class="info-text">۱۰۰ نسخه</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-icon">📐</span>
+                                    <span class="info-text">رقعی</span>
+                                </div>
+                                <div class="info-item primary">
+                                    <span class="info-icon">💵</span>
+                                    <span class="info-text">۲,۵۰۰,۰۰۰ تومان</span>
+                                </div>
+                            </div>
+
+                            <!-- Progress Stepper -->
+                            <div class="progress-stepper">
+                                <div class="progress-step completed">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-check">✓</span>
+                                    </div>
+                                    <div class="step-label">در انتظار بررسی</div>
+                                </div>
+                                <div class="progress-step completed">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-check">✓</span>
+                                    </div>
+                                    <div class="step-label">تایید شده</div>
+                                </div>
+                                <div class="progress-step current">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">3</span>
+                                    </div>
+                                    <div class="step-label">در حال چاپ</div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">4</span>
+                                    </div>
+                                    <div class="step-label">آماده تحویل</div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">5</span>
+                                    </div>
+                                    <div class="step-label">تحویل داده شده</div>
+                                </div>
+                            </div>
+
+                            <div class="order-card-footer">
+                                <span class="order-date">
+                                    <span class="date-icon">📅</span>
+                                    ۱۵ آذر ۱۴۰۳
+                                </span>
+                                <div class="order-actions">
+                                    <button class="btn btn-secondary btn-support">
+                                        <span class="btn-icon">📞</span>
+                                        پشتیبانی
+                                    </button>
+                                    <button class="btn btn-primary btn-details">
+                                        <span class="btn-icon">👁️</span>
+                                        جزئیات بیشتر
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Order Card 2 -->
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-card-title">
+                                <h3 class="order-book-title">
+                                    📖 رمان شازده کوچولو
+                                </h3>
+                                <span class="order-number">#TB-2024-002</span>
+                            </div>
+                            <span class="order-status status-confirmed">
+                                تایید شده
+                            </span>
+                        </div>
+
+                        <div class="order-card-body">
+                            <div class="order-quick-info">
+                                <div class="info-item">
+                                    <span class="info-icon">📄</span>
+                                    <span class="info-text">۱۲۰ صفحه</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-icon">📚</span>
+                                    <span class="info-text">۵۰ نسخه</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-icon">📐</span>
+                                    <span class="info-text">وزیری</span>
+                                </div>
+                                <div class="info-item primary">
+                                    <span class="info-icon">💵</span>
+                                    <span class="info-text">۱,۸۰۰,۰۰۰ تومان</span>
+                                </div>
+                            </div>
+
+                            <!-- Progress Stepper -->
+                            <div class="progress-stepper">
+                                <div class="progress-step completed">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-check">✓</span>
+                                    </div>
+                                    <div class="step-label">در انتظار بررسی</div>
+                                </div>
+                                <div class="progress-step current">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">2</span>
+                                    </div>
+                                    <div class="step-label">تایید شده</div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">3</span>
+                                    </div>
+                                    <div class="step-label">در حال چاپ</div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">4</span>
+                                    </div>
+                                    <div class="step-label">آماده تحویل</div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-connector"></div>
+                                    <div class="step-circle">
+                                        <span class="step-number">5</span>
+                                    </div>
+                                    <div class="step-label">تحویل داده شده</div>
+                                </div>
+                            </div>
+
+                            <div class="order-card-footer">
+                                <span class="order-date">
+                                    <span class="date-icon">📅</span>
+                                    ۱۲ آذر ۱۴۰۳
+                                </span>
+                                <div class="order-actions">
+                                    <button class="btn btn-secondary btn-support">
+                                        <span class="btn-icon">📞</span>
+                                        پشتیبانی
+                                    </button>
+                                    <button class="btn btn-primary btn-details">
+                                        <span class="btn-icon">👁️</span>
+                                        جزئیات بیشتر
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple theme toggle for preview
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const container = document.querySelector('.tabesh-user-orders-modern');
+            const currentTheme = container.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            container.setAttribute('data-theme', newTheme);
+        });
+    </script>
+</body>
+</html>
