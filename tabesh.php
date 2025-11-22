@@ -825,7 +825,10 @@ final class Tabesh {
         $table = $wpdb->prefix . 'tabesh_book_format_settings';
         
         // Check if we already have settings
-        $existing = $wpdb->get_var("SELECT COUNT(*) FROM $table");
+        // Note: Table name comes from $wpdb->prefix which is safe and not user input
+        // COUNT(*) requires no placeholders as it has no user-supplied parameters
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $existing = $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`");
         if ($existing > 0) {
             return; // Already initialized
         }
@@ -1190,117 +1193,141 @@ final class Tabesh {
 
     /**
      * Enqueue frontend assets
+     * 
+     * Conditionally loads CSS and JS based on which shortcodes are present on the page
+     * to avoid loading unnecessary assets and potential style conflicts.
      */
     public function enqueue_frontend_assets() {
+        global $post;
+        
         // Enqueue Dashicons for logged-in users to ensure icons display properly
         if (is_user_logged_in()) {
             wp_enqueue_style('dashicons');
         }
         
-        wp_enqueue_style(
-            'tabesh-frontend',
-            TABESH_PLUGIN_URL . 'assets/css/frontend.css',
-            array(),
-            TABESH_VERSION
-        );
-
-        wp_enqueue_style(
-            'tabesh-file-upload',
-            TABESH_PLUGIN_URL . 'assets/css/file-upload.css',
-            array(),
-            TABESH_VERSION
-        );
-
-        wp_enqueue_style(
-            'tabesh-staff-panel',
-            TABESH_PLUGIN_URL . 'assets/css/staff-panel.css',
-            array(),
-            TABESH_VERSION
-        );
-
-        wp_enqueue_script(
-            'tabesh-frontend',
-            TABESH_PLUGIN_URL . 'assets/js/frontend.js',
-            array('jquery'),
-            TABESH_VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'tabesh-file-upload',
-            TABESH_PLUGIN_URL . 'assets/js/file-upload.js',
-            array('jquery', 'tabesh-frontend'),
-            TABESH_VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'tabesh-staff-panel',
-            TABESH_PLUGIN_URL . 'assets/js/staff-panel.js',
-            array('jquery'),
-            TABESH_VERSION,
-            true
-        );
-
-        // Get all settings for frontend - always returns decoded arrays/objects
-        $paper_types = $this->admin->get_setting('paper_types', array(
-            'تحریر' => array(60, 70, 80),
-            'بالک' => array(60, 70, 80, 100)
-        ));
+        // Check which shortcodes are present on the page
+        $has_order_form = is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'tabesh_order_form');
+        $has_user_orders = is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'tabesh_user_orders');
+        $has_staff_panel = is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'tabesh_staff_panel');
+        $has_admin_dashboard = is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'tabesh_admin_dashboard');
+        $has_file_upload = is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'tabesh_file_upload');
         
-        $book_sizes = $this->admin->get_setting('book_sizes', array('A5', 'A4', 'رقعی', 'وزیری', 'خشتی'));
-        $print_types = $this->admin->get_setting('print_types', array('سیاه و سفید', 'رنگی', 'ترکیبی'));
-        $binding_types = $this->admin->get_setting('binding_types', array('شومیز', 'جلد سخت', 'گالینگور', 'سیمی'));
-        $license_types = $this->admin->get_setting('license_types', array('دارم', 'انتشارات چاپکو', 'سفیر سلامت'));
-        $cover_paper_weights = $this->admin->get_setting('cover_paper_weights', array('250', '300'));
-        $lamination_types = $this->admin->get_setting('lamination_types', array('براق', 'مات', 'بدون سلفون'));
-        $extras = $this->admin->get_setting('extras', array('لب گرد', 'خط تا', 'شیرینک', 'سوراخ', 'شماره گذاری'));
-        
-        // Sanitize extras to ensure all values are valid non-empty strings
-        $extras = is_array($extras) ? array_values(array_filter(array_map(function($extra) {
-            $extra = is_scalar($extra) ? trim(strval($extra)) : '';
-            return (!empty($extra) && $extra !== 'on') ? $extra : null;
-        }, $extras))) : array();
-        
-        wp_localize_script('tabesh-frontend', 'tabeshData', array(
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'restUrl' => rest_url(TABESH_REST_NAMESPACE),
-            'nonce' => wp_create_nonce('wp_rest'),
-            'ajaxNonce' => wp_create_nonce('tabesh_nonce'), // For AJAX backward compatibility (field name: 'security')
-            'logoutUrl' => wp_logout_url(home_url()),
-            // Settings - all decoded as arrays/objects for frontend use
-            'settings' => array(
+        // Enqueue frontend styles and scripts only if any Tabesh shortcode is present
+        if ($has_order_form || $has_user_orders || $has_staff_panel || $has_admin_dashboard || $has_file_upload) {
+            wp_enqueue_style(
+                'tabesh-frontend',
+                TABESH_PLUGIN_URL . 'assets/css/frontend.css',
+                array(),
+                TABESH_VERSION
+            );
+
+            wp_enqueue_script(
+                'tabesh-frontend',
+                TABESH_PLUGIN_URL . 'assets/js/frontend.js',
+                array('jquery'),
+                TABESH_VERSION,
+                true
+            );
+        }
+
+        // Enqueue file upload assets only if file upload shortcode is present
+        if ($has_file_upload) {
+            wp_enqueue_style(
+                'tabesh-file-upload',
+                TABESH_PLUGIN_URL . 'assets/css/file-upload.css',
+                array(),
+                TABESH_VERSION
+            );
+
+            wp_enqueue_script(
+                'tabesh-file-upload',
+                TABESH_PLUGIN_URL . 'assets/js/file-upload.js',
+                array('jquery', 'tabesh-frontend'),
+                TABESH_VERSION,
+                true
+            );
+        }
+
+        // Enqueue staff panel assets only if staff panel shortcode is present
+        if ($has_staff_panel) {
+            wp_enqueue_style(
+                'tabesh-staff-panel',
+                TABESH_PLUGIN_URL . 'assets/css/staff-panel.css',
+                array(),
+                TABESH_VERSION
+            );
+
+            wp_enqueue_script(
+                'tabesh-staff-panel',
+                TABESH_PLUGIN_URL . 'assets/js/staff-panel.js',
+                array('jquery'),
+                TABESH_VERSION,
+                true
+            );
+        }
+
+        // Localize scripts only if tabesh-frontend is enqueued
+        if ($has_order_form || $has_user_orders || $has_staff_panel || $has_admin_dashboard || $has_file_upload) {
+            // Get all settings for frontend - always returns decoded arrays/objects
+            $paper_types = $this->admin->get_setting('paper_types', array(
+                'تحریر' => array(60, 70, 80),
+                'بالک' => array(60, 70, 80, 100)
+            ));
+            
+            $book_sizes = $this->admin->get_setting('book_sizes', array('A5', 'A4', 'رقعی', 'وزیری', 'خشتی'));
+            $print_types = $this->admin->get_setting('print_types', array('سیاه و سفید', 'رنگی', 'ترکیبی'));
+            $binding_types = $this->admin->get_setting('binding_types', array('شومیز', 'جلد سخت', 'گالینگور', 'سیمی'));
+            $license_types = $this->admin->get_setting('license_types', array('دارم', 'انتشارات چاپکو', 'سفیر سلامت'));
+            $cover_paper_weights = $this->admin->get_setting('cover_paper_weights', array('250', '300'));
+            $lamination_types = $this->admin->get_setting('lamination_types', array('براق', 'مات', 'بدون سلفون'));
+            $extras = $this->admin->get_setting('extras', array('لب گرد', 'خط تا', 'شیرینک', 'سوراخ', 'شماره گذاری'));
+            
+            // Sanitize extras to ensure all values are valid non-empty strings
+            $extras = is_array($extras) ? array_values(array_filter(array_map(function($extra) {
+                $extra = is_scalar($extra) ? trim(strval($extra)) : '';
+                return (!empty($extra) && $extra !== 'on') ? $extra : null;
+            }, $extras))) : array();
+            
+            wp_localize_script('tabesh-frontend', 'tabeshData', array(
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'restUrl' => rest_url(TABESH_REST_NAMESPACE),
+                'nonce' => wp_create_nonce('wp_rest'),
+                'ajaxNonce' => wp_create_nonce('tabesh_nonce'), // For AJAX backward compatibility (field name: 'security')
+                'logoutUrl' => wp_logout_url(home_url()),
+                // Settings - all decoded as arrays/objects for frontend use
+                'settings' => array(
+                    'paperTypes' => $paper_types,
+                    'bookSizes' => $book_sizes,
+                    'printTypes' => $print_types,
+                    'bindingTypes' => $binding_types,
+                    'licenseTypes' => $license_types,
+                    'coverPaperWeights' => $cover_paper_weights,
+                    'laminationTypes' => $lamination_types,
+                    'extras' => $extras,
+                ),
+                // Backwards compatibility
                 'paperTypes' => $paper_types,
-                'bookSizes' => $book_sizes,
-                'printTypes' => $print_types,
-                'bindingTypes' => $binding_types,
-                'licenseTypes' => $license_types,
-                'coverPaperWeights' => $cover_paper_weights,
-                'laminationTypes' => $lamination_types,
-                'extras' => $extras,
-            ),
-            // Backwards compatibility
-            'paperTypes' => $paper_types,
-            'strings' => array(
-                'calculating' => __('در حال محاسبه...', 'tabesh'),
-                'error' => __('خطا در پردازش درخواست', 'tabesh'),
-                'success' => __('عملیات با موفقیت انجام شد', 'tabesh')
-            )
-        ));
-        
-        // Also provide TabeshSettings for compatibility
-        wp_localize_script('tabesh-frontend', 'TabeshSettings', array(
-            'rest_url' => rest_url(TABESH_REST_NAMESPACE),
-            'nonce' => wp_create_nonce('wp_rest'),
-            'i18n' => array(
-                'calculating' => __('در حال محاسبه...', 'tabesh'),
-                'error' => __('خطا در پردازش درخواست', 'tabesh'),
-                'success' => __('عملیات با موفقیت انجام شد', 'tabesh'),
-                'submitting' => __('در حال ثبت سفارش...', 'tabesh'),
-                'auth_error' => __('خطای احراز هویت. لطفاً مجدداً وارد شوید.', 'tabesh'),
-                'server_error' => __('خطا در برقراری ارتباط با سرور', 'tabesh')
-            )
-        ));
+                'strings' => array(
+                    'calculating' => __('در حال محاسبه...', 'tabesh'),
+                    'error' => __('خطا در پردازش درخواست', 'tabesh'),
+                    'success' => __('عملیات با موفقیت انجام شد', 'tabesh')
+                )
+            ));
+            
+            // Also provide TabeshSettings for compatibility
+            wp_localize_script('tabesh-frontend', 'TabeshSettings', array(
+                'rest_url' => rest_url(TABESH_REST_NAMESPACE),
+                'nonce' => wp_create_nonce('wp_rest'),
+                'i18n' => array(
+                    'calculating' => __('در حال محاسبه...', 'tabesh'),
+                    'error' => __('خطا در پردازش درخواست', 'tabesh'),
+                    'success' => __('عملیات با موفقیت انجام شد', 'tabesh'),
+                    'submitting' => __('در حال ثبت سفارش...', 'tabesh'),
+                    'auth_error' => __('خطای احراز هویت. لطفاً مجدداً وارد شوید.', 'tabesh'),
+                    'server_error' => __('خطا در برقراری ارتباط با سرور', 'tabesh')
+                )
+            ));
+        }
     }
 
     /**
