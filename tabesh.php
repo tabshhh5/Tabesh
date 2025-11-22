@@ -1193,6 +1193,11 @@ final class Tabesh {
      * Enqueue frontend assets
      */
     public function enqueue_frontend_assets() {
+        // Ensure admin handler is initialized
+        if (!$this->admin) {
+            return;
+        }
+        
         // Enqueue Dashicons for logged-in users to ensure icons display properly
         if (is_user_logged_in()) {
             wp_enqueue_style('dashicons');
