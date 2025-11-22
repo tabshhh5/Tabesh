@@ -135,6 +135,34 @@ final class Tabesh {
     public $woocommerce;
 
     /**
+     * File manager handler
+     *
+     * @var Tabesh_File_Manager
+     */
+    public $file_manager;
+
+    /**
+     * FTP handler
+     *
+     * @var Tabesh_FTP_Handler
+     */
+    public $ftp_handler;
+
+    /**
+     * File validator handler
+     *
+     * @var Tabesh_File_Validator
+     */
+    public $file_validator;
+
+    /**
+     * Upload task generator handler
+     *
+     * @var Tabesh_Upload_Task_Generator
+     */
+    public $upload_task_generator;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -188,6 +216,11 @@ final class Tabesh {
         $this->user = new Tabesh_User();
         $this->notifications = new Tabesh_Notifications();
         $this->woocommerce = new Tabesh_WooCommerce();
+        // Initialize file management handlers
+        $this->file_manager = new Tabesh_File_Manager();
+        $this->ftp_handler = new Tabesh_FTP_Handler();
+        $this->file_validator = new Tabesh_File_Validator();
+        $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
