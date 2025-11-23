@@ -1303,6 +1303,13 @@ final class Tabesh {
             TABESH_VERSION
         );
 
+        wp_enqueue_style(
+            'tabesh-staff',
+            TABESH_PLUGIN_URL . 'assets/css/staff.css',
+            array('tabesh-staff-panel'),
+            TABESH_VERSION
+        );
+
         wp_enqueue_script(
             'tabesh-frontend',
             TABESH_PLUGIN_URL . 'assets/js/frontend.js',
@@ -1323,6 +1330,14 @@ final class Tabesh {
             'tabesh-staff-panel',
             TABESH_PLUGIN_URL . 'assets/js/staff-panel.js',
             array('jquery'),
+            TABESH_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'tabesh-staff',
+            TABESH_PLUGIN_URL . 'assets/js/staff.js',
+            array('jquery', 'tabesh-staff-panel'),
             TABESH_VERSION,
             true
         );
@@ -1384,6 +1399,18 @@ final class Tabesh {
                 'submitting' => __('در حال ثبت سفارش...', 'tabesh'),
                 'auth_error' => __('خطای احراز هویت. لطفاً مجدداً وارد شوید.', 'tabesh'),
                 'server_error' => __('خطا در برقراری ارتباط با سرور', 'tabesh')
+            )
+        ));
+        
+        // Localize data for staff panel printing substatus
+        wp_localize_script('tabesh-staff', 'tabeshStaffData', array(
+            'restUrl' => rest_url(TABESH_REST_NAMESPACE),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'strings' => array(
+                'updating' => __('در حال به‌روزرسانی...', 'tabesh'),
+                'updated' => __('وضعیت به‌روزرسانی شد', 'tabesh'),
+                'error' => __('خطا در به‌روزرسانی', 'tabesh'),
+                'completed' => __('تکمیل شد', 'tabesh')
             )
         ));
     }
