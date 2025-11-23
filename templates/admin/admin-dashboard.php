@@ -145,22 +145,6 @@ $stats = $admin->get_statistics();
                                 <span class="tabesh-status-badge status-<?php echo esc_attr($order->status); ?>">
                                     <?php echo esc_html(get_status_label($order->status)); ?>
                                 </span>
-                                <?php if ($order->status === 'processing'): 
-                                    // Get printing substatus progress
-                                    $substatus = Tabesh()->printing_substatus->get_printing_substatus($order->id);
-                                    if ($substatus):
-                                        $percentage = Tabesh()->printing_substatus->get_completion_percentage($order->id);
-                                ?>
-                                    <div class="printing-progress-mini" title="<?php echo esc_attr(sprintf(__('پیشرفت چاپ: %d%%', 'tabesh'), $percentage)); ?>">
-                                        <div class="progress-bar-mini">
-                                            <div class="progress-fill-mini" style="width: <?php echo esc_attr($percentage); ?>%"></div>
-                                        </div>
-                                        <span class="progress-text-mini"><?php echo esc_html($percentage); ?>%</span>
-                                    </div>
-                                <?php 
-                                    endif;
-                                endif; 
-                                ?>
                             </td>
                             <td><?php echo date_i18n('Y/m/d H:i', strtotime($order->created_at)); ?></td>
                             <td>
@@ -257,39 +241,3 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
-
-<style>
-/* Mini Printing Progress Indicator */
-.printing-progress-mini {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 4px 8px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    font-size: 11px;
-}
-
-.progress-bar-mini {
-    flex: 1;
-    height: 12px;
-    background: #e9ecef;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.progress-fill-mini {
-    height: 100%;
-    background: linear-gradient(90deg, #4a90e2 0%, #67b26f 100%);
-    border-radius: 6px;
-    transition: width 0.3s ease;
-}
-
-.progress-text-mini {
-    font-weight: 600;
-    color: #4a90e2;
-    min-width: 32px;
-    text-align: left;
-}
-</style>

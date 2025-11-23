@@ -163,13 +163,6 @@ final class Tabesh {
     public $upload_task_generator;
 
     /**
-     * Printing substatus handler
-     *
-     * @var Tabesh_Printing_Substatus
-     */
-    public $printing_substatus;
-
-    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -228,8 +221,6 @@ final class Tabesh {
         $this->ftp_handler = new Tabesh_FTP_Handler();
         $this->file_validator = new Tabesh_File_Validator();
         $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
-        // Initialize printing substatus handler
-        $this->printing_substatus = new Tabesh_Printing_Substatus();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -534,29 +525,6 @@ final class Tabesh {
             KEY created_at (created_at)
         ) $charset_collate;";
 
-        // Printing substatus table - stores detailed printing workflow tracking
-        $table_printing_substatus = $wpdb->prefix . 'tabesh_printing_substatus';
-        $sql_printing_substatus = "CREATE TABLE IF NOT EXISTS $table_printing_substatus (
-            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            order_id bigint(20) UNSIGNED NOT NULL,
-            cover_printing tinyint(1) DEFAULT 0,
-            cover_printing_details varchar(255) DEFAULT NULL,
-            cover_lamination tinyint(1) DEFAULT 0,
-            cover_lamination_details varchar(255) DEFAULT NULL,
-            text_printing tinyint(1) DEFAULT 0,
-            text_printing_details varchar(255) DEFAULT NULL,
-            binding tinyint(1) DEFAULT 0,
-            binding_details varchar(255) DEFAULT NULL,
-            additional_services text DEFAULT NULL,
-            completed_at datetime DEFAULT NULL,
-            completed_by bigint(20) UNSIGNED DEFAULT NULL,
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY order_id (order_id),
-            KEY completed_at (completed_at)
-        ) $charset_collate;";
-
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_orders);
         dbDelta($sql_settings);
@@ -569,7 +537,6 @@ final class Tabesh {
         dbDelta($sql_document_metadata);
         dbDelta($sql_download_tokens);
         dbDelta($sql_security_logs);
-        dbDelta($sql_printing_substatus);
     }
 
     /**
@@ -1075,19 +1042,6 @@ final class Tabesh {
             'callback' => array($this->user, 'get_order_details'),
             'permission_callback' => array($this, 'is_user_logged_in')
         ));
-        
-        // Printing substatus routes
-        register_rest_route(TABESH_REST_NAMESPACE, '/printing-substatus/update', array(
-            'methods' => 'POST',
-            'callback' => array($this, 'rest_update_printing_substatus'),
-            'permission_callback' => array($this, 'can_manage_orders')
-        ));
-        
-        register_rest_route(TABESH_REST_NAMESPACE, '/printing-substatus/(?P<order_id>\d+)', array(
-            'methods' => 'GET',
-            'callback' => array($this, 'rest_get_printing_substatus'),
-            'permission_callback' => array($this, 'can_manage_orders')
-        ));
     }
 
     /**
@@ -1303,13 +1257,6 @@ final class Tabesh {
             TABESH_VERSION
         );
 
-        wp_enqueue_style(
-            'tabesh-staff',
-            TABESH_PLUGIN_URL . 'assets/css/staff.css',
-            array('tabesh-staff-panel'),
-            TABESH_VERSION
-        );
-
         wp_enqueue_script(
             'tabesh-frontend',
             TABESH_PLUGIN_URL . 'assets/js/frontend.js',
@@ -1330,14 +1277,6 @@ final class Tabesh {
             'tabesh-staff-panel',
             TABESH_PLUGIN_URL . 'assets/js/staff-panel.js',
             array('jquery'),
-            TABESH_VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'tabesh-staff',
-            TABESH_PLUGIN_URL . 'assets/js/staff.js',
-            array('jquery', 'tabesh-staff-panel'),
             TABESH_VERSION,
             true
         );
@@ -1399,18 +1338,6 @@ final class Tabesh {
                 'submitting' => __('در حال ثبت سفارش...', 'tabesh'),
                 'auth_error' => __('خطای احراز هویت. لطفاً مجدداً وارد شوید.', 'tabesh'),
                 'server_error' => __('خطا در برقراری ارتباط با سرور', 'tabesh')
-            )
-        ));
-        
-        // Localize data for staff panel printing substatus
-        wp_localize_script('tabesh-staff', 'tabeshStaffData', array(
-            'restUrl' => rest_url(TABESH_REST_NAMESPACE),
-            'nonce' => wp_create_nonce('wp_rest'),
-            'strings' => array(
-                'updating' => __('در حال به‌روزرسانی...', 'tabesh'),
-                'updated' => __('وضعیت به‌روزرسانی شد', 'tabesh'),
-                'error' => __('خطا در به‌روزرسانی', 'tabesh'),
-                'completed' => __('تکمیل شد', 'tabesh')
             )
         ));
     }
@@ -1526,107 +1453,6 @@ final class Tabesh {
         return new WP_REST_Response(array(
             'success' => true,
             'correction_fees' => $fees
-        ), 200);
-    }
-
-    /**
-     * REST API endpoint to update printing sub-status
-     * 
-     * @param WP_REST_Request $request Request object
-     * @return WP_REST_Response Response object
-     */
-    public function rest_update_printing_substatus($request) {
-        // Verify nonce
-        $nonce = $request->get_header('X-WP-Nonce');
-        if (!$nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
-            return new WP_REST_Response(array(
-                'success' => false,
-                'message' => __('درخواست نامعتبر است', 'tabesh')
-            ), 403);
-        }
-
-        $params = $request->get_json_params();
-        
-        $order_id = isset($params['order_id']) ? intval($params['order_id']) : 0;
-        $substatus_key = isset($params['substatus_key']) ? sanitize_text_field($params['substatus_key']) : '';
-        $value = isset($params['value']) ? intval($params['value']) : 0;
-        
-        if (!$order_id || !$substatus_key) {
-            return new WP_REST_Response(array(
-                'success' => false,
-                'message' => __('پارامترهای نامعتبر', 'tabesh')
-            ), 400);
-        }
-
-        // Update the sub-status
-        if ($substatus_key === 'additional_service') {
-            $service_name = isset($params['service_name']) ? sanitize_text_field($params['service_name']) : '';
-            if (!$service_name) {
-                return new WP_REST_Response(array(
-                    'success' => false,
-                    'message' => __('نام سرویس الزامی است', 'tabesh')
-                ), 400);
-            }
-            
-            $result = $this->printing_substatus->update_additional_service($order_id, $service_name, $value);
-        } else {
-            $result = $this->printing_substatus->update_printing_substatus($order_id, $substatus_key, $value);
-        }
-
-        if (!$result) {
-            return new WP_REST_Response(array(
-                'success' => false,
-                'message' => __('خطا در به‌روزرسانی وضعیت', 'tabesh')
-            ), 500);
-        }
-
-        // Get updated data
-        $substatus = $this->printing_substatus->get_printing_substatus($order_id);
-        $percentage = $this->printing_substatus->get_completion_percentage($order_id);
-        $is_completed = $this->printing_substatus->check_printing_completion($order_id);
-
-        return new WP_REST_Response(array(
-            'success' => true,
-            'data' => $substatus,
-            'percentage' => $percentage,
-            'completed' => $is_completed,
-            'message' => __('وضعیت با موفقیت به‌روزرسانی شد', 'tabesh')
-        ), 200);
-    }
-
-    /**
-     * REST API endpoint to get printing sub-status for an order
-     * 
-     * @param WP_REST_Request $request Request object
-     * @return WP_REST_Response Response object
-     */
-    public function rest_get_printing_substatus($request) {
-        $order_id = intval($request->get_param('order_id'));
-        
-        if ($order_id <= 0) {
-            return new WP_REST_Response(array(
-                'success' => false,
-                'message' => __('شناسه سفارش نامعتبر است', 'tabesh')
-            ), 400);
-        }
-
-        $substatus = $this->printing_substatus->get_printing_substatus($order_id);
-        
-        if (!$substatus) {
-            return new WP_REST_Response(array(
-                'success' => false,
-                'message' => __('وضعیت چاپ یافت نشد', 'tabesh')
-            ), 404);
-        }
-
-        $percentage = $this->printing_substatus->get_completion_percentage($order_id);
-        $is_completed = $this->printing_substatus->check_printing_completion($order_id);
-
-        return new WP_REST_Response(array(
-            'success' => true,
-            'data' => $substatus,
-            'percentage' => $percentage,
-            'completed' => $is_completed
         ), 200);
     }
 

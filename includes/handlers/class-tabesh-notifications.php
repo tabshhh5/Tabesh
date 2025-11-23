@@ -24,11 +24,11 @@ class Tabesh_Notifications {
     /**
      * Send SMS via MelliPayamak
      *
-     * @param string $to Phone number.
-     * @param string $message Message text.
+     * @param string $to Phone number
+     * @param string $message Message text
      * @return bool|WP_Error
      */
-    public function send_sms( $to, $message ) {
+    private function send_sms($to, $message) {
         $admin = Tabesh()->admin;
         
         $username = $admin->get_setting('mellipayamak_username');
