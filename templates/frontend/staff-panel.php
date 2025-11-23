@@ -311,9 +311,9 @@ $status_order = array('pending', 'confirmed', 'processing', 'ready', 'completed'
                                     }
                             ?>
                             <div class="printing-substatus-section" data-order-id="<?php echo esc_attr($order->id); ?>">
-                                <div class="printing-substatus-header">
-                                    <span class="printing-substatus-icon">🖨️</span>
-                                    <h4 class="printing-substatus-title"><?php _e('جزئیات فرایند چاپ', 'tabesh'); ?></h4>
+                                <div class="section-header printing-substatus-header">
+                                    <span class="section-icon">🖨️</span>
+                                    <h4 class="section-title"><?php _e('جزئیات فرایند چاپ', 'tabesh'); ?></h4>
                                     <button class="toggle-substatus-btn" 
                                             aria-label="<?php esc_attr_e('نمایش/مخفی کردن جزئیات', 'tabesh'); ?>"
                                             aria-expanded="false">
@@ -324,12 +324,12 @@ $status_order = array('pending', 'confirmed', 'processing', 'ready', 'completed'
                                 <div class="printing-substatus-content" style="display: none;">
                                     <!-- Progress Overview -->
                                     <div class="progress-overview">
-                                        <div class="printing-substatus-progress-label">
+                                        <div class="progress-label">
                                             <span><?php _e('پیشرفت کلی:', 'tabesh'); ?></span>
-                                            <span class="printing-substatus-progress-percentage"><?php echo esc_html($percentage); ?>%</span>
+                                            <span class="progress-percentage"><?php echo esc_html($percentage); ?>%</span>
                                         </div>
-                                        <div class="printing-substatus-progress-bar-container">
-                                            <div class="printing-substatus-progress-bar" style="width: <?php echo esc_attr($percentage); ?>%"></div>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar" style="width: <?php echo esc_attr($percentage); ?>%"></div>
                                         </div>
                                     </div>
                                     

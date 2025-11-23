@@ -1303,11 +1303,10 @@ final class Tabesh {
             TABESH_VERSION
         );
 
-        // Load printing substatus styles with proper dependencies
         wp_enqueue_style(
-            'tabesh-printing-substatus',
+            'tabesh-staff',
             TABESH_PLUGIN_URL . 'assets/css/staff.css',
-            array('tabesh-staff-panel', 'tabesh-frontend'),
+            array('tabesh-staff-panel'),
             TABESH_VERSION
         );
 

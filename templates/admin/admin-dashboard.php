@@ -257,3 +257,39 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+
+<style>
+/* Mini Printing Progress Indicator */
+.printing-progress-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.progress-bar-mini {
+    flex: 1;
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, #4a90e2 0%, #67b26f 100%);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.progress-text-mini {
+    font-weight: 600;
+    color: #4a90e2;
+    min-width: 32px;
+    text-align: left;
+}
+</style>

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تست پنل کارمندان - Tabesh Staff Panel Test</title>
     <link rel="stylesheet" href="assets/css/staff-panel.css">
-    <link rel="stylesheet" href="assets/css/staff.css">
     <style>
         /* Add Vazir font */
         @font-face {
@@ -180,83 +179,6 @@
                             </div>
                         </div>
 
-                        <!-- Printing Workflow Sub-statuses (NEW SECTION - PR #10 Fix) -->
-                        <div class="printing-substatus-section" data-order-id="1234">
-                            <div class="printing-substatus-header">
-                                <span class="printing-substatus-icon">🖨️</span>
-                                <h4 class="printing-substatus-title">جزئیات فرایند چاپ</h4>
-                                <button class="toggle-substatus-btn" 
-                                        aria-label="نمایش/مخفی کردن جزئیات"
-                                        aria-expanded="true"
-                                        onclick="toggleSubstatus(this)">
-                                    <span class="toggle-icon">▼</span>
-                                </button>
-                            </div>
-                            
-                            <div class="printing-substatus-content">
-                                <!-- Progress Overview -->
-                                <div class="progress-overview">
-                                    <div class="printing-substatus-progress-label">
-                                        <span>پیشرفت کلی:</span>
-                                        <span class="printing-substatus-progress-percentage">60%</span>
-                                    </div>
-                                    <div class="printing-substatus-progress-bar-container">
-                                        <div class="printing-substatus-progress-bar" style="width: 60%"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Checklist -->
-                                <div class="printing-checklist">
-                                    <!-- Cover Printing -->
-                                    <label class="substatus-item">
-                                        <input type="checkbox" 
-                                               class="substatus-checkbox" 
-                                               data-substatus="cover_printing"
-                                               checked>
-                                        <span class="substatus-label">
-                                            چاپ جلد
-                                            <span class="substatus-details">(رنگی - کاغذ گلاسه 250 گرم)</span>
-                                        </span>
-                                    </label>
-                                    
-                                    <!-- Cover Lamination -->
-                                    <label class="substatus-item">
-                                        <input type="checkbox" 
-                                               class="substatus-checkbox" 
-                                               data-substatus="cover_lamination"
-                                               checked>
-                                        <span class="substatus-label">
-                                            سلفون جلد
-                                            <span class="substatus-details">(سلفون براق)</span>
-                                        </span>
-                                    </label>
-                                    
-                                    <!-- Text Printing -->
-                                    <label class="substatus-item">
-                                        <input type="checkbox" 
-                                               class="substatus-checkbox" 
-                                               data-substatus="text_printing"
-                                               checked>
-                                        <span class="substatus-label">
-                                            چاپ متن کتاب
-                                            <span class="substatus-details">(سیاه و سفید - 250 صفحه)</span>
-                                        </span>
-                                    </label>
-                                    
-                                    <!-- Binding -->
-                                    <label class="substatus-item">
-                                        <input type="checkbox" 
-                                               class="substatus-checkbox" 
-                                               data-substatus="binding">
-                                        <span class="substatus-label">
-                                            صحافی
-                                            <span class="substatus-details">(شومیز)</span>
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Status Update -->
                         <div class="status-update-section">
                             <div class="section-header">
@@ -409,23 +331,6 @@
                 toast.style.transform = 'translate(-50%, -30px)';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
-        }
-
-        function toggleSubstatus(button) {
-            const section = button.closest('.printing-substatus-section');
-            const content = section.querySelector('.printing-substatus-content');
-            const icon = button.querySelector('.toggle-icon');
-            const isExpanded = button.getAttribute('aria-expanded') === 'true';
-            
-            if (isExpanded) {
-                content.style.display = 'none';
-                button.setAttribute('aria-expanded', 'false');
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                content.style.display = 'block';
-                button.setAttribute('aria-expanded', 'true');
-                icon.style.transform = 'rotate(180deg)';
-            }
         }
     </script>
 </body>

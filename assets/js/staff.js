@@ -151,8 +151,8 @@
          * Update progress bar
          */
         updateProgressBar: function($section, percentage) {
-            const $progressBar = $section.find('.printing-substatus-progress-bar');
-            const $progressPercentage = $section.find('.printing-substatus-progress-percentage');
+            const $progressBar = $section.find('.progress-bar');
+            const $progressPercentage = $section.find('.progress-percentage');
             
             // Animate progress bar
             $progressBar.css('width', percentage + '%');

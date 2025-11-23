@@ -38,12 +38,12 @@
     background: linear-gradient(to bottom, #f8f9fa, #f0f2f5);
 }
 
-.printing-substatus-header .printing-substatus-icon {
+.printing-substatus-header .section-icon {
     font-size: 1.5rem;
     margin-left: 0.5rem;
 }
 
-.printing-substatus-header .printing-substatus-title {
+.printing-substatus-header .section-title {
     flex: 1;
     margin: 0;
     font-size: 1.1rem;
@@ -102,7 +102,7 @@
     border: 1px solid #e3e7ed;
 }
 
-.printing-substatus-progress-label {
+.progress-label {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -112,13 +112,13 @@
     font-weight: 500;
 }
 
-.printing-substatus-progress-percentage {
+.progress-percentage {
     font-size: 1.1rem;
     font-weight: 700;
     color: #4a90e2;
 }
 
-.printing-substatus-progress-bar-container {
+.progress-bar-container {
     width: 100%;
     height: 24px;
     background: #e9ecef;
@@ -128,7 +128,7 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.printing-substatus-progress-bar {
+.progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #4a90e2 0%, #67b26f 100%);
     border-radius: 12px;
@@ -137,7 +137,7 @@
     overflow: hidden;
 }
 
-.printing-substatus-progress-bar::after {
+.progress-bar::after {
     content: '';
     position: absolute;
     top: 0;
@@ -284,11 +284,11 @@
         padding: 0.75rem 1rem;
     }
     
-    .printing-substatus-header .printing-substatus-icon {
+    .printing-substatus-header .section-icon {
         font-size: 1.25rem;
     }
     
-    .printing-substatus-header .printing-substatus-title {
+    .printing-substatus-header .section-title {
         font-size: 1rem;
     }
     
@@ -300,15 +300,15 @@
         padding: 0.75rem;
     }
     
-    .printing-substatus-progress-label {
+    .progress-label {
         font-size: 0.875rem;
     }
     
-    .printing-substatus-progress-percentage {
+    .progress-percentage {
         font-size: 1rem;
     }
     
-    .printing-substatus-progress-bar-container {
+    .progress-bar-container {
         height: 20px;
     }
     
@@ -347,7 +347,7 @@
    RTL Support
    ============================================ */
 
-[dir="rtl"] .printing-substatus-header .printing-substatus-icon {
+[dir="rtl"] .printing-substatus-header .section-icon {
     margin-left: 0;
     margin-right: 0.5rem;
 }
@@ -375,7 +375,7 @@
     border-bottom-color: #4a5568;
 }
 
-[data-theme="dark"] .printing-substatus-header .printing-substatus-title {
+[data-theme="dark"] .printing-substatus-header .section-title {
     color: #ecf0f1;
 }
 
@@ -384,11 +384,11 @@
     border-color: #4a5568;
 }
 
-[data-theme="dark"] .printing-substatus-progress-label {
+[data-theme="dark"] .progress-label {
     color: #ecf0f1;
 }
 
-[data-theme="dark"] .printing-substatus-progress-bar-container {
+[data-theme="dark"] .progress-bar-container {
     background: #2c3e50;
 }
 
