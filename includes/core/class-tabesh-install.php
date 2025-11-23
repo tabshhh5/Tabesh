@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.3.0';
+    const DB_VERSION = '1.2.0';
 
     /**
      * Database version option name
@@ -146,31 +146,6 @@ class Tabesh_Install {
                     error_log('Tabesh: ERROR - Failed to add status columns: ' . $wpdb->last_error);
                 } else {
                     error_log('Tabesh: SUCCESS - Added status columns to logs table');
-                }
-            }
-        }
-        
-        // Add sub_statuses column to orders table for printing workflow tracking
-        if (self::table_exists($table_orders)) {
-            if (!self::column_exists($table_orders, 'sub_statuses')) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('Tabesh: Adding sub_statuses column to orders table');
-                }
-                
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                $result = $wpdb->query(
-                    "ALTER TABLE `{$table_orders}` 
-                    ADD COLUMN `sub_statuses` LONGTEXT DEFAULT NULL AFTER `status`"
-                );
-                
-                if ($result === false) {
-                    error_log('Tabesh: ERROR - Failed to add sub_statuses column: ' . $wpdb->last_error);
-                } else {
-                    error_log('Tabesh: SUCCESS - Added sub_statuses column to orders table');
-                }
-            } else {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('Tabesh: sub_statuses column already exists');
                 }
             }
         }

@@ -308,7 +308,6 @@ final class Tabesh {
             extras longtext DEFAULT NULL,
             total_price decimal(10,2) NOT NULL,
             status varchar(50) NOT NULL DEFAULT 'pending',
-            sub_statuses longtext DEFAULT NULL,
             files longtext DEFAULT NULL,
             notes longtext DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1042,13 +1041,6 @@ final class Tabesh {
             'methods' => 'GET',
             'callback' => array($this->user, 'get_order_details'),
             'permission_callback' => array($this, 'is_user_logged_in')
-        ));
-        
-        // Sub-status management route
-        register_rest_route(TABESH_REST_NAMESPACE, '/update-substatus', array(
-            'methods' => 'POST',
-            'callback' => array($this->staff, 'update_sub_status_rest'),
-            'permission_callback' => array($this, 'can_manage_orders')
         ));
     }
 
