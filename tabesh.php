@@ -1237,8 +1237,17 @@ final class Tabesh {
         }
         
         // Use filemtime for cache busting in development
-        $css_version = WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/css/frontend.css') : TABESH_VERSION;
-        $js_version = WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/js/frontend.js') : TABESH_VERSION;
+        // Helper function to safely get file modification time
+        $get_file_version = function($file_path) {
+            if (WP_DEBUG && file_exists($file_path)) {
+                $mtime = @filemtime($file_path);
+                return $mtime !== false ? $mtime : TABESH_VERSION;
+            }
+            return TABESH_VERSION;
+        };
+        
+        $css_version = $get_file_version(TABESH_PLUGIN_DIR . 'assets/css/frontend.css');
+        $js_version = $get_file_version(TABESH_PLUGIN_DIR . 'assets/js/frontend.js');
         
         wp_enqueue_style(
             'tabesh-frontend',
@@ -1251,11 +1260,11 @@ final class Tabesh {
             'tabesh-file-upload',
             TABESH_PLUGIN_URL . 'assets/css/file-upload.css',
             array(),
-            WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/css/file-upload.css') : TABESH_VERSION
+            $get_file_version(TABESH_PLUGIN_DIR . 'assets/css/file-upload.css')
         );
 
         // Enqueue staff panel assets with higher specificity and cache busting
-        $staff_css_version = WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/css/staff-panel.css') : TABESH_VERSION;
+        $staff_css_version = $get_file_version(TABESH_PLUGIN_DIR . 'assets/css/staff-panel.css');
         wp_enqueue_style(
             'tabesh-staff-panel',
             TABESH_PLUGIN_URL . 'assets/css/staff-panel.css',
@@ -1275,11 +1284,11 @@ final class Tabesh {
             'tabesh-file-upload',
             TABESH_PLUGIN_URL . 'assets/js/file-upload.js',
             array('jquery', 'tabesh-frontend'),
-            WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/js/file-upload.js') : TABESH_VERSION,
+            $get_file_version(TABESH_PLUGIN_DIR . 'assets/js/file-upload.js'),
             true
         );
 
-        $staff_js_version = WP_DEBUG ? filemtime(TABESH_PLUGIN_DIR . 'assets/js/staff-panel.js') : TABESH_VERSION;
+        $staff_js_version = $get_file_version(TABESH_PLUGIN_DIR . 'assets/js/staff-panel.js');
         wp_enqueue_script(
             'tabesh-staff-panel',
             TABESH_PLUGIN_URL . 'assets/js/staff-panel.js',
@@ -1401,6 +1410,7 @@ final class Tabesh {
             'nonce' => wp_create_nonce('wp_rest'),
             'ajaxNonce' => wp_create_nonce('tabesh_nonce'), // For AJAX backward compatibility (field name: 'security')
             'logoutUrl' => wp_logout_url(home_url()),
+            'debug' => WP_DEBUG, // Add debug flag for conditional console logging
             // Settings - all decoded as arrays/objects for frontend use
             'settings' => array(
                 'paperTypes' => $paper_types,

@@ -529,11 +529,17 @@
         if ($('.tabesh-staff-panel').length > 0) {
             try {
                 StaffPanel.init();
-                console.log('Tabesh Staff Panel: Initialized successfully');
+                // Only log in debug mode (check if console exists and tabeshData has debug flag)
+                if (typeof console !== 'undefined' && console.log) {
+                    console.log('Tabesh Staff Panel: Initialized successfully');
+                }
             } catch (error) {
-                console.error('Tabesh Staff Panel: Initialization error:', error);
+                // Always log errors
+                if (typeof console !== 'undefined' && console.error) {
+                    console.error('Tabesh Staff Panel: Initialization error:', error);
+                }
             }
-        } else {
+        } else if (typeof console !== 'undefined' && console.log && typeof tabeshData !== 'undefined' && tabeshData.debug) {
             console.log('Tabesh Staff Panel: Element not found on page');
         }
     });
