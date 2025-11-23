@@ -21,6 +21,15 @@
          * Initialize printing substatus functionality
          */
         init: function() {
+            // Check if tabeshStaffData is available
+            if (typeof window.tabeshStaffData === 'undefined') {
+                console.warn('Tabesh: tabeshStaffData not found. Printing substatus features disabled.');
+                this.showToast('error', 'خطا: اطلاعات سیستم در دسترس نیست. لطفاً صفحه را مجدداً بارگذاری کنید.');
+                // Disable all checkboxes to prevent interaction
+                $('.substatus-checkbox').prop('disabled', true);
+                return;
+            }
+            
             this.bindEvents();
         },
 
@@ -57,10 +66,12 @@
             const isExpanded = $button.attr('aria-expanded') === 'true';
             
             if (isExpanded) {
-                $content.slideUp(300);
+                $content.slideUp(300, function() {
+                    $(this).addClass('is-hidden');
+                });
                 $button.attr('aria-expanded', 'false');
             } else {
-                $content.slideDown(300);
+                $content.removeClass('is-hidden').slideDown(300);
                 $button.attr('aria-expanded', 'true');
             }
         },
@@ -134,7 +145,17 @@
          * Send substatus update to server
          */
         updateSubstatus: function(data) {
-            const restUrl = buildRestUrl(window.tabeshStaffData.rest_url, 'printing-substatus/update');
+            // Safely access REST URL with fallback
+            const restBaseUrl = window.tabeshStaffData?.restUrl || window.tabeshStaffData?.rest_url;
+            if (!restBaseUrl) {
+                return $.Deferred().reject({
+                    responseJSON: {
+                        message: 'خطا: آدرس API در دسترس نیست'
+                    }
+                }).promise();
+            }
+            
+            const restUrl = buildRestUrl(restBaseUrl, 'printing-substatus/update');
             
             return $.ajax({
                 url: restUrl,
@@ -142,7 +163,10 @@
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 beforeSend: function(xhr) {
-                    xhr.setRequestHeader('X-WP-Nonce', window.tabeshStaffData.nonce);
+                    const nonce = window.tabeshStaffData?.nonce;
+                    if (nonce) {
+                        xhr.setRequestHeader('X-WP-Nonce', nonce);
+                    }
                 }
             });
         },
