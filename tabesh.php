@@ -1367,6 +1367,13 @@ final class Tabesh {
             }
         ";
         wp_add_inline_style('tabesh-staff-panel', $staff_panel_inline_css);
+        
+        // Debug logging for asset loading (only in debug mode)
+        if (WP_DEBUG && WP_DEBUG_LOG) {
+            error_log('Tabesh: Frontend assets enqueued');
+            error_log('Tabesh: Staff Panel CSS version: ' . $staff_css_version);
+            error_log('Tabesh: Staff Panel JS version: ' . $staff_js_version);
+        }
 
         // Get all settings for frontend - always returns decoded arrays/objects
         $paper_types = $this->admin->get_setting('paper_types', array(

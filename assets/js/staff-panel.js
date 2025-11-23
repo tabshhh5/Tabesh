@@ -527,7 +527,14 @@
     // Initialize when document is ready
     $(document).ready(function() {
         if ($('.tabesh-staff-panel').length > 0) {
-            StaffPanel.init();
+            try {
+                StaffPanel.init();
+                console.log('Tabesh Staff Panel: Initialized successfully');
+            } catch (error) {
+                console.error('Tabesh Staff Panel: Initialization error:', error);
+            }
+        } else {
+            console.log('Tabesh Staff Panel: Element not found on page');
         }
     });
 

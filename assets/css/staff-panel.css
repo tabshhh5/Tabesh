@@ -107,10 +107,26 @@
    Base Styles & Reset
    ========================================== */
 
+/* Reset all elements within staff panel to prevent inheritance issues */
 .tabesh-staff-panel * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+/* Reset specific elements that might inherit unwanted styles */
+.tabesh-staff-panel a,
+.tabesh-staff-panel button,
+.tabesh-staff-panel input,
+.tabesh-staff-panel select,
+.tabesh-staff-panel textarea {
+    font-size: inherit;
+    line-height: inherit;
+    text-decoration: none;
+    background: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .tabesh-staff-panel {
@@ -122,6 +138,8 @@
     color: var(--text-primary);
     transition: background var(--transition-speed), color var(--transition-speed);
     line-height: 1.6;
+    isolation: isolate; /* Create new stacking context */
+    position: relative; /* Ensure proper positioning context */
 }
 
 /* ==========================================
