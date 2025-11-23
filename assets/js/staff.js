@@ -21,16 +21,6 @@
          * Initialize printing substatus functionality
          */
         init: function() {
-            // Check if tabeshStaffData is available
-            if (typeof window.tabeshStaffData === 'undefined') {
-                console.warn('Tabesh: tabeshStaffData not found. Printing substatus features disabled.');
-                // Use vanilla JS toast that doesn't depend on tabeshStaffData
-                this.showSimpleToast('خطا: اطلاعات سیستم در دسترس نیست. لطفاً صفحه را مجدداً بارگذاری کنید.');
-                // Disable all checkboxes to prevent interaction
-                $('.substatus-checkbox').prop('disabled', true);
-                return;
-            }
-            
             this.bindEvents();
         },
 
@@ -67,12 +57,10 @@
             const isExpanded = $button.attr('aria-expanded') === 'true';
             
             if (isExpanded) {
-                $content.slideUp(300, function() {
-                    $(this).addClass('is-hidden');
-                });
+                $content.slideUp(300);
                 $button.attr('aria-expanded', 'false');
             } else {
-                $content.removeClass('is-hidden').slideDown(300);
+                $content.slideDown(300);
                 $button.attr('aria-expanded', 'true');
             }
         },
@@ -146,27 +134,7 @@
          * Send substatus update to server
          */
         updateSubstatus: function(data) {
-            // Safely access tabeshStaffData
-            const staffData = window.tabeshStaffData;
-            if (!staffData) {
-                return $.Deferred().reject({
-                    responseJSON: {
-                        message: 'خطا: اطلاعات سیستم در دسترس نیست'
-                    }
-                }).promise();
-            }
-            
-            // Access REST URL with fallback for both key variations
-            const restBaseUrl = staffData.restUrl || staffData.rest_url;
-            if (!restBaseUrl) {
-                return $.Deferred().reject({
-                    responseJSON: {
-                        message: 'خطا: آدرس API در دسترس نیست'
-                    }
-                }).promise();
-            }
-            
-            const restUrl = buildRestUrl(restBaseUrl, 'printing-substatus/update');
+            const restUrl = buildRestUrl(window.tabeshStaffData.rest_url, 'printing-substatus/update');
             
             return $.ajax({
                 url: restUrl,
@@ -174,10 +142,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 beforeSend: function(xhr) {
-                    const nonce = staffData.nonce;
-                    if (nonce) {
-                        xhr.setRequestHeader('X-WP-Nonce', nonce);
-                    }
+                    xhr.setRequestHeader('X-WP-Nonce', window.tabeshStaffData.nonce);
                 }
             });
         },
@@ -265,33 +230,6 @@
                     $toast.remove();
                 }, 300);
             }, 3000);
-        },
-
-        /**
-         * Show simple toast without dependencies (for error cases)
-         */
-        showSimpleToast: function(message) {
-            const toast = document.createElement('div');
-            toast.className = 'tabesh-toast tabesh-toast-error';
-            toast.textContent = message;
-            toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10000;background:#f44336;color:#fff;padding:12px 24px;border-radius:8px;font-size:0.95rem;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-            
-            document.body.appendChild(toast);
-            
-            // Animate in
-            setTimeout(() => {
-                toast.style.opacity = '1';
-            }, 10);
-            
-            // Auto remove
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 300);
-            }, 4000);
         }
     };
 

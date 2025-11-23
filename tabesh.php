@@ -3,7 +3,7 @@
  * Plugin Name: Tabesh - سامانه جامع ثبت سفارش چاپ کتاب
  * Plugin URI: https://chapco.ir
  * Description: A comprehensive system for managing, calculating, and processing book printing orders with full WooCommerce integration.
- * Version: 2.0.1
+ * Version: 1.0.2
  * Author: Chapco
  * Author URI: https://chapco.ir
  * Text Domain: tabesh
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('TABESH_VERSION', '2.0.1');
+define('TABESH_VERSION', '1.0.2');
 define('TABESH_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TABESH_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TABESH_PLUGIN_FILE', __FILE__);
@@ -1406,7 +1406,6 @@ final class Tabesh {
         // Localize data for staff panel printing substatus
         wp_localize_script('tabesh-staff', 'tabeshStaffData', array(
             'restUrl' => rest_url(TABESH_REST_NAMESPACE),
-            'rest_url' => rest_url(TABESH_REST_NAMESPACE), // Backward compatibility
             'nonce' => wp_create_nonce('wp_rest'),
             'strings' => array(
                 'updating' => __('در حال به‌روزرسانی...', 'tabesh'),

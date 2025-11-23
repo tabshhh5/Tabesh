@@ -5,25 +5,6 @@ All notable changes to the Tabesh plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] - 2024-11-23
-
-### Fixed
-- **Printing Substatus CSS/JS Isolation:**
-  - Scoped all generic CSS selectors (`.progress-overview`, `.toggle-icon`, `.completion-text`, `.substatus-item`) with `.printing-substatus-section` parent selector to prevent style leakage
-  - Renamed keyframes with prefix: `slideDown` → `printing-substatus-slideDown`, `shimmer` → `printing-substatus-shimmer`, `fadeIn` → `printing-substatus-fadeIn`
-  - Wrapped all media query rules with parent scoping for mobile responsiveness (768px, 480px breakpoints)
-  - Wrapped all dark theme `[data-theme="dark"]` rules with parent scoping
-  - Replaced inline `style="display: none;"` with semantic `is-hidden` class in template
-  - Added graceful fallback in `staff.js` when `tabeshStaffData` is undefined - shows Persian toast error instead of silent failure
-  - Fixed localization key mismatch: added both `restUrl` and `rest_url` keys for backward compatibility
-  - Updated toggle logic to work with `is-hidden` class alongside jQuery slideUp/slideDown animations
-  - Removed inline `onclick` handlers from test HTML, unified with jQuery event delegation
-  - Added jQuery and staff.js to test HTML with mock `tabeshStaffData` object
-
-### Changed
-- Incremented plugin version from 1.0.2 to 2.0.1 for cache busting
-- Updated test HTML to use proper jQuery-based event handling instead of inline handlers
-
 ## [Unreleased]
 
 ### Fixed

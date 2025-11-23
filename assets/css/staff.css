@@ -69,22 +69,17 @@
     transform: rotate(180deg);
 }
 
-.printing-substatus-section .toggle-icon {
+.toggle-icon {
     display: inline-block;
     transition: transform 0.3s ease;
 }
 
 .printing-substatus-content {
     padding: 1.5rem;
-    animation: printing-substatus-slideDown 0.3s ease-in-out;
+    animation: slideDown 0.3s ease-in-out;
 }
 
-/* Hidden state utility */
-.printing-substatus-content.is-hidden {
-    display: none;
-}
-
-@keyframes printing-substatus-slideDown {
+@keyframes slideDown {
     from {
         opacity: 0;
         transform: translateY(-10px);
@@ -99,7 +94,7 @@
    Progress Overview
    ============================================ */
 
-.printing-substatus-section .progress-overview {
+.progress-overview {
     margin-bottom: 1.5rem;
     padding: 1rem;
     background: #ffffff;
@@ -155,10 +150,10 @@
         rgba(255, 255, 255, 0.3) 50%,
         transparent 100%
     );
-    animation: printing-substatus-shimmer 2s infinite;
+    animation: shimmer 2s infinite;
 }
 
-@keyframes printing-substatus-shimmer {
+@keyframes shimmer {
     0% {
         transform: translateX(-100%);
     }
@@ -171,13 +166,13 @@
    Printing Checklist
    ============================================ */
 
-.printing-substatus-section .printing-checklist {
+.printing-checklist {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-.printing-substatus-section .substatus-item {
+.substatus-item {
     display: flex;
     align-items: flex-start;
     padding: 1rem;
@@ -189,19 +184,19 @@
     position: relative;
 }
 
-.printing-substatus-section .substatus-item:hover {
+.substatus-item:hover {
     border-color: #4a90e2;
     background: #f8f9fa;
     transform: translateX(-2px);
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
 }
 
-.printing-substatus-section .substatus-item:has(.substatus-checkbox:checked) {
+.substatus-item:has(.substatus-checkbox:checked) {
     background: #e8f5e9;
     border-color: #4caf50;
 }
 
-.printing-substatus-section .substatus-checkbox {
+.substatus-checkbox {
     width: 20px;
     height: 20px;
     margin-left: 0.75rem;
@@ -211,7 +206,7 @@
     flex-shrink: 0;
 }
 
-.printing-substatus-section .substatus-label {
+.substatus-label {
     flex: 1;
     font-size: 1rem;
     color: #2c3e50;
@@ -221,24 +216,24 @@
     gap: 0.25rem;
 }
 
-.printing-substatus-section .substatus-item:has(.substatus-checkbox:checked) .substatus-label {
+.substatus-item:has(.substatus-checkbox:checked) .substatus-label {
     text-decoration: line-through;
     opacity: 0.7;
 }
 
-.printing-substatus-section .substatus-details {
+.substatus-details {
     font-size: 0.85rem;
     color: #6c757d;
     font-weight: 400;
 }
 
 /* Loading state for checkboxes */
-.printing-substatus-section .substatus-checkbox:disabled {
+.substatus-checkbox:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.printing-substatus-section .substatus-item.updating {
+.substatus-item.updating {
     opacity: 0.6;
     pointer-events: none;
 }
@@ -247,7 +242,7 @@
    Completion Notice
    ============================================ */
 
-.printing-substatus-section .completion-notice {
+.completion-notice {
     margin-top: 1.5rem;
     padding: 1rem;
     background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
@@ -256,10 +251,10 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    animation: printing-substatus-fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.5s ease-in-out;
 }
 
-@keyframes printing-substatus-fadeIn {
+@keyframes fadeIn {
     from {
         opacity: 0;
         transform: scale(0.95);
@@ -270,11 +265,11 @@
     }
 }
 
-.printing-substatus-section .completion-icon {
+.completion-icon {
     font-size: 1.5rem;
 }
 
-.printing-substatus-section .completion-text {
+.completion-text {
     font-size: 0.95rem;
     font-weight: 600;
     color: #155724;
@@ -285,65 +280,65 @@
    ============================================ */
 
 @media (max-width: 768px) {
-    .printing-substatus-section .printing-substatus-header {
+    .printing-substatus-header {
         padding: 0.75rem 1rem;
     }
     
-    .printing-substatus-section .printing-substatus-header .printing-substatus-icon {
+    .printing-substatus-header .printing-substatus-icon {
         font-size: 1.25rem;
     }
     
-    .printing-substatus-section .printing-substatus-header .printing-substatus-title {
+    .printing-substatus-header .printing-substatus-title {
         font-size: 1rem;
     }
     
-    .printing-substatus-section .printing-substatus-content {
+    .printing-substatus-content {
         padding: 1rem;
     }
     
-    .printing-substatus-section .progress-overview {
+    .progress-overview {
         padding: 0.75rem;
     }
     
-    .printing-substatus-section .printing-substatus-progress-label {
+    .printing-substatus-progress-label {
         font-size: 0.875rem;
     }
     
-    .printing-substatus-section .printing-substatus-progress-percentage {
+    .printing-substatus-progress-percentage {
         font-size: 1rem;
     }
     
-    .printing-substatus-section .printing-substatus-progress-bar-container {
+    .printing-substatus-progress-bar-container {
         height: 20px;
     }
     
-    .printing-substatus-section .substatus-item {
+    .substatus-item {
         padding: 0.75rem;
     }
     
-    .printing-substatus-section .substatus-label {
+    .substatus-label {
         font-size: 0.9rem;
     }
     
-    .printing-substatus-section .substatus-details {
+    .substatus-details {
         font-size: 0.8rem;
     }
 }
 
 @media (max-width: 480px) {
-    .printing-substatus-section .printing-substatus-header {
+    .printing-substatus-header {
         padding: 0.5rem 0.75rem;
     }
     
-    .printing-substatus-section .printing-substatus-content {
+    .printing-substatus-content {
         padding: 0.75rem;
     }
     
-    .printing-substatus-section .progress-overview {
+    .progress-overview {
         padding: 0.5rem;
     }
     
-    .printing-substatus-section .substatus-item {
+    .substatus-item {
         padding: 0.5rem;
     }
 }
@@ -352,17 +347,17 @@
    RTL Support
    ============================================ */
 
-[dir="rtl"] .printing-substatus-section .printing-substatus-header .printing-substatus-icon {
+[dir="rtl"] .printing-substatus-header .printing-substatus-icon {
     margin-left: 0;
     margin-right: 0.5rem;
 }
 
-[dir="rtl"] .printing-substatus-section .substatus-checkbox {
+[dir="rtl"] .substatus-checkbox {
     margin-left: 0;
     margin-right: 0.75rem;
 }
 
-[dir="rtl"] .printing-substatus-section .substatus-item:hover {
+[dir="rtl"] .substatus-item:hover {
     transform: translateX(2px);
 }
 
@@ -375,53 +370,53 @@
     border-color: #4a5568;
 }
 
-[data-theme="dark"] .printing-substatus-section .printing-substatus-header {
+[data-theme="dark"] .printing-substatus-header {
     background: linear-gradient(to bottom, #34495e, #2c3e50);
     border-bottom-color: #4a5568;
 }
 
-[data-theme="dark"] .printing-substatus-section .printing-substatus-header .printing-substatus-title {
+[data-theme="dark"] .printing-substatus-header .printing-substatus-title {
     color: #ecf0f1;
 }
 
-[data-theme="dark"] .printing-substatus-section .progress-overview {
+[data-theme="dark"] .progress-overview {
     background: #34495e;
     border-color: #4a5568;
 }
 
-[data-theme="dark"] .printing-substatus-section .printing-substatus-progress-label {
+[data-theme="dark"] .printing-substatus-progress-label {
     color: #ecf0f1;
 }
 
-[data-theme="dark"] .printing-substatus-section .printing-substatus-progress-bar-container {
+[data-theme="dark"] .printing-substatus-progress-bar-container {
     background: #2c3e50;
 }
 
-[data-theme="dark"] .printing-substatus-section .substatus-item {
+[data-theme="dark"] .substatus-item {
     background: #34495e;
     border-color: #4a5568;
     color: #ecf0f1;
 }
 
-[data-theme="dark"] .printing-substatus-section .substatus-item:hover {
+[data-theme="dark"] .substatus-item:hover {
     background: #3d5770;
     border-color: #5a9fd4;
 }
 
-[data-theme="dark"] .printing-substatus-section .substatus-label {
+[data-theme="dark"] .substatus-label {
     color: #ecf0f1;
 }
 
-[data-theme="dark"] .printing-substatus-section .substatus-details {
+[data-theme="dark"] .substatus-details {
     color: #95a5a6;
 }
 
-[data-theme="dark"] .printing-substatus-section .completion-notice {
+[data-theme="dark"] .completion-notice {
     background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
     border-color: #1e8449;
 }
 
-[data-theme="dark"] .printing-substatus-section .completion-text {
+[data-theme="dark"] .completion-text {
     color: #ecf0f1;
 }
 

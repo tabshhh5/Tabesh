@@ -6,22 +6,6 @@
     <title>تست پنل کارمندان - Tabesh Staff Panel Test</title>
     <link rel="stylesheet" href="assets/css/staff-panel.css">
     <link rel="stylesheet" href="assets/css/staff.css">
-    <!-- Add jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <!-- Mock tabeshStaffData for testing -->
-    <script>
-        window.tabeshStaffData = {
-            restUrl: '/wp-json/tabesh/v1',
-            rest_url: '/wp-json/tabesh/v1', // Backward compatibility
-            nonce: 'test-nonce-12345',
-            strings: {
-                updating: 'در حال به‌روزرسانی...',
-                updated: 'وضعیت به‌روزرسانی شد',
-                error: 'خطا در به‌روزرسانی',
-                completed: 'تکمیل شد'
-            }
-        };
-    </script>
     <style>
         /* Add Vazir font */
         @font-face {
@@ -203,12 +187,13 @@
                                 <h4 class="printing-substatus-title">جزئیات فرایند چاپ</h4>
                                 <button class="toggle-substatus-btn" 
                                         aria-label="نمایش/مخفی کردن جزئیات"
-                                        aria-expanded="false">
+                                        aria-expanded="true"
+                                        onclick="toggleSubstatus(this)">
                                     <span class="toggle-icon">▼</span>
                                 </button>
                             </div>
                             
-                            <div class="printing-substatus-content is-hidden">
+                            <div class="printing-substatus-content">
                                 <!-- Progress Overview -->
                                 <div class="progress-overview">
                                     <div class="printing-substatus-progress-label">
@@ -426,9 +411,22 @@
             }, 3000);
         }
 
-        // Load staff.js after defining mock data
+        function toggleSubstatus(button) {
+            const section = button.closest('.printing-substatus-section');
+            const content = section.querySelector('.printing-substatus-content');
+            const icon = button.querySelector('.toggle-icon');
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            
+            if (isExpanded) {
+                content.style.display = 'none';
+                button.setAttribute('aria-expanded', 'false');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.display = 'block';
+                button.setAttribute('aria-expanded', 'true');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
     </script>
-    <script src="assets/js/staff-panel.js"></script>
-    <script src="assets/js/staff.js"></script>
 </body>
 </html>

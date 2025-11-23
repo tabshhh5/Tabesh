@@ -321,7 +321,7 @@ $status_order = array('pending', 'confirmed', 'processing', 'ready', 'completed'
                                     </button>
                                 </div>
                                 
-                                <div class="printing-substatus-content is-hidden">
+                                <div class="printing-substatus-content" style="display: none;">
                                     <!-- Progress Overview -->
                                     <div class="progress-overview">
                                         <div class="printing-substatus-progress-label">
