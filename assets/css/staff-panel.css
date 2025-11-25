@@ -1410,3 +1410,187 @@ input:focus-visible,
     margin-bottom: 20px !important;
 }
 
+/* ==========================================
+   Print Subtasks Section
+   ========================================== */
+
+html body .tabesh-staff-panel .print-subtasks-section {
+    padding: 25px;
+    border-bottom: 1px solid var(--text-muted);
+    background: var(--bg-primary);
+}
+
+html body .tabesh-staff-panel .subtasks-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+html body .tabesh-staff-panel .progress-bar {
+    flex: 1;
+    height: 12px;
+    background: var(--text-muted);
+    border-radius: var(--border-radius-full);
+    overflow: hidden;
+    box-shadow: var(--shadow-neumorphic-inset);
+}
+
+html body .tabesh-staff-panel .progress-fill {
+    height: 100%;
+    background: var(--gradient-primary);
+    width: 0%;
+    transition: width var(--transition-speed);
+    border-radius: var(--border-radius-full);
+}
+
+html body .tabesh-staff-panel .progress-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 50px;
+    text-align: left;
+}
+
+html body .tabesh-staff-panel .subtasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+html body .tabesh-staff-panel .subtasks-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+html body .tabesh-staff-panel .loading-spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--text-muted);
+    border-top-color: var(--accent-blue);
+    border-radius: var(--border-radius-full);
+    animation: spin 0.8s linear infinite;
+}
+
+html body .tabesh-staff-panel .subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: var(--bg-card);
+    border-radius: var(--border-radius-sm);
+    border: 2px solid transparent;
+    transition: all var(--transition-speed);
+    cursor: pointer;
+}
+
+html body .tabesh-staff-panel .subtask-item:hover {
+    background: var(--bg-hover);
+    transform: translateX(-3px);
+}
+
+html body .tabesh-staff-panel .subtask-item.completed {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+html body .tabesh-staff-panel .subtask-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+    flex-shrink: 0;
+}
+
+html body .tabesh-staff-panel .subtask-item.completed .subtask-checkbox {
+    background: var(--success);
+    border-color: var(--success);
+}
+
+html body .tabesh-staff-panel .subtask-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    opacity: 0;
+    transform: scale(0);
+    transition: all var(--transition-fast);
+}
+
+html body .tabesh-staff-panel .subtask-item.completed .subtask-checkbox::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+html body .tabesh-staff-panel .subtask-content {
+    flex: 1;
+}
+
+html body .tabesh-staff-panel .subtask-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+html body .tabesh-staff-panel .subtask-details {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+html body .tabesh-staff-panel .subtask-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+html body .tabesh-staff-panel .subtasks-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}
+
+html body .tabesh-staff-panel .subtasks-empty-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+/* Dark mode support for subtasks */
+html body .tabesh-staff-panel[data-theme='dark'] .subtask-item.completed {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+/* Responsive styles for subtasks */
+@media (max-width: 480px) {
+    html body .tabesh-staff-panel .print-subtasks-section {
+        padding: 20px 15px;
+    }
+    
+    html body .tabesh-staff-panel .subtask-item {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    html body .tabesh-staff-panel .subtask-icon {
+        font-size: 20px;
+    }
+    
+    html body .tabesh-staff-panel .subtask-title {
+        font-size: 14px;
+    }
+    
+    html body .tabesh-staff-panel .subtask-details {
+        font-size: 12px;
+    }
+}
+

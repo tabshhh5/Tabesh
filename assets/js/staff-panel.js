@@ -43,6 +43,7 @@
             this.bindEvents();
             this.loadTheme();
             this.initializeOrders();
+            this.initPrintSubtasks();
         },
 
         /**
@@ -82,8 +83,11 @@
             // Logout button
             $('.logout-btn').on('click', this.handleLogout.bind(this));
             
+            // Print subtasks click
+            $(document).on('click', '.subtask-item', this.toggleSubtask.bind(this));
+            
             // Prevent card collapse when interacting with controls
-            $(document).on('click', '.status-update-section, .stepper-step, .status-update-btn', function(e) {
+            $(document).on('click', '.status-update-section, .stepper-step, .status-update-btn, .print-subtasks-section', function(e) {
                 e.stopPropagation();
             });
         },
@@ -521,6 +525,209 @@
         toPersianNumber: function(num) {
             const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
             return String(num).replace(/\d/g, x => persianDigits[x]);
+        },
+
+        // ==========================================
+        // Print Subtasks Methods
+        // ==========================================
+
+        /**
+         * Initialize print subtasks for all processing orders
+         */
+        initPrintSubtasks: function() {
+            const self = this;
+            $('.print-subtasks-section').each(function() {
+                const $section = $(this);
+                const orderId = $section.data('order-id');
+                self.loadSubtasks(orderId, $section);
+            });
+        },
+
+        /**
+         * Load subtasks from server
+         */
+        loadSubtasks: function(orderId, $container) {
+            const self = this;
+            const $list = $container.find('.subtasks-list');
+            
+            $.ajax({
+                url: buildRestUrl(tabeshData.restUrl, 'staff/print-subtasks/' + orderId),
+                method: 'GET',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        self.renderSubtasks(response.subtasks, $list, orderId);
+                        self.updateProgress(response.progress_percent, $container, orderId);
+                    } else {
+                        self.renderEmptySubtasks($list);
+                    }
+                },
+                error: function() {
+                    self.renderEmptySubtasks($list);
+                }
+            });
+        },
+
+        /**
+         * Render subtasks HTML
+         */
+        renderSubtasks: function(subtasks, $container, orderId) {
+            let html = '';
+            
+            if (!subtasks || Object.keys(subtasks).length === 0) {
+                this.renderEmptySubtasks($container);
+                return;
+            }
+
+            // Render main subtasks
+            for (const key in subtasks) {
+                if (key === 'extras') {
+                    // Handle extras array
+                    const extras = subtasks[key];
+                    if (Array.isArray(extras)) {
+                        extras.forEach((extra, index) => {
+                            const subtaskKey = 'extras_' + index;
+                            const completed = extra.completed ? 'completed' : '';
+                            html += `
+                                <div class="subtask-item ${completed}" 
+                                     data-subtask-key="${subtaskKey}" 
+                                     data-order-id="${orderId}">
+                                    <div class="subtask-checkbox"></div>
+                                    <div class="subtask-icon">✨</div>
+                                    <div class="subtask-content">
+                                        <div class="subtask-title">خدمات اضافی</div>
+                                        <div class="subtask-details">${this.escapeHtml(extra.name)}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                } else {
+                    const subtask = subtasks[key];
+                    if (subtask && typeof subtask === 'object') {
+                        const completed = subtask.completed ? 'completed' : '';
+                        const title = subtask.title || key;
+                        const details = subtask.details || '';
+                        const icon = subtask.icon || '📋';
+                        
+                        html += `
+                            <div class="subtask-item ${completed}" 
+                                 data-subtask-key="${key}" 
+                                 data-order-id="${orderId}">
+                                <div class="subtask-checkbox"></div>
+                                <div class="subtask-icon">${icon}</div>
+                                <div class="subtask-content">
+                                    <div class="subtask-title">${this.escapeHtml(title)}</div>
+                                    <div class="subtask-details">${this.escapeHtml(details)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            $container.html(html || '<div class="subtasks-empty"><div class="subtasks-empty-icon">📋</div><p>هیچ مرحله‌ای تعریف نشده است</p></div>');
+        },
+
+        /**
+         * Render empty subtasks message
+         */
+        renderEmptySubtasks: function($container) {
+            $container.html('<div class="subtasks-empty"><div class="subtasks-empty-icon">📋</div><p>هیچ مرحله‌ای تعریف نشده است</p></div>');
+        },
+
+        /**
+         * Toggle subtask completion
+         */
+        toggleSubtask: function(e) {
+            e.stopPropagation();
+            const $item = $(e.currentTarget);
+            const orderId = $item.data('order-id');
+            const subtaskKey = $item.data('subtask-key');
+            const isCompleted = $item.hasClass('completed');
+            
+            this.updateSubtaskStatus(orderId, subtaskKey, !isCompleted, $item);
+        },
+
+        /**
+         * Update subtask status via API
+         */
+        updateSubtaskStatus: function(orderId, subtaskKey, completed, $item) {
+            const self = this;
+            const $section = $item.closest('.print-subtasks-section');
+            
+            // Optimistic UI update
+            $item.toggleClass('completed', completed);
+            
+            $.ajax({
+                url: buildRestUrl(tabeshData.restUrl, 'staff/print-subtasks/update'),
+                method: 'POST',
+                contentType: 'application/json',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshData.nonce);
+                },
+                data: JSON.stringify({
+                    order_id: orderId,
+                    subtask_key: subtaskKey,
+                    completed: completed
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        self.updateProgress(response.progress_percent, $section, orderId);
+                        
+                        // Handle auto status change
+                        if (response.status_changed) {
+                            self.showToast(response.status_message, 'success');
+                            
+                            // Update card status
+                            const $card = $item.closest('.tabesh-staff-order-card');
+                            self.updateCardStatus($card, response.new_status);
+                            
+                            // Hide subtasks section since order is no longer processing
+                            $section.fadeOut(self.config.animationDuration);
+                        }
+                    } else {
+                        // Revert optimistic update
+                        $item.toggleClass('completed', !completed);
+                        self.showToast(response.message || 'خطا در به‌روزرسانی', 'error');
+                    }
+                },
+                error: function() {
+                    // Revert optimistic update
+                    $item.toggleClass('completed', !completed);
+                    self.showToast('خطا در برقراری ارتباط با سرور', 'error');
+                }
+            });
+        },
+
+        /**
+         * Update progress bar
+         */
+        updateProgress: function(percent, $section, orderId) {
+            const $progressFill = $section.find('.progress-fill[data-order-id="' + orderId + '"]');
+            const $progressText = $section.find('.progress-text');
+            
+            $progressFill.css('width', percent + '%');
+            $progressText.text(this.toPersianNumber(percent) + '%');
+            
+            // Add completed class if 100%
+            if (percent === 100) {
+                $progressFill.addClass('completed');
+            } else {
+                $progressFill.removeClass('completed');
+            }
+        },
+
+        /**
+         * Escape HTML to prevent XSS
+         */
+        escapeHtml: function(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     };
 

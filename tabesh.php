@@ -163,6 +163,13 @@ final class Tabesh {
     public $upload_task_generator;
 
     /**
+     * Print subtasks handler
+     *
+     * @var Tabesh_Print_Subtasks
+     */
+    public $print_subtasks;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -221,6 +228,8 @@ final class Tabesh {
         $this->ftp_handler = new Tabesh_FTP_Handler();
         $this->file_validator = new Tabesh_File_Validator();
         $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
+        // Initialize print subtasks handler
+        $this->print_subtasks = new Tabesh_Print_Subtasks();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -308,6 +317,7 @@ final class Tabesh {
             extras longtext DEFAULT NULL,
             total_price decimal(10,2) NOT NULL,
             status varchar(50) NOT NULL DEFAULT 'pending',
+            print_subtasks longtext DEFAULT NULL,
             files longtext DEFAULT NULL,
             notes longtext DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1014,6 +1024,19 @@ final class Tabesh {
         register_rest_route(TABESH_REST_NAMESPACE, '/staff/search-orders', array(
             'methods' => 'GET',
             'callback' => array($this->staff, 'search_orders_rest'),
+            'permission_callback' => array($this, 'can_manage_orders')
+        ));
+        
+        // Print subtasks routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/staff/print-subtasks/(?P<order_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this->print_subtasks, 'get_subtasks_rest'),
+            'permission_callback' => array($this, 'can_manage_orders')
+        ));
+        
+        register_rest_route(TABESH_REST_NAMESPACE, '/staff/print-subtasks/update', array(
+            'methods' => 'POST',
+            'callback' => array($this->print_subtasks, 'update_subtask_rest'),
             'permission_callback' => array($this, 'can_manage_orders')
         ));
         
