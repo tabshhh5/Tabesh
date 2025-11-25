@@ -298,6 +298,47 @@ $status_order = array('pending', 'confirmed', 'processing', 'ready', 'completed'
                                 </div>
                             </div>
 
+                            <!-- Print Substeps Section - Only shown for "processing" status -->
+                            <?php if ($order->status === 'processing'): ?>
+                                <?php 
+                                $substeps = Tabesh()->print_substeps->get_order_substeps($order->id);
+                                $progress = Tabesh()->print_substeps->calculate_print_progress($order->id);
+                                ?>
+                                <?php if (!empty($substeps)): ?>
+                                    <div class="print-substeps-section">
+                                        <div class="section-header">
+                                            <span class="section-icon">🖨️</span>
+                                            <h4 class="section-title"><?php _e('جزئیات فرآیند چاپ', 'tabesh'); ?></h4>
+                                            <span class="progress-badge"><?php echo esc_html($progress); ?>% تکمیل شده</span>
+                                        </div>
+                                        
+                                        <div class="print-substeps-list">
+                                            <?php foreach ($substeps as $substep): ?>
+                                                <div class="print-substep-item <?php echo esc_attr($substep->is_completed ? 'completed' : ''); ?>" 
+                                                     data-substep-id="<?php echo esc_attr($substep->id); ?>">
+                                                    <div class="substep-checkbox-wrapper">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            class="substep-checkbox" 
+                                                            <?php checked($substep->is_completed, 1); ?>
+                                                            data-substep-id="<?php echo esc_attr($substep->id); ?>"
+                                                            aria-label="<?php echo esc_attr($substep->substep_title); ?>"
+                                                        >
+                                                    </div>
+                                                    <div class="substep-content">
+                                                        <h5 class="substep-title"><?php echo esc_html($substep->substep_title); ?></h5>
+                                                        <p class="substep-details"><?php echo esc_html($substep->substep_details); ?></p>
+                                                    </div>
+                                                    <?php if ($substep->is_completed): ?>
+                                                        <span class="substep-completed-badge">✓ انجام شد</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
+
                             <!-- Status Update Section -->
                             <div class="status-update-section">
                                 <div class="section-header">

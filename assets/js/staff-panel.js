@@ -76,6 +76,9 @@
             // Status update button
             $(document).on('click', '.status-update-btn', this.updateStatus.bind(this));
             
+            // Print substep checkbox events
+            $(document).on('change', '.substep-checkbox', this.handleSubstepToggle.bind(this));
+            
             // Load more button
             $(document).on('click', '.load-more-btn', this.loadMoreResults.bind(this));
             
@@ -83,7 +86,7 @@
             $('.logout-btn').on('click', this.handleLogout.bind(this));
             
             // Prevent card collapse when interacting with controls
-            $(document).on('click', '.status-update-section, .stepper-step, .status-update-btn', function(e) {
+            $(document).on('click', '.status-update-section, .stepper-step, .status-update-btn, .print-substeps-section', function(e) {
                 e.stopPropagation();
             });
         },
@@ -427,6 +430,88 @@
                     $step.addClass('completed');
                 } else if (index === currentIndex) {
                     $step.addClass('active');
+                }
+            });
+        },
+
+        /**
+         * Handle print substep checkbox toggle
+         */
+        handleSubstepToggle: function(e) {
+            e.stopPropagation();
+            
+            const $checkbox = $(e.currentTarget);
+            const substepId = $checkbox.data('substep-id');
+            const isCompleted = $checkbox.is(':checked');
+            
+            this.updateSubstep(substepId, isCompleted);
+        },
+
+        /**
+         * Update print substep via REST API
+         */
+        updateSubstep: function(substepId, isCompleted) {
+            this.showLoading('در حال بهروزرسانی...');
+            
+            $.ajax({
+                url: buildRestUrl(tabeshData.restUrl, 'print-substeps/update'),
+                method: 'POST',
+                contentType: 'application/json',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshData.nonce);
+                },
+                data: JSON.stringify({
+                    substep_id: substepId,
+                    is_completed: isCompleted
+                }),
+                success: (response) => {
+                    this.hideLoading();
+                    
+                    if (response.success) {
+                        this.showToast(response.message || 'بهروزرسانی انجام شد', 'success');
+                        
+                        // Update the substep item UI
+                        const $substepItem = $(`.print-substep-item[data-substep-id="${substepId}"]`);
+                        if (isCompleted) {
+                            $substepItem.addClass('completed');
+                            if (!$substepItem.find('.substep-completed-badge').length) {
+                                $substepItem.append('<span class="substep-completed-badge">✓ انجام شد</span>');
+                            }
+                        } else {
+                            $substepItem.removeClass('completed');
+                            $substepItem.find('.substep-completed-badge').remove();
+                        }
+                        
+                        // Update progress badge
+                        if (response.data.progress !== undefined) {
+                            $substepItem.closest('.print-substeps-section').find('.progress-badge')
+                                .text(response.data.progress + '% تکمیل شده');
+                        }
+                        
+                        // If all completed, show message and reload
+                        if (response.data.all_completed) {
+                            this.showToast('تمام مراحل چاپ تکمیل شد! وضعیت به "آماده تحویل" تغییر می‌کند', 'success');
+                            
+                            // Auto-reload after 2 seconds to show updated status
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }
+                    } else {
+                        this.showToast('خطا: ' + response.message, 'error');
+                        
+                        // Revert checkbox state on error
+                        const $checkbox = $(`.substep-checkbox[data-substep-id="${substepId}"]`);
+                        $checkbox.prop('checked', !isCompleted);
+                    }
+                },
+                error: (xhr, status, error) => {
+                    this.hideLoading();
+                    this.showToast('خطا در برقراری ارتباط با سرور', 'error');
+                    
+                    // Revert checkbox state on error
+                    const $checkbox = $(`.substep-checkbox[data-substep-id="${substepId}"]`);
+                    $checkbox.prop('checked', !isCompleted);
                 }
             });
         },

@@ -163,6 +163,13 @@ final class Tabesh {
     public $upload_task_generator;
 
     /**
+     * Print substeps handler
+     *
+     * @var Tabesh_Print_Substeps
+     */
+    public $print_substeps;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -221,6 +228,8 @@ final class Tabesh {
         $this->ftp_handler = new Tabesh_FTP_Handler();
         $this->file_validator = new Tabesh_File_Validator();
         $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
+        // Initialize print substeps handler
+        $this->print_substeps = new Tabesh_Print_Substeps();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -1014,6 +1023,13 @@ final class Tabesh {
         register_rest_route(TABESH_REST_NAMESPACE, '/staff/search-orders', array(
             'methods' => 'GET',
             'callback' => array($this->staff, 'search_orders_rest'),
+            'permission_callback' => array($this, 'can_manage_orders')
+        ));
+        
+        // Print substeps routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/print-substeps/update', array(
+            'methods' => 'POST',
+            'callback' => array($this->print_substeps, 'update_substep_rest'),
             'permission_callback' => array($this, 'can_manage_orders')
         ));
         

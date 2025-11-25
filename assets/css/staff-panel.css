@@ -611,55 +611,55 @@
 }
 
 /* Section Styles */
-.customer-section,
-.order-details-section,
-.extras-section,
-.notes-section,
-.status-stepper,
-.status-update-section {
+.tabesh-staff-panel .customer-section,
+.tabesh-staff-panel .order-details-section,
+.tabesh-staff-panel .extras-section,
+.tabesh-staff-panel .notes-section,
+.tabesh-staff-panel .status-stepper,
+.tabesh-staff-panel .status-update-section {
     padding: 25px;
     border-bottom: 1px solid var(--text-muted);
 }
 
-.section-header {
+.tabesh-staff-panel .section-header {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 20px;
 }
 
-.section-icon {
+.tabesh-staff-panel .section-icon {
     font-size: 24px;
 }
 
-.section-title {
+.tabesh-staff-panel .section-title {
     font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 /* Customer Info */
-.customer-info {
+.tabesh-staff-panel .customer-info {
     background: var(--bg-primary);
     padding: 15px 20px;
     border-radius: var(--border-radius-sm);
     box-shadow: var(--shadow-neumorphic-inset);
 }
 
-.customer-name {
+.tabesh-staff-panel .customer-name {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 /* Order Info Grid */
-.order-info-grid {
+.tabesh-staff-panel .order-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
 }
 
-.info-item {
+.tabesh-staff-panel .info-item {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -669,12 +669,12 @@
     transition: all var(--transition-speed);
 }
 
-.info-item:hover {
+.tabesh-staff-panel .info-item:hover {
     background: var(--bg-hover);
     transform: translateY(-2px);
 }
 
-.info-item .label {
+.tabesh-staff-panel .info-item .label {
     font-size: 13px;
     color: var(--text-secondary);
     font-weight: 600;
@@ -682,25 +682,25 @@
     letter-spacing: 0.5px;
 }
 
-.info-item .value {
+.tabesh-staff-panel .info-item .value {
     font-size: 16px;
     color: var(--text-primary);
     font-weight: 700;
 }
 
-.info-item.price-item .value {
+.tabesh-staff-panel .info-item.price-item .value {
     color: var(--accent-gold-dark);
     font-size: 18px;
 }
 
 /* Extras List */
-.extras-list {
+.tabesh-staff-panel .extras-list {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.extra-item {
+.tabesh-staff-panel .extra-item {
     background: var(--bg-primary);
     padding: 10px 16px;
     border-radius: var(--border-radius-full);
@@ -711,13 +711,13 @@
     transition: all var(--transition-speed);
 }
 
-.extra-item:hover {
+.tabesh-staff-panel .extra-item:hover {
     transform: scale(1.05);
     box-shadow: var(--shadow-card);
 }
 
 /* Notes Content */
-.notes-content {
+.tabesh-staff-panel .notes-content {
     background: var(--bg-primary);
     padding: 18px;
     border-radius: var(--border-radius-sm);
@@ -732,13 +732,13 @@
    Status Stepper
    ========================================== */
 
-.status-stepper {
+.tabesh-staff-panel .status-stepper {
     background: var(--bg-primary);
     border-radius: var(--border-radius);
     padding: 25px;
 }
 
-.stepper-container {
+.tabesh-staff-panel .stepper-container {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -746,7 +746,7 @@
     padding: 20px 0;
 }
 
-.stepper-container::before {
+.tabesh-staff-panel .stepper-container::before {
     content: '';
     position: absolute;
     top: 45px;
@@ -757,7 +757,7 @@
     z-index: 0;
 }
 
-.stepper-step {
+.tabesh-staff-panel .stepper-step {
     flex: 1;
     text-align: center;
     position: relative;
@@ -766,8 +766,8 @@
     transition: all var(--transition-speed);
 }
 
-.stepper-step.completed::before,
-.stepper-step.active::before {
+.tabesh-staff-panel .stepper-step.completed::before,
+.tabesh-staff-panel .stepper-step.active::before {
     content: '';
     position: absolute;
     top: 45px;
@@ -778,7 +778,7 @@
     z-index: -1;
 }
 
-.step-circle {
+.tabesh-staff-panel .step-circle {
     width: 60px;
     height: 60px;
     border-radius: var(--border-radius-full);
@@ -795,46 +795,46 @@
     position: relative;
 }
 
-.stepper-step.completed .step-circle,
-.stepper-step.active .step-circle {
+.tabesh-staff-panel .stepper-step.completed .step-circle,
+.tabesh-staff-panel .stepper-step.active .step-circle {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
     color: white;
     box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
 }
 
-.stepper-step:hover .step-circle {
+.tabesh-staff-panel .stepper-step:hover .step-circle {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
 }
 
-.step-icon {
+.tabesh-staff-panel .step-icon {
     font-size: 24px;
 }
 
-.step-number {
+.tabesh-staff-panel .step-number {
     font-size: 14px;
     font-weight: 700;
     display: none;
 }
 
-.stepper-step:not(.completed):not(.active) .step-icon {
+.tabesh-staff-panel .stepper-step:not(.completed):not(.active) .step-icon {
     display: none;
 }
 
-.stepper-step:not(.completed):not(.active) .step-number {
+.tabesh-staff-panel .stepper-step:not(.completed):not(.active) .step-number {
     display: block;
 }
 
-.step-label {
+.tabesh-staff-panel .step-label {
     font-size: 13px;
     color: var(--text-secondary);
     font-weight: 600;
     margin-top: 8px;
 }
 
-.stepper-step.active .step-label,
-.stepper-step.completed .step-label {
+.tabesh-staff-panel .stepper-step.active .step-label,
+.tabesh-staff-panel .stepper-step.completed .step-label {
     color: var(--text-primary);
     font-weight: 700;
 }
@@ -843,19 +843,19 @@
    Status Update Section
    ========================================== */
 
-.status-update-section {
+.tabesh-staff-panel .status-update-section {
     padding: 25px;
     background: var(--bg-primary);
     border-bottom: none;
 }
 
-.status-select-wrapper {
+.tabesh-staff-panel .status-select-wrapper {
     display: flex;
     gap: 15px;
     align-items: stretch;
 }
 
-.status-update-select {
+.tabesh-staff-panel .status-update-select {
     flex: 1;
     padding: 16px 20px;
     border: 2px solid var(--text-tertiary);
@@ -870,17 +870,17 @@
     box-shadow: var(--shadow-neumorphic-inset);
 }
 
-.status-update-select:focus {
+.tabesh-staff-panel .status-update-select:focus {
     outline: none;
     border-color: var(--accent-blue);
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
-.status-update-select:hover {
+.tabesh-staff-panel .status-update-select:hover {
     border-color: var(--accent-blue-light);
 }
 
-.status-update-btn {
+.tabesh-staff-panel .status-update-btn {
     padding: 16px 30px;
     background: var(--gradient-primary);
     color: white;
@@ -897,22 +897,22 @@
     white-space: nowrap;
 }
 
-.status-update-btn:hover:not(:disabled) {
+.tabesh-staff-panel .status-update-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
-.status-update-btn:active:not(:disabled) {
+.tabesh-staff-panel .status-update-btn:active:not(:disabled) {
     transform: translateY(0);
 }
 
-.status-update-btn:disabled {
+.tabesh-staff-panel .status-update-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-.btn-icon {
+.tabesh-staff-panel .btn-icon {
     font-size: 18px;
 }
 
@@ -920,7 +920,7 @@
    Loading States
    ========================================== */
 
-.loading-overlay {
+.tabesh-staff-panel .loading-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -935,7 +935,7 @@
     animation: fadeIn 0.2s ease-out;
 }
 
-.loading-content {
+.tabesh-staff-panel .loading-content {
     background: var(--bg-card);
     padding: 40px 50px;
     border-radius: var(--border-radius);
@@ -955,7 +955,7 @@
     }
 }
 
-.loading-spinner {
+.tabesh-staff-panel .loading-spinner {
     width: 60px;
     height: 60px;
     border: 6px solid var(--text-muted);
@@ -969,7 +969,7 @@
     to { transform: rotate(360deg); }
 }
 
-.loading-text {
+.tabesh-staff-panel .loading-text {
     font-size: 18px;
     color: var(--text-primary);
     font-weight: 700;
@@ -979,7 +979,7 @@
    Toast Notifications
    ========================================== */
 
-.message-toast {
+.tabesh-staff-panel .message-toast {
     position: fixed;
     top: 100px;
     left: 50%;
@@ -1006,22 +1006,22 @@
     }
 }
 
-.message-toast.success {
+.tabesh-staff-panel .message-toast.success {
     background: var(--success);
     color: white;
 }
 
-.message-toast.error {
+.tabesh-staff-panel .message-toast.error {
     background: var(--error);
     color: white;
 }
 
-.message-toast.warning {
+.tabesh-staff-panel .message-toast.warning {
     background: var(--warning);
     color: white;
 }
 
-.message-toast.info {
+.tabesh-staff-panel .message-toast.info {
     background: var(--info);
     color: white;
 }
@@ -1030,13 +1030,13 @@
    No Orders State
    ========================================== */
 
-.no-orders {
+.tabesh-staff-panel .no-orders {
     text-align: center;
     padding: 100px 20px;
     animation: fadeIn 0.6s ease-out;
 }
 
-.no-orders-icon {
+.tabesh-staff-panel .no-orders-icon {
     font-size: 100px;
     color: var(--text-tertiary);
     margin-bottom: 20px;
@@ -1048,7 +1048,7 @@
     50% { transform: translateY(-10px); }
 }
 
-.no-orders p {
+.tabesh-staff-panel .no-orders p {
     font-size: 20px;
     color: var(--text-secondary);
     font-weight: 600;
@@ -1058,12 +1058,12 @@
    Load More Button
    ========================================== */
 
-.load-more-container {
+.tabesh-staff-panel .load-more-container {
     text-align: center;
     margin: 40px 0;
 }
 
-.load-more-btn {
+.tabesh-staff-panel .load-more-btn {
     padding: 16px 45px;
     background: var(--gradient-primary);
     color: white;
@@ -1079,12 +1079,12 @@
     box-shadow: var(--shadow-button);
 }
 
-.load-more-btn:hover {
+.tabesh-staff-panel .load-more-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
-.load-more-btn:active {
+.tabesh-staff-panel .load-more-btn:active {
     transform: translateY(0);
 }
 
@@ -1092,7 +1092,7 @@
    Full Screen Modal
    ========================================== */
 
-.fullscreen-modal {
+.tabesh-staff-panel .fullscreen-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -1104,7 +1104,7 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-.modal-header {
+.tabesh-staff-panel .modal-header {
     background: var(--gradient-primary);
     padding: 20px 30px;
     display: flex;
@@ -1116,12 +1116,12 @@
     z-index: 100;
 }
 
-.modal-title {
+.tabesh-staff-panel .modal-title {
     font-size: 22px;
     font-weight: 700;
 }
 
-.modal-close-btn {
+.tabesh-staff-panel .modal-close-btn {
     width: 40px;
     height: 40px;
     border-radius: var(--border-radius-full);
@@ -1136,12 +1136,12 @@
     justify-content: center;
 }
 
-.modal-close-btn:hover {
+.tabesh-staff-panel .modal-close-btn:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.1);
 }
 
-.modal-body {
+.tabesh-staff-panel .modal-body {
     padding: 30px;
 }
 
@@ -1149,13 +1149,13 @@
    Search Results Display
    ========================================== */
 
-.no-search-results {
+.tabesh-staff-panel .no-search-results {
     grid-column: 1 / -1;
     text-align: center;
     padding: 80px 20px;
 }
 
-.no-search-results p {
+.tabesh-staff-panel .no-search-results p {
     font-size: 18px;
     color: var(--text-secondary);
     margin: 10px 0;
@@ -1165,7 +1165,7 @@
    Animations & Transitions
    ========================================== */
 
-.pulse {
+.tabesh-staff-panel .pulse {
     animation: pulse 0.5s ease-out;
 }
 
@@ -1409,4 +1409,140 @@ input:focus-visible,
 .mb-20 {
     margin-bottom: 20px !important;
 }
+
+/* ==========================================
+   Print Substeps Section (New Feature)
+   ========================================== */
+
+.tabesh-staff-panel .print-substeps-section {
+    padding: 25px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--text-muted);
+    border-radius: var(--border-radius-sm);
+    margin-top: 15px;
+}
+
+.tabesh-staff-panel .print-substeps-section .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+}
+
+.tabesh-staff-panel .progress-badge {
+    background: var(--accent-blue);
+    color: white;
+    padding: 6px 14px;
+    border-radius: var(--border-radius-full);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tabesh-staff-panel .print-substeps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tabesh-staff-panel .print-substep-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--text-muted);
+    transition: all var(--transition-speed);
+}
+
+.tabesh-staff-panel .print-substep-item:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-card);
+}
+
+.tabesh-staff-panel .print-substep-item.completed {
+    border-color: var(--success);
+    background: linear-gradient(to left, var(--bg-card) 95%, rgba(16, 185, 129, 0.1) 100%);
+}
+
+.tabesh-staff-panel .substep-checkbox-wrapper {
+    flex-shrink: 0;
+}
+
+.tabesh-staff-panel .substep-checkbox {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--success);
+}
+
+.tabesh-staff-panel .substep-content {
+    flex: 1;
+}
+
+.tabesh-staff-panel .substep-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.tabesh-staff-panel .substep-details {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.tabesh-staff-panel .substep-completed-badge {
+    flex-shrink: 0;
+    background: var(--success);
+    color: white;
+    padding: 6px 12px;
+    border-radius: var(--border-radius-full);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Dark mode adjustments for print substeps */
+.tabesh-staff-panel[data-theme='dark'] .print-substeps-section {
+    background: var(--bg-secondary);
+}
+
+.tabesh-staff-panel[data-theme='dark'] .print-substep-item {
+    border-color: var(--text-tertiary);
+}
+
+.tabesh-staff-panel[data-theme='dark'] .print-substep-item.completed {
+    background: linear-gradient(to left, var(--bg-card) 95%, rgba(16, 185, 129, 0.15) 100%);
+}
+
+/* Mobile responsiveness for print substeps */
+@media (max-width: 768px) {
+    .tabesh-staff-panel .print-substeps-section .section-header {
+        flex-wrap: wrap;
+    }
+    
+    .tabesh-staff-panel .progress-badge {
+        order: 3;
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+    }
+    
+    .tabesh-staff-panel .print-substep-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tabesh-staff-panel .substep-checkbox-wrapper {
+        align-self: flex-start;
+    }
+    
+    .tabesh-staff-panel .substep-completed-badge {
+        align-self: flex-end;
+        margin-top: 8px;
+    }
+}
+
 

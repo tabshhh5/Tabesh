@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.2.0';
+    const DB_VERSION = '1.3.0';
 
     /**
      * Database version option name
@@ -150,6 +150,9 @@ class Tabesh_Install {
             }
         }
         
+        // Create print substeps table (v1.3.0)
+        self::create_print_substeps_table();
+        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -158,6 +161,61 @@ class Tabesh_Install {
         
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Tabesh: Database schema update completed. Version: ' . self::DB_VERSION);
+        }
+    }
+
+    /**
+     * Create print substeps table
+     * 
+     * Creates the wp_tabesh_print_substeps table for tracking detailed
+     * printing process steps when orders are in "processing" status.
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function create_print_substeps_table() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 'tabesh_print_substeps';
+        
+        // Check if table already exists
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Print substeps table already exists');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Creating print substeps table');
+        }
+        
+        $sql = "CREATE TABLE `{$table_name}` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `order_id` bigint(20) NOT NULL,
+            `substep_key` varchar(50) NOT NULL,
+            `substep_title` varchar(255) NOT NULL,
+            `substep_details` text,
+            `is_completed` tinyint(1) DEFAULT 0,
+            `completed_at` datetime DEFAULT NULL,
+            `completed_by` bigint(20) DEFAULT NULL,
+            `display_order` int(11) DEFAULT 0,
+            PRIMARY KEY (`id`),
+            KEY `order_id` (`order_id`),
+            KEY `substep_key` (`substep_key`)
+        ) ENGINE=InnoDB $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Verify table was created
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Print substeps table created');
+            }
+            return true;
+        } else {
+            error_log('Tabesh: ERROR - Failed to create print substeps table');
+            return false;
         }
     }
 
