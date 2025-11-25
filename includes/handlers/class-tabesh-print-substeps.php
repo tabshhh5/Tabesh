@@ -275,6 +275,14 @@ class Tabesh_Print_Substeps {
         // If all substeps completed, auto-update order status to "ready"
         if ($all_completed) {
             $orders_table = $wpdb->prefix . 'tabesh_orders';
+            
+            // Get current order info
+            $current_order = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $orders_table WHERE id = %d",
+                $substep->order_id
+            ));
+            
+            // Update order status
             $wpdb->update(
                 $orders_table,
                 array('status' => 'ready', 'updated_at' => current_time('mysql')),
@@ -284,7 +292,25 @@ class Tabesh_Print_Substeps {
             );
             
             // Log the status change
-            Tabesh()->staff->log_status_change($substep->order_id, 'processing', 'ready');
+            $current_user = wp_get_current_user();
+            $staff_user_id = get_current_user_id();
+            $logs_table = $wpdb->prefix . 'tabesh_logs';
+            
+            $wpdb->insert(
+                $logs_table,
+                array(
+                    'order_id' => $substep->order_id,
+                    'user_id' => $current_order->user_id,
+                    'staff_user_id' => $staff_user_id,
+                    'action' => 'status_change',
+                    'old_status' => 'processing',
+                    'new_status' => 'ready',
+                    'description' => sprintf(
+                        __('وضعیت به صورت خودکار از "در حال چاپ" به "آماده تحویل" تغییر کرد (تمام مراحل چاپ تکمیل شد)', 'tabesh')
+                    )
+                ),
+                array('%d', '%d', '%d', '%s', '%s', '%s', '%s')
+            );
             
             // Send notification
             Tabesh()->notifications->send_status_notification($substep->order_id, 'ready');
