@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) {
 $user_id = get_current_user_id();
 $upload_manager = new Tabesh_Upload();
 $orders = $upload_manager->get_user_orders_with_files($user_id);
+$required_file_categories = Tabesh_Upload::REQUIRED_FILE_CATEGORIES;
 ?>
 
 <div class="tabesh-upload-manager" dir="rtl" data-theme="light">
@@ -102,13 +103,13 @@ $orders = $upload_manager->get_user_orders_with_files($user_id);
                         if ($order->total_files > 0) {
                             if ($order->pending_files > 0) {
                                 $upload_status = 'pending';
-                            } elseif ($order->approved_files >= 3) {
+                            } elseif ($order->approved_files >= $required_file_categories) {
                                 $upload_status = 'complete';
                             } else {
                                 $upload_status = 'partial';
                             }
-                            // Calculate progress based on 3 required file types
-                            $upload_progress = min(100, round(($order->approved_files / 3) * 100));
+                            // Calculate progress based on required file types
+                            $upload_progress = min(100, round(($order->approved_files / $required_file_categories) * 100));
                         }
                     ?>
                         <div class="order-card" data-order-id="<?php echo esc_attr($order->id); ?>">
@@ -165,7 +166,7 @@ $orders = $upload_manager->get_user_orders_with_files($user_id);
                                     <div class="info-item highlight">
                                         <span class="info-icon">📁</span>
                                         <span class="info-label"><?php esc_html_e('فایل‌ها', 'tabesh'); ?></span>
-                                        <span class="info-value"><?php echo esc_html($order->approved_files); ?>/3</span>
+                                        <span class="info-value"><?php echo esc_html($order->approved_files); ?>/<?php echo esc_html($required_file_categories); ?></span>
                                     </div>
                                 </div>
                             </div>

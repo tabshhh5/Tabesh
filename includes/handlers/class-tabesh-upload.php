@@ -35,6 +35,24 @@ class Tabesh_Upload {
     private $upload_url;
 
     /**
+     * Number of required file categories
+     *
+     * @var int
+     */
+    const REQUIRED_FILE_CATEGORIES = 3;
+
+    /**
+     * Default max file sizes in bytes
+     *
+     * @var array
+     */
+    const DEFAULT_MAX_FILE_SIZES = array(
+        'text' => 52428800,      // 50 MB (50 * 1024 * 1024)
+        'cover' => 10485760,     // 10 MB (10 * 1024 * 1024)
+        'documents' => 10485760  // 10 MB (10 * 1024 * 1024)
+    );
+
+    /**
      * Allowed file types by category
      *
      * @var array
@@ -852,7 +870,7 @@ class Tabesh_Upload {
                 'total_files' => intval($order->total_files),
                 'approved_files' => intval($order->approved_files),
                 'pending_files' => intval($order->pending_files),
-                'upload_progress' => $order->total_files > 0 ? round(($order->approved_files / max(1, 3)) * 100) : 0, // Assuming 3 file types
+                'upload_progress' => $order->total_files > 0 ? round(($order->approved_files / max(1, self::REQUIRED_FILE_CATEGORIES)) * 100) : 0,
                 'created_at' => $order->created_at,
                 'created_at_formatted' => date_i18n('j F Y', strtotime($order->created_at))
             );
@@ -1046,12 +1064,13 @@ class Tabesh_Upload {
      * @return int Max size in bytes
      */
     private function get_max_file_size($file_type) {
+        $defaults = self::DEFAULT_MAX_FILE_SIZES;
         $sizes = array(
-            'text' => intval(Tabesh()->get_setting('upload_max_size_text', 52428800)), // 50 MB
-            'cover' => intval(Tabesh()->get_setting('upload_max_size_cover', 10485760)), // 10 MB
-            'documents' => intval(Tabesh()->get_setting('upload_max_size_documents', 10485760)) // 10 MB
+            'text' => intval(Tabesh()->get_setting('upload_max_size_text', $defaults['text'])),
+            'cover' => intval(Tabesh()->get_setting('upload_max_size_cover', $defaults['cover'])),
+            'documents' => intval(Tabesh()->get_setting('upload_max_size_documents', $defaults['documents']))
         );
-        return isset($sizes[$file_type]) ? $sizes[$file_type] : 10485760;
+        return isset($sizes[$file_type]) ? $sizes[$file_type] : $defaults['documents'];
     }
 
     /**
