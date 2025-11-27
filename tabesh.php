@@ -170,6 +170,13 @@ final class Tabesh {
     public $print_substeps;
 
     /**
+     * Upload manager handler
+     *
+     * @var Tabesh_Upload
+     */
+    public $upload;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -230,6 +237,8 @@ final class Tabesh {
         $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
         // Initialize print substeps handler
         $this->print_substeps = new Tabesh_Print_Substeps();
+        // Initialize upload manager
+        $this->upload = new Tabesh_Upload();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -1236,6 +1245,21 @@ final class Tabesh {
         add_shortcode('tabesh_staff_panel', array($this->staff, 'render_staff_panel'));
         add_shortcode('tabesh_admin_dashboard', array($this->admin, 'render_admin_dashboard'));
         add_shortcode('tabesh_file_upload', array($this, 'render_file_upload'));
+        add_shortcode('tabesh_upload_manager', array($this->upload, 'render_upload_manager'));
+    }
+
+    /**
+     * Render file upload shortcode
+     * 
+     * This is kept for backward compatibility. New implementations
+     * should use [tabesh_upload_manager] shortcode.
+     *
+     * @param array $atts Shortcode attributes
+     * @return string HTML output
+     */
+    public function render_file_upload($atts = array()) {
+        // Delegate to upload manager
+        return $this->upload->render_upload_manager($atts);
     }
 
     /**

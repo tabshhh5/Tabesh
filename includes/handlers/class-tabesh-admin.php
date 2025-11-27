@@ -94,6 +94,15 @@ class Tabesh_Admin {
 
         add_submenu_page(
             'tabesh',
+            __('فایل‌های سفارش', 'tabesh'),
+            __('فایل‌های سفارش', 'tabesh'),
+            'manage_woocommerce',
+            'tabesh-files',
+            array($this, 'render_order_files')
+        );
+
+        add_submenu_page(
+            'tabesh',
             __('تنظیمات', 'tabesh'),
             __('تنظیمات', 'tabesh'),
             'manage_woocommerce',
@@ -140,6 +149,17 @@ class Tabesh_Admin {
         }
 
         include TABESH_PLUGIN_DIR . 'templates/admin/admin-archived.php';
+    }
+
+    /**
+     * Render order files page
+     */
+    public function render_order_files() {
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die(__('شما اجازه دسترسی به این صفحه را ندارید.', 'tabesh'));
+        }
+
+        include TABESH_PLUGIN_DIR . 'templates/admin-files.php';
     }
 
     /**
