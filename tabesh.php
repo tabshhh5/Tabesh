@@ -170,6 +170,13 @@ final class Tabesh {
     public $print_substeps;
 
     /**
+     * Upload manager handler
+     *
+     * @var Tabesh_Upload
+     */
+    public $upload_manager;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -230,6 +237,8 @@ final class Tabesh {
         $this->upload_task_generator = new Tabesh_Upload_Task_Generator();
         // Initialize print substeps handler
         $this->print_substeps = new Tabesh_Print_Substeps();
+        // Initialize upload manager handler
+        $this->upload_manager = new Tabesh_Upload();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
