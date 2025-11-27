@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.4.0';
+    const DB_VERSION = '1.3.0';
 
     /**
      * Database version option name
@@ -153,12 +153,6 @@ class Tabesh_Install {
         // Create print substeps table (v1.3.0)
         self::create_print_substeps_table();
         
-        // Create download tokens table (v1.4.0)
-        self::create_download_tokens_table();
-        
-        // Add rejected_by and rejected_at columns to files table (v1.4.0)
-        self::add_rejection_columns_to_files();
-        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -223,118 +217,6 @@ class Tabesh_Install {
             error_log('Tabesh: ERROR - Failed to create print substeps table');
             return false;
         }
-    }
-
-    /**
-     * Create download tokens table
-     * 
-     * Creates the wp_tabesh_download_tokens table for secure file downloads.
-     * 
-     * @return bool True on success, false on failure
-     */
-    public static function create_download_tokens_table() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
-        $table_name = $wpdb->prefix . 'tabesh_download_tokens';
-        
-        // Check if table already exists
-        if (self::table_exists($table_name)) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Tabesh: Download tokens table already exists');
-            }
-            return true;
-        }
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('Tabesh: Creating download tokens table');
-        }
-        
-        $sql = "CREATE TABLE `{$table_name}` (
-            `id` bigint(20) NOT NULL AUTO_INCREMENT,
-            `file_id` bigint(20) NOT NULL,
-            `user_id` bigint(20) NOT NULL,
-            `token_hash` varchar(255) NOT NULL,
-            `expires_at` datetime NOT NULL,
-            `used` tinyint(1) DEFAULT 0,
-            `used_at` datetime DEFAULT NULL,
-            `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`),
-            KEY `file_id` (`file_id`),
-            KEY `user_id` (`user_id`),
-            KEY `token_hash` (`token_hash`),
-            KEY `expires_at` (`expires_at`)
-        ) ENGINE=InnoDB $charset_collate;";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-        
-        // Verify table was created
-        if (self::table_exists($table_name)) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Tabesh: SUCCESS - Download tokens table created');
-            }
-            return true;
-        } else {
-            error_log('Tabesh: ERROR - Failed to create download tokens table');
-            return false;
-        }
-    }
-
-    /**
-     * Add rejected_by and rejected_at columns to files table
-     * 
-     * @return bool True on success, false on failure
-     */
-    public static function add_rejection_columns_to_files() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'tabesh_files';
-        
-        // Check if table exists
-        if (!self::table_exists($table_name)) {
-            return false;
-        }
-        
-        // Check if rejected_by column exists
-        $column_exists = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
-             WHERE TABLE_SCHEMA = %s 
-             AND TABLE_NAME = %s 
-             AND COLUMN_NAME = 'rejected_by'",
-            DB_NAME,
-            $table_name
-        ));
-        
-        if (!$column_exists) {
-            // Add rejected_by column
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `rejected_by` bigint(20) UNSIGNED DEFAULT NULL AFTER `approved_at`");
-            
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Tabesh: Added rejected_by column to files table');
-            }
-        }
-        
-        // Check if rejected_at column exists
-        $column_exists = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
-             WHERE TABLE_SCHEMA = %s 
-             AND TABLE_NAME = %s 
-             AND COLUMN_NAME = 'rejected_at'",
-            DB_NAME,
-            $table_name
-        ));
-        
-        if (!$column_exists) {
-            // Add rejected_at column
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `rejected_at` datetime DEFAULT NULL AFTER `rejected_by`");
-            
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Tabesh: Added rejected_at column to files table');
-            }
-        }
-        
-        return true;
     }
 
     /**

@@ -39,7 +39,6 @@ $admin = $tabesh->admin;
                 <a href="#tab-general" class="nav-tab nav-tab-active">تنظیمات عمومی</a>
                 <a href="#tab-product" class="nav-tab">پارامترهای محصول</a>
                 <a href="#tab-pricing" class="nav-tab">قیمت‌گذاری</a>
-                <a href="#tab-upload" class="nav-tab">آپلود فایل</a>
                 <a href="#tab-sms" class="nav-tab">پیامک</a>
             </nav>
 
@@ -548,72 +547,6 @@ $admin = $tabesh->admin;
                                 ✓ برای حذف همه تخفیفات، همه خطوط را پاک کنید<br>
                                 ✓ تعداد فیلدها: <span id="pricing_quantity_discounts_count"><?php echo is_array($discounts) ? count($discounts) : 0; ?></span>
                             </p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Upload Settings -->
-            <div id="tab-upload" class="tabesh-tab-content">
-                <h2>تنظیمات آپلود فایل</h2>
-                
-                <div class="notice notice-info">
-                    <p>
-                        <strong>📁 راهنما:</strong> در این بخش می‌توانید تنظیمات مربوط به آپلود فایل‌های سفارشات را مدیریت کنید.
-                    </p>
-                </div>
-
-                <h3>حداکثر حجم فایل</h3>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="upload_max_size_text">متن کتاب (PDF)</label></th>
-                        <td>
-                            <input type="number" id="upload_max_size_text" name="upload_max_size_text" 
-                                   value="<?php echo esc_attr(intval($admin->get_setting('upload_max_size_text', 52428800)) / 1048576); ?>" 
-                                   class="small-text"> مگابایت
-                            <p class="description">حداکثر حجم فایل PDF متن کتاب (پیش‌فرض: 50 مگابایت)</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="upload_max_size_cover">جلد کتاب</label></th>
-                        <td>
-                            <input type="number" id="upload_max_size_cover" name="upload_max_size_cover" 
-                                   value="<?php echo esc_attr(intval($admin->get_setting('upload_max_size_cover', 10485760)) / 1048576); ?>" 
-                                   class="small-text"> مگابایت
-                            <p class="description">حداکثر حجم فایل جلد کتاب (پیش‌فرض: 10 مگابایت)</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="upload_max_size_documents">مدارک</label></th>
-                        <td>
-                            <input type="number" id="upload_max_size_documents" name="upload_max_size_documents" 
-                                   value="<?php echo esc_attr(intval($admin->get_setting('upload_max_size_documents', 10485760)) / 1048576); ?>" 
-                                   class="small-text"> مگابایت
-                            <p class="description">حداکثر حجم فایل مدارک (پیش‌فرض: 10 مگابایت)</p>
-                        </td>
-                    </tr>
-                </table>
-
-                <h3>امنیت دانلود</h3>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="file_download_link_expiry">اعتبار لینک دانلود</label></th>
-                        <td>
-                            <input type="number" id="file_download_link_expiry" name="file_download_link_expiry" 
-                                   value="<?php echo esc_attr($admin->get_setting('file_download_link_expiry', 24)); ?>" 
-                                   class="small-text" min="1" max="168"> ساعت
-                            <p class="description">مدت اعتبار لینک‌های دانلود با توکن امنیتی (۱ تا ۱۶۸ ساعت)</p>
-                        </td>
-                    </tr>
-                </table>
-
-                <h3>شورتکد مدیریت فایل</h3>
-                <table class="form-table">
-                    <tr>
-                        <th>کد کوتاه</th>
-                        <td>
-                            <code style="background: #f0f0f0; padding: 10px 15px; display: inline-block; border-radius: 4px;">[tabesh_upload_manager]</code>
-                            <p class="description">این شورتکد را در صفحه مورد نظر قرار دهید تا پنل مدیریت فایل‌های سفارش نمایش داده شود.</p>
                         </td>
                     </tr>
                 </table>

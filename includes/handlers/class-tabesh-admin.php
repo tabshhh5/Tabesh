@@ -94,15 +94,6 @@ class Tabesh_Admin {
 
         add_submenu_page(
             'tabesh',
-            __('فایل‌های سفارشات', 'tabesh'),
-            __('فایل‌های سفارشات', 'tabesh'),
-            'manage_woocommerce',
-            'tabesh-files',
-            array($this, 'render_order_files')
-        );
-
-        add_submenu_page(
-            'tabesh',
             __('تنظیمات', 'tabesh'),
             __('تنظیمات', 'tabesh'),
             'manage_woocommerce',
@@ -152,17 +143,6 @@ class Tabesh_Admin {
     }
 
     /**
-     * Render order files page
-     */
-    public function render_order_files() {
-        if (!current_user_can('manage_woocommerce')) {
-            wp_die(__('شما اجازه دسترسی به این صفحه را ندارید.', 'tabesh'));
-        }
-
-        include TABESH_PLUGIN_DIR . 'templates/admin/admin-order-files.php';
-    }
-
-    /**
      * Render settings page
      */
     public function render_settings() {
@@ -206,10 +186,7 @@ class Tabesh_Admin {
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               'mellipayamak_username', 'mellipayamak_password',
-                              'mellipayamak_from', 'admin_phone', 'file_download_link_expiry');
-        
-        // File size fields - need to be converted from MB to bytes
-        $file_size_fields = array('upload_max_size_text', 'upload_max_size_cover', 'upload_max_size_documents');
+                              'mellipayamak_from', 'admin_phone');
         
         // Checkbox fields need special handling because unchecked boxes don't appear in POST
         $checkbox_fields = array('sms_on_order_submit', 'sms_on_status_change');
@@ -350,27 +327,6 @@ class Tabesh_Admin {
             // Log errors for debugging
             if ($result === false) {
                 error_log("Failed to save setting: $field - Error: " . $wpdb->last_error);
-            }
-        }
-        
-        // Process file size fields - convert MB to bytes
-        foreach ($file_size_fields as $field) {
-            if (isset($post_data[$field])) {
-                $mb_value = floatval($post_data[$field]);
-                $bytes_value = intval($mb_value * 1048576); // Convert MB to bytes
-                
-                $result = $wpdb->replace(
-                    $table,
-                    array(
-                        'setting_key' => $field,
-                        'setting_value' => $bytes_value,
-                        'setting_type' => 'string'
-                    )
-                );
-                
-                if ($result === false) {
-                    error_log("Failed to save setting: $field - Error: " . $wpdb->last_error);
-                }
             }
         }
         
