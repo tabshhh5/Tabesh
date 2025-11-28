@@ -460,7 +460,7 @@
             $btn.prop('disabled', true);
 
             $.ajax({
-                url: buildRestUrl(tabeshAdminData.restUrl, 'update-status'),
+                url: buildRestUrl(tabeshAdminData.restUrl, 'staff/update-status'),
                 method: 'POST',
                 contentType: 'application/json',
                 beforeSend: function(xhr) {
@@ -637,8 +637,8 @@
                 success: (response) => {
                     this.hideLoading();
 
-                    if (response.success && response.data.download_url) {
-                        window.location.href = response.data.download_url;
+                    if (response.success && response.download_url) {
+                        window.location.href = response.download_url;
                     } else {
                         this.showToast('خطا در ایجاد لینک دانلود', 'error');
                     }

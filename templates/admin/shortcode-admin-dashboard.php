@@ -233,7 +233,7 @@ if ($is_admin) {
                                 $progress = $status_progress[$order->status] ?? 0;
                                 
                                 // Get print substeps progress if in processing status
-                                if ($order->status === 'processing') {
+                                if ($order->status === 'processing' && isset(Tabesh()->print_substeps) && method_exists(Tabesh()->print_substeps, 'calculate_print_progress')) {
                                     $substep_progress = Tabesh()->print_substeps->calculate_print_progress($order->id);
                                     // Blend the two progress values
                                     $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range

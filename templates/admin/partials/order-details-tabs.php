@@ -89,7 +89,7 @@ $status_history = $wpdb->get_results($wpdb->prepare(
 // Get print substeps if in processing status
 $substeps = array();
 $substeps_progress = 0;
-if ($order->status === 'processing') {
+if ($order->status === 'processing' && isset(Tabesh()->print_substeps) && method_exists(Tabesh()->print_substeps, 'get_order_substeps')) {
     $substeps = Tabesh()->print_substeps->get_order_substeps($order_id);
     $substeps_progress = Tabesh()->print_substeps->calculate_print_progress($order_id);
 }
