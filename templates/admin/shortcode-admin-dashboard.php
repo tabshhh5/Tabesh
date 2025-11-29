@@ -24,27 +24,7 @@ if ($is_admin) {
     // Admin view: Show full super dashboard
     $admin = Tabesh()->admin;
     $stats = $admin->get_statistics();
-    $all_orders_raw = $admin->get_orders('', false);
-    
-    // Separate orders into three categories for tabbed display
-    $current_orders = array();    // Orders NOT completed or cancelled
-    $archived_orders = array();   // Orders with status 'completed' (تحویل داده شده)
-    $cancelled_orders = array();  // Orders with status 'cancelled' (لغو شده)
-    
-    foreach ($all_orders_raw as $order) {
-        if ($order->status === 'completed') {
-            $archived_orders[] = $order;
-        } elseif ($order->status === 'cancelled') {
-            $cancelled_orders[] = $order;
-        } else {
-            $current_orders[] = $order;
-        }
-    }
-    
-    // Count orders for tab badges
-    $current_count = count($current_orders);
-    $archived_count = count($archived_orders);
-    $cancelled_count = count($cancelled_orders);
+    $all_orders = $admin->get_orders('', false);
     $current_user = wp_get_current_user();
     $avatar_url = get_avatar_url($current_user->ID);
 
@@ -202,343 +182,109 @@ if ($is_admin) {
             </div>
         </section>
 
-        <!-- Orders Section with Tabs -->
+        <!-- Orders Table -->
         <section class="orders-section">
-            <?php 
-            // Check if there are any orders at all
-            $has_any_orders = !empty($current_orders) || !empty($archived_orders) || !empty($cancelled_orders);
-            
-            if (!$has_any_orders): 
-            ?>
+            <?php if (empty($all_orders)): ?>
                 <div class="no-orders-state">
                     <div class="no-orders-icon">📦</div>
                     <p class="no-orders-text"><?php esc_html_e('هیچ سفارشی ثبت نشده است.', 'tabesh'); ?></p>
                 </div>
             <?php else: ?>
-                <!-- Order Category Tabs -->
-                <div class="order-category-tabs">
-                    <button class="order-category-tab active" data-tab="current" type="button">
-                        <span class="tab-icon">📋</span>
-                        <span class="tab-text"><?php esc_html_e('سفارشات جاری', 'tabesh'); ?></span>
-                        <span class="tab-count"><?php echo esc_html($current_count); ?></span>
-                    </button>
-                    <button class="order-category-tab" data-tab="archived" type="button">
-                        <span class="tab-icon">✅</span>
-                        <span class="tab-text"><?php esc_html_e('سفارشات بایگانی‌شده', 'tabesh'); ?></span>
-                        <span class="tab-count"><?php echo esc_html($archived_count); ?></span>
-                    </button>
-                    <button class="order-category-tab" data-tab="cancelled" type="button">
-                        <span class="tab-icon">❌</span>
-                        <span class="tab-text"><?php esc_html_e('سفارشات لغوشده', 'tabesh'); ?></span>
-                        <span class="tab-count"><?php echo esc_html($cancelled_count); ?></span>
-                    </button>
-                </div>
-
-                <!-- Tab Content: Current Orders (Default Active) -->
-                <div class="order-tab-content active" data-tab-content="current">
-                    <?php if (empty($current_orders)): ?>
-                        <div class="no-orders-state">
-                            <div class="no-orders-icon">📋</div>
-                            <p class="no-orders-text"><?php esc_html_e('هیچ سفارش جاری‌ای وجود ندارد.', 'tabesh'); ?></p>
-                        </div>
-                    <?php else: ?>
-                        <div class="orders-table-wrapper">
-                            <table class="orders-table">
-                                <thead>
-                                    <tr>
-                                        <th><?php esc_html_e('ردیف', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('یوزر', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مشتری', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('استان', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('کتاب', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('قطع', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('صفحه', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('تیراژ', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مبلغ یک جلد', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('وضعیت', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('پیشرفت', 'tabesh'); ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php 
-                                    $row_number = 0;
-                                    foreach ($current_orders as $order): 
-                                        $row_number++;
-                                        $user = get_userdata($order->user_id);
-                                        $customer_name = $user ? $user->display_name : __('نامشخص', 'tabesh');
-                                        
-                                        // Get user billing info for province
-                                        $province = '';
-                                        $phone = '';
-                                        if ($user) {
-                                            $province = get_user_meta($order->user_id, 'billing_state', true);
-                                            $phone = get_user_meta($order->user_id, 'billing_phone', true);
-                                            if (empty($province)) {
-                                                $province = get_user_meta($order->user_id, 'billing_city', true);
-                                            }
-                                        }
-                                        
-                                        // Calculate unit price
-                                        $unit_price = $order->quantity > 0 ? $order->total_price / $order->quantity : 0;
-                                        
-                                        // Get progress
-                                        $progress = $status_progress[$order->status] ?? 0;
-                                        
-                                        // Get print substeps progress if in processing status
-                                        if ($order->status === 'processing' && isset(Tabesh()->print_substeps) && method_exists(Tabesh()->print_substeps, 'calculate_print_progress')) {
-                                            $substep_progress = Tabesh()->print_substeps->calculate_print_progress($order->id);
-                                            // Blend the two progress values
-                                            $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range
-                                        }
-                                    ?>
-                                        <tr class="order-row" 
-                                            data-order-id="<?php echo esc_attr($order->id); ?>"
-                                            data-order-number="<?php echo esc_attr($order->order_number); ?>"
-                                            data-book-title="<?php echo esc_attr($order->book_title); ?>"
-                                            data-book-size="<?php echo esc_attr($order->book_size); ?>"
-                                            data-customer-name="<?php echo esc_attr($customer_name); ?>"
-                                            data-customer-phone="<?php echo esc_attr($phone); ?>"
-                                            data-province="<?php echo esc_attr($province); ?>"
-                                            data-user-id="<?php echo esc_attr($order->user_id); ?>"
-                                            data-status="<?php echo esc_attr($order->status); ?>">
-                                            <td class="row-number"><?php echo esc_html($row_number); ?></td>
-                                            <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
-                                            <td class="customer-name"><?php echo esc_html($customer_name); ?></td>
-                                            <td class="province-cell"><?php echo esc_html($province ?: '—'); ?></td>
-                                            <td class="book-title-cell"><?php echo esc_html($order->book_title ?: '—'); ?></td>
-                                            <td class="book-size-cell"><?php echo esc_html($order->book_size); ?></td>
-                                            <td class="page-count-cell"><?php echo number_format($order->page_count_total); ?></td>
-                                            <td class="quantity-cell"><?php echo number_format($order->quantity); ?></td>
-                                            <td class="unit-price-cell"><?php echo number_format($unit_price); ?></td>
-                                            <td>
-                                                <span class="status-badge status-<?php echo esc_attr($order->status); ?>">
-                                                    <?php echo esc_html($status_labels[$order->status] ?? $order->status); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="progress-bar-container">
-                                                    <div class="progress-bar-fill" style="width: <?php echo esc_attr($progress); ?>%;"></div>
-                                                </div>
-                                                <div class="progress-text"><?php echo esc_html(round($progress)); ?>%</div>
-                                            </td>
-                                        </tr>
-                                        <!-- Order Details Row (Hidden by default) -->
-                                        <tr class="order-details-row" data-order-id="<?php echo esc_attr($order->id); ?>">
-                                            <td colspan="11" class="order-details-cell">
-                                                <div class="order-details-content">
-                                                    <?php 
-                                                    // Include order details template
-                                                    $order_id = $order->id;
-                                                    include TABESH_PLUGIN_DIR . 'templates/admin/partials/order-details-tabs.php';
-                                                    ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Tab Content: Archived Orders (Completed) -->
-                <div class="order-tab-content" data-tab-content="archived">
-                    <?php if (empty($archived_orders)): ?>
-                        <div class="no-orders-state">
-                            <div class="no-orders-icon">✅</div>
-                            <p class="no-orders-text"><?php esc_html_e('هیچ سفارش بایگانی‌شده‌ای وجود ندارد.', 'tabesh'); ?></p>
-                        </div>
-                    <?php else: ?>
-                        <div class="orders-table-wrapper">
-                            <table class="orders-table">
-                                <thead>
-                                    <tr>
-                                        <th><?php esc_html_e('ردیف', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('یوزر', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مشتری', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('استان', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('کتاب', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('قطع', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('صفحه', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('تیراژ', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مبلغ یک جلد', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('وضعیت', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('پیشرفت', 'tabesh'); ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php 
-                                    $row_number = 0;
-                                    foreach ($archived_orders as $order): 
-                                        $row_number++;
-                                        $user = get_userdata($order->user_id);
-                                        $customer_name = $user ? $user->display_name : __('نامشخص', 'tabesh');
-                                        
-                                        // Get user billing info for province
-                                        $province = '';
-                                        $phone = '';
-                                        if ($user) {
-                                            $province = get_user_meta($order->user_id, 'billing_state', true);
-                                            $phone = get_user_meta($order->user_id, 'billing_phone', true);
-                                            if (empty($province)) {
-                                                $province = get_user_meta($order->user_id, 'billing_city', true);
-                                            }
-                                        }
-                                        
-                                        // Calculate unit price
-                                        $unit_price = $order->quantity > 0 ? $order->total_price / $order->quantity : 0;
-                                        
-                                        // Get progress (completed orders always 100%)
-                                        $progress = 100;
-                                    ?>
-                                        <tr class="order-row" 
-                                            data-order-id="<?php echo esc_attr($order->id); ?>"
-                                            data-order-number="<?php echo esc_attr($order->order_number); ?>"
-                                            data-book-title="<?php echo esc_attr($order->book_title); ?>"
-                                            data-book-size="<?php echo esc_attr($order->book_size); ?>"
-                                            data-customer-name="<?php echo esc_attr($customer_name); ?>"
-                                            data-customer-phone="<?php echo esc_attr($phone); ?>"
-                                            data-province="<?php echo esc_attr($province); ?>"
-                                            data-user-id="<?php echo esc_attr($order->user_id); ?>"
-                                            data-status="<?php echo esc_attr($order->status); ?>">
-                                            <td class="row-number"><?php echo esc_html($row_number); ?></td>
-                                            <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
-                                            <td class="customer-name"><?php echo esc_html($customer_name); ?></td>
-                                            <td class="province-cell"><?php echo esc_html($province ?: '—'); ?></td>
-                                            <td class="book-title-cell"><?php echo esc_html($order->book_title ?: '—'); ?></td>
-                                            <td class="book-size-cell"><?php echo esc_html($order->book_size); ?></td>
-                                            <td class="page-count-cell"><?php echo number_format($order->page_count_total); ?></td>
-                                            <td class="quantity-cell"><?php echo number_format($order->quantity); ?></td>
-                                            <td class="unit-price-cell"><?php echo number_format($unit_price); ?></td>
-                                            <td>
-                                                <span class="status-badge status-<?php echo esc_attr($order->status); ?>">
-                                                    <?php echo esc_html($status_labels[$order->status] ?? $order->status); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="progress-bar-container">
-                                                    <div class="progress-bar-fill" style="width: <?php echo esc_attr($progress); ?>%;"></div>
-                                                </div>
-                                                <div class="progress-text"><?php echo esc_html(round($progress)); ?>%</div>
-                                            </td>
-                                        </tr>
-                                        <!-- Order Details Row (Hidden by default) -->
-                                        <tr class="order-details-row" data-order-id="<?php echo esc_attr($order->id); ?>">
-                                            <td colspan="11" class="order-details-cell">
-                                                <div class="order-details-content">
-                                                    <?php 
-                                                    // Include order details template
-                                                    $order_id = $order->id;
-                                                    include TABESH_PLUGIN_DIR . 'templates/admin/partials/order-details-tabs.php';
-                                                    ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Tab Content: Cancelled Orders -->
-                <div class="order-tab-content" data-tab-content="cancelled">
-                    <?php if (empty($cancelled_orders)): ?>
-                        <div class="no-orders-state">
-                            <div class="no-orders-icon">❌</div>
-                            <p class="no-orders-text"><?php esc_html_e('هیچ سفارش لغوشده‌ای وجود ندارد.', 'tabesh'); ?></p>
-                        </div>
-                    <?php else: ?>
-                        <div class="orders-table-wrapper">
-                            <table class="orders-table">
-                                <thead>
-                                    <tr>
-                                        <th><?php esc_html_e('ردیف', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('یوزر', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مشتری', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('استان', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('کتاب', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('قطع', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('صفحه', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('تیراژ', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('مبلغ یک جلد', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('وضعیت', 'tabesh'); ?></th>
-                                        <th><?php esc_html_e('پیشرفت', 'tabesh'); ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php 
-                                    $row_number = 0;
-                                    foreach ($cancelled_orders as $order): 
-                                        $row_number++;
-                                        $user = get_userdata($order->user_id);
-                                        $customer_name = $user ? $user->display_name : __('نامشخص', 'tabesh');
-                                        
-                                        // Get user billing info for province
-                                        $province = '';
-                                        $phone = '';
-                                        if ($user) {
-                                            $province = get_user_meta($order->user_id, 'billing_state', true);
-                                            $phone = get_user_meta($order->user_id, 'billing_phone', true);
-                                            if (empty($province)) {
-                                                $province = get_user_meta($order->user_id, 'billing_city', true);
-                                            }
-                                        }
-                                        
-                                        // Calculate unit price
-                                        $unit_price = $order->quantity > 0 ? $order->total_price / $order->quantity : 0;
-                                        
-                                        // Get progress (cancelled orders always 0%)
-                                        $progress = 0;
-                                    ?>
-                                        <tr class="order-row" 
-                                            data-order-id="<?php echo esc_attr($order->id); ?>"
-                                            data-order-number="<?php echo esc_attr($order->order_number); ?>"
-                                            data-book-title="<?php echo esc_attr($order->book_title); ?>"
-                                            data-book-size="<?php echo esc_attr($order->book_size); ?>"
-                                            data-customer-name="<?php echo esc_attr($customer_name); ?>"
-                                            data-customer-phone="<?php echo esc_attr($phone); ?>"
-                                            data-province="<?php echo esc_attr($province); ?>"
-                                            data-user-id="<?php echo esc_attr($order->user_id); ?>"
-                                            data-status="<?php echo esc_attr($order->status); ?>">
-                                            <td class="row-number"><?php echo esc_html($row_number); ?></td>
-                                            <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
-                                            <td class="customer-name"><?php echo esc_html($customer_name); ?></td>
-                                            <td class="province-cell"><?php echo esc_html($province ?: '—'); ?></td>
-                                            <td class="book-title-cell"><?php echo esc_html($order->book_title ?: '—'); ?></td>
-                                            <td class="book-size-cell"><?php echo esc_html($order->book_size); ?></td>
-                                            <td class="page-count-cell"><?php echo number_format($order->page_count_total); ?></td>
-                                            <td class="quantity-cell"><?php echo number_format($order->quantity); ?></td>
-                                            <td class="unit-price-cell"><?php echo number_format($unit_price); ?></td>
-                                            <td>
-                                                <span class="status-badge status-<?php echo esc_attr($order->status); ?>">
-                                                    <?php echo esc_html($status_labels[$order->status] ?? $order->status); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="progress-bar-container">
-                                                    <div class="progress-bar-fill" style="width: <?php echo esc_attr($progress); ?>%;"></div>
-                                                </div>
-                                                <div class="progress-text"><?php echo esc_html(round($progress)); ?>%</div>
-                                            </td>
-                                        </tr>
-                                        <!-- Order Details Row (Hidden by default) -->
-                                        <tr class="order-details-row" data-order-id="<?php echo esc_attr($order->id); ?>">
-                                            <td colspan="11" class="order-details-cell">
-                                                <div class="order-details-content">
-                                                    <?php 
-                                                    // Include order details template
-                                                    $order_id = $order->id;
-                                                    include TABESH_PLUGIN_DIR . 'templates/admin/partials/order-details-tabs.php';
-                                                    ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
+                <div class="orders-table-wrapper">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('ردیف', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('یوزر', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('مشتری', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('استان', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('کتاب', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('قطع', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('صفحه', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('تیراژ', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('مبلغ یک جلد', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('وضعیت', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('پیشرفت', 'tabesh'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $row_number = 0;
+                            foreach ($all_orders as $order): 
+                                $row_number++;
+                                $user = get_userdata($order->user_id);
+                                $customer_name = $user ? $user->display_name : __('نامشخص', 'tabesh');
+                                
+                                // Get user billing info for province
+                                $province = '';
+                                $phone = '';
+                                if ($user) {
+                                    $province = get_user_meta($order->user_id, 'billing_state', true);
+                                    $phone = get_user_meta($order->user_id, 'billing_phone', true);
+                                    if (empty($province)) {
+                                        $province = get_user_meta($order->user_id, 'billing_city', true);
+                                    }
+                                }
+                                
+                                // Calculate unit price
+                                $unit_price = $order->quantity > 0 ? $order->total_price / $order->quantity : 0;
+                                
+                                // Get progress
+                                $progress = $status_progress[$order->status] ?? 0;
+                                
+                                // Get print substeps progress if in processing status
+                                if ($order->status === 'processing' && isset(Tabesh()->print_substeps) && method_exists(Tabesh()->print_substeps, 'calculate_print_progress')) {
+                                    $substep_progress = Tabesh()->print_substeps->calculate_print_progress($order->id);
+                                    // Blend the two progress values
+                                    $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range
+                                }
+                            ?>
+                                <tr class="order-row" 
+                                    data-order-id="<?php echo esc_attr($order->id); ?>"
+                                    data-order-number="<?php echo esc_attr($order->order_number); ?>"
+                                    data-book-title="<?php echo esc_attr($order->book_title); ?>"
+                                    data-book-size="<?php echo esc_attr($order->book_size); ?>"
+                                    data-customer-name="<?php echo esc_attr($customer_name); ?>"
+                                    data-customer-phone="<?php echo esc_attr($phone); ?>"
+                                    data-province="<?php echo esc_attr($province); ?>"
+                                    data-user-id="<?php echo esc_attr($order->user_id); ?>"
+                                    data-status="<?php echo esc_attr($order->status); ?>">
+                                    <td class="row-number"><?php echo esc_html($row_number); ?></td>
+                                    <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
+                                    <td class="customer-name"><?php echo esc_html($customer_name); ?></td>
+                                    <td class="province-cell"><?php echo esc_html($province ?: '—'); ?></td>
+                                    <td class="book-title-cell"><?php echo esc_html($order->book_title ?: '—'); ?></td>
+                                    <td class="book-size-cell"><?php echo esc_html($order->book_size); ?></td>
+                                    <td class="page-count-cell"><?php echo number_format($order->page_count_total); ?></td>
+                                    <td class="quantity-cell"><?php echo number_format($order->quantity); ?></td>
+                                    <td class="unit-price-cell"><?php echo number_format($unit_price); ?></td>
+                                    <td>
+                                        <span class="status-badge status-<?php echo esc_attr($order->status); ?>">
+                                            <?php echo esc_html($status_labels[$order->status] ?? $order->status); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-fill" style="width: <?php echo esc_attr($progress); ?>%;"></div>
+                                        </div>
+                                        <div class="progress-text"><?php echo esc_html(round($progress)); ?>%</div>
+                                    </td>
+                                </tr>
+                                <!-- Order Details Row (Hidden by default) -->
+                                <tr class="order-details-row" data-order-id="<?php echo esc_attr($order->id); ?>">
+                                    <td colspan="11" class="order-details-cell">
+                                        <div class="order-details-content">
+                                            <?php 
+                                            // Include order details template
+                                            $order_id = $order->id;
+                                            include TABESH_PLUGIN_DIR . 'templates/admin/partials/order-details-tabs.php';
+                                            ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
                 
                 <!-- Pagination -->

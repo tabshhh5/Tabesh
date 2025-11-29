@@ -84,11 +84,8 @@
             // Order row click - expand/collapse
             $(document).on('click', '.orders-table tbody tr.order-row', this.toggleOrderDetails.bind(this));
 
-            // Tab switching (order details tabs)
+            // Tab switching
             $(document).on('click', '.details-tab', this.switchTab.bind(this));
-
-            // Order category tab switching (current/archived/cancelled)
-            $(document).on('click', '.order-category-tab', this.switchOrderCategoryTab.bind(this));
 
             // Status update
             $(document).on('click', '.status-update-btn', this.updateStatus.bind(this));
@@ -212,11 +209,7 @@
             const queryLower = query.toLowerCase();
             let visibleCount = 0;
 
-            // Target the active tab's table body
-            const $activeTabContent = $('.order-tab-content.active');
-            const $ordersBody = $activeTabContent.length ? $activeTabContent.find('.orders-table tbody') : this.$ordersBody;
-
-            $ordersBody.find('tr.order-row').each(function() {
+            this.$ordersBody.find('tr.order-row').each(function() {
                 const $row = $(this);
                 const searchableText = [
                     $row.data('order-number'),
@@ -350,13 +343,7 @@
             this.$searchInput.val('');
             this.state.searchQuery = '';
             
-            // Show all rows in the active tab
-            const $activeTabContent = $('.order-tab-content.active');
-            if ($activeTabContent.length) {
-                $activeTabContent.find('.orders-table tbody tr').show();
-            } else {
-                this.$ordersBody.find('tr').show();
-            }
+            this.$ordersBody.find('tr').show();
             $('.no-results-row').remove();
             $('.search-results-info').removeClass('visible');
         },
@@ -445,45 +432,6 @@
             // Update content states
             $container.find('.details-tab-content').removeClass('active');
             $container.find('.details-tab-content[data-tab="' + tabId + '"]').addClass('active');
-        },
-
-        /**
-         * Switch order category tab (current/archived/cancelled)
-         */
-        switchOrderCategoryTab: function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const $tab = $(e.currentTarget);
-            const tabId = $tab.data('tab');
-
-            // Don't do anything if already active
-            if ($tab.hasClass('active')) {
-                return;
-            }
-
-            // Update tab button states
-            $('.order-category-tab').removeClass('active');
-            $tab.addClass('active');
-
-            // Update content visibility
-            $('.order-tab-content').removeClass('active');
-            $('.order-tab-content[data-tab-content="' + tabId + '"]').addClass('active');
-
-            // Close any expanded order details in the newly active tab
-            const $activeTabBody = $('.order-tab-content.active .orders-table tbody');
-            if ($activeTabBody.length) {
-                $activeTabBody.find('.order-details-row.visible').removeClass('visible');
-                $activeTabBody.find('tr.order-row.expanded').removeClass('expanded');
-            }
-            this.state.expandedOrderId = null;
-
-            // Reset search if active when switching tabs
-            if (this.state.searchQuery) {
-                this.$searchInput.val('');
-                this.state.searchQuery = '';
-                $('.search-results-info').removeClass('visible');
-            }
         },
 
         /**
