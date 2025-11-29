@@ -74,6 +74,7 @@ if ($is_admin) {
             'error' => __('خطا در پردازش درخواست', 'tabesh'),
             'success' => __('عملیات با موفقیت انجام شد', 'tabesh'),
             'confirmStatusChange' => __('آیا از تغییر وضعیت این سفارش اطمینان دارید؟', 'tabesh'),
+            'noOrdersInTab' => __('سفارشی در این بخش وجود ندارد', 'tabesh'),
         )
     ));
     ?>
@@ -190,6 +191,53 @@ if ($is_admin) {
                     <p class="no-orders-text"><?php esc_html_e('هیچ سفارشی ثبت نشده است.', 'tabesh'); ?></p>
                 </div>
             <?php else: ?>
+                <?php
+                // Count orders by category for tabs
+                $current_count = 0;
+                $processing_count = 0;
+                $archived_count = 0;
+                $cancelled_count = 0;
+                
+                foreach ($all_orders as $order) {
+                    if ($order->status === 'cancelled') {
+                        $cancelled_count++;
+                    } elseif ($order->status === 'completed') {
+                        $archived_count++;
+                    } elseif ($order->status === 'processing') {
+                        $processing_count++;
+                        $current_count++; // Processing orders also appear in current
+                    } else {
+                        // pending, confirmed, ready - all go to current
+                        $current_count++;
+                    }
+                }
+                ?>
+                <!-- Orders Tabs Navigation -->
+                <div class="orders-tabs-wrapper">
+                    <div class="orders-tabs-nav">
+                        <button type="button" class="orders-tab active" data-tab="current">
+                            <span class="tab-icon">📋</span>
+                            <span class="tab-text"><?php esc_html_e('سفارشات جاری', 'tabesh'); ?></span>
+                            <span class="tab-count"><?php echo esc_html($current_count); ?></span>
+                        </button>
+                        <button type="button" class="orders-tab" data-tab="processing">
+                            <span class="tab-icon">🖨️</span>
+                            <span class="tab-text"><?php esc_html_e('در حال چاپ', 'tabesh'); ?></span>
+                            <span class="tab-count"><?php echo esc_html($processing_count); ?></span>
+                        </button>
+                        <button type="button" class="orders-tab" data-tab="archived">
+                            <span class="tab-icon">📁</span>
+                            <span class="tab-text"><?php esc_html_e('بایگانی‌شده', 'tabesh'); ?></span>
+                            <span class="tab-count"><?php echo esc_html($archived_count); ?></span>
+                        </button>
+                        <button type="button" class="orders-tab" data-tab="cancelled">
+                            <span class="tab-icon">❌</span>
+                            <span class="tab-text"><?php esc_html_e('لغوشده', 'tabesh'); ?></span>
+                            <span class="tab-count"><?php echo esc_html($cancelled_count); ?></span>
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="orders-table-wrapper">
                     <table class="orders-table">
                         <thead>
@@ -238,6 +286,16 @@ if ($is_admin) {
                                     // Blend the two progress values
                                     $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range
                                 }
+                                
+                                // Determine tab category for filtering
+                                $tab_category = 'current'; // Default
+                                if ($order->status === 'cancelled') {
+                                    $tab_category = 'cancelled';
+                                } elseif ($order->status === 'completed') {
+                                    $tab_category = 'archived';
+                                } elseif ($order->status === 'processing') {
+                                    $tab_category = 'processing current'; // Processing is also in current
+                                }
                             ?>
                                 <tr class="order-row" 
                                     data-order-id="<?php echo esc_attr($order->id); ?>"
@@ -248,7 +306,8 @@ if ($is_admin) {
                                     data-customer-phone="<?php echo esc_attr($phone); ?>"
                                     data-province="<?php echo esc_attr($province); ?>"
                                     data-user-id="<?php echo esc_attr($order->user_id); ?>"
-                                    data-status="<?php echo esc_attr($order->status); ?>">
+                                    data-status="<?php echo esc_attr($order->status); ?>"
+                                    data-tab-category="<?php echo esc_attr($tab_category); ?>">
                                     <td class="row-number"><?php echo esc_html($row_number); ?></td>
                                     <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
                                     <td class="customer-name"><?php echo esc_html($customer_name); ?></td>

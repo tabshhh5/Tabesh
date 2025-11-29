@@ -35,6 +35,7 @@
             expandedOrderId: null,
             currentPage: 1,
             totalPages: 1,
+            activeOrderTab: 'current',
             filters: {
                 status: '',
                 customer: '',
@@ -52,6 +53,7 @@
             this.bindEvents();
             this.loadTheme();
             this.initializeOrderRows();
+            this.initializeOrderTabs();
         },
 
         /**
@@ -66,6 +68,7 @@
             this.$filterStatus = $('#filter-status');
             this.$filterSort = $('#filter-sort');
             this.$filterReset = $('.filter-reset-btn');
+            this.$ordersTabs = $('.orders-tab');
         },
 
         /**
@@ -84,7 +87,10 @@
             // Order row click - expand/collapse
             $(document).on('click', '.orders-table tbody tr.order-row', this.toggleOrderDetails.bind(this));
 
-            // Tab switching
+            // Orders tab switching (for filtering by category)
+            $(document).on('click', '.orders-tab', this.switchOrdersTab.bind(this));
+
+            // Tab switching (for order details tabs)
             $(document).on('click', '.details-tab', this.switchTab.bind(this));
 
             // Status update
@@ -127,6 +133,116 @@
             this.$ordersBody.find('tr.order-row').each(function() {
                 $(this).data('initialized', true);
             });
+        },
+
+        /**
+         * Initialize order tabs - show only current orders by default
+         */
+        initializeOrderTabs: function() {
+            this.state.activeOrderTab = 'current';
+            this.filterOrdersByTab('current');
+        },
+
+        /**
+         * Switch orders tab (filter by category)
+         */
+        switchOrdersTab: function(e) {
+            e.preventDefault();
+            
+            const $tab = $(e.currentTarget);
+            const tabId = $tab.data('tab');
+            
+            // Update tab states
+            $('.orders-tab').removeClass('active');
+            $tab.addClass('active');
+            
+            // Store active tab
+            this.state.activeOrderTab = tabId;
+            
+            // Filter orders by tab
+            this.filterOrdersByTab(tabId);
+            
+            // Reset status filter when switching tabs
+            if (this.$filterStatus.length) {
+                this.$filterStatus.val('');
+                this.state.filters.status = '';
+            }
+        },
+
+        /**
+         * Filter orders by tab category
+         */
+        filterOrdersByTab: function(tabId) {
+            const self = this;
+            let visibleCount = 0;
+            
+            // Hide all expanded details first
+            this.$ordersBody.find('.order-details-row.visible').removeClass('visible');
+            this.$ordersBody.find('tr.order-row.expanded').removeClass('expanded');
+            this.state.expandedOrderId = null;
+            
+            // Filter rows based on tab
+            this.$ordersBody.find('tr.order-row').each(function() {
+                const $row = $(this);
+                const $detailsRow = $row.next('.order-details-row');
+                const tabCategory = $row.data('tab-category') || '';
+                
+                // Check if the order belongs to the selected tab
+                const categories = tabCategory.split(' ');
+                const shouldShow = categories.includes(tabId);
+                
+                if (shouldShow) {
+                    $row.show();
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                    $detailsRow.hide().removeClass('visible');
+                }
+            });
+            
+            // Update row numbers for visible rows
+            this.updateVisibleRowNumbers();
+            
+            // Show/hide no results message
+            this.handleNoOrdersMessage(visibleCount);
+        },
+
+        /**
+         * Update row numbers for visible order rows
+         */
+        updateVisibleRowNumbers: function() {
+            let rowNum = 0;
+            this.$ordersBody.find('tr.order-row:visible').each(function() {
+                rowNum++;
+                $(this).find('.row-number').text(rowNum);
+            });
+        },
+
+        /**
+         * Handle no orders message display
+         */
+        handleNoOrdersMessage: function(visibleCount) {
+            const $wrapper = $('.orders-table-wrapper');
+            let $noResults = $wrapper.find('.no-orders-tab-message');
+            
+            if (visibleCount === 0) {
+                const noOrdersText = (typeof tabeshAdminData !== 'undefined' && tabeshAdminData.strings && tabeshAdminData.strings.noOrdersInTab)
+                    ? tabeshAdminData.strings.noOrdersInTab
+                    : 'سفارشی در این بخش وجود ندارد';
+                    
+                if (!$noResults.length) {
+                    $noResults = $('<div class="no-orders-tab-message">' +
+                        '<div class="no-orders-icon">📭</div>' +
+                        '<p class="no-orders-text">' + noOrdersText + '</p>' +
+                    '</div>');
+                    $wrapper.append($noResults);
+                }
+                $noResults.show();
+                this.$ordersTable.hide();
+            } else {
+                $noResults.hide();
+                this.$ordersTable.show();
+            }
         },
 
         /**
@@ -207,10 +323,21 @@
          */
         clientSideFilter: function(query) {
             const queryLower = query.toLowerCase();
+            const activeTab = this.state.activeOrderTab;
             let visibleCount = 0;
 
             this.$ordersBody.find('tr.order-row').each(function() {
                 const $row = $(this);
+                const tabCategory = $row.data('tab-category') || '';
+                const categories = tabCategory.split(' ');
+                
+                // First check if the row belongs to the active tab
+                if (!categories.includes(activeTab)) {
+                    $row.hide();
+                    $row.next('.order-details-row').hide();
+                    return;
+                }
+                
                 const searchableText = [
                     $row.data('order-number'),
                     $row.data('book-title'),
@@ -231,7 +358,9 @@
                 }
             });
 
+            this.updateVisibleRowNumbers();
             this.updateSearchCount(visibleCount);
+            this.handleNoOrdersMessage(visibleCount);
         },
 
         /**
@@ -343,7 +472,9 @@
             this.$searchInput.val('');
             this.state.searchQuery = '';
             
-            this.$ordersBody.find('tr').show();
+            // Re-apply tab filtering (show only orders in active tab)
+            this.filterOrdersByTab(this.state.activeOrderTab);
+            
             $('.no-results-row').remove();
             $('.search-results-info').removeClass('visible');
         },

@@ -483,6 +483,123 @@
     animation: fadeIn 0.6s ease-out 0.4s both;
 }
 
+/* ==========================================
+   Orders Tabs Navigation
+   ========================================== */
+
+.orders-tabs-wrapper {
+    margin-bottom: 20px;
+}
+
+.orders-tabs-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: var(--admin-bg-card);
+    padding: 15px;
+    border-radius: var(--admin-border-radius);
+    box-shadow: var(--admin-shadow-card);
+}
+
+.orders-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--admin-bg-secondary);
+    border: 2px solid var(--admin-text-muted);
+    border-radius: var(--admin-border-radius-sm);
+    cursor: pointer;
+    transition: all var(--admin-transition-speed);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+}
+
+.orders-tab:hover {
+    border-color: var(--admin-accent-blue);
+    color: var(--admin-accent-blue);
+    background: var(--admin-bg-hover);
+}
+
+.orders-tab.active {
+    background: var(--admin-gradient-header);
+    border-color: transparent;
+    color: white;
+    box-shadow: var(--admin-shadow-button);
+}
+
+.orders-tab .tab-icon {
+    font-size: 18px;
+}
+
+.orders-tab .tab-text {
+    white-space: nowrap;
+}
+
+.orders-tab .tab-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 10px;
+    border-radius: var(--admin-border-radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+}
+
+.orders-tab:not(.active) .tab-count {
+    background: var(--admin-text-muted);
+    color: var(--admin-text-primary);
+}
+
+/* Tab-specific colors for active state */
+.orders-tab[data-tab="current"].active {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.orders-tab[data-tab="processing"].active {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.orders-tab[data-tab="archived"].active {
+    background: linear-gradient(135deg, #27ae60, #1e8449);
+}
+
+.orders-tab[data-tab="cancelled"].active {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+    .orders-tabs-nav {
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .orders-tab {
+        padding: 10px 14px;
+        font-size: 13px;
+        flex: 1 1 calc(50% - 4px);
+        justify-content: center;
+    }
+    
+    .orders-tab .tab-text {
+        display: none;
+    }
+    
+    .orders-tab .tab-icon {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .orders-tab {
+        flex: 1 1 calc(50% - 4px);
+        padding: 10px 12px;
+    }
+}
+
 .orders-table-wrapper {
     background: var(--admin-bg-card);
     border-radius: var(--admin-border-radius);
@@ -1584,6 +1701,25 @@
     font-size: 20px;
     color: var(--admin-text-secondary);
     font-weight: 600;
+}
+
+/* No Orders Tab Message (for filtered tabs) */
+.no-orders-tab-message {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--admin-bg-card);
+    border-radius: var(--admin-border-radius);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.no-orders-tab-message .no-orders-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: none;
+}
+
+.no-orders-tab-message .no-orders-text {
+    font-size: 16px;
 }
 
 /* ==========================================
