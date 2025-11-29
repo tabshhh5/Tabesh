@@ -149,14 +149,9 @@
          * Initialize order tabs - show only current orders by default
          */
         initializeOrderTabs: function() {
-            const self = this;
             this.state.activeOrderTab = 'current';
-            
-            // Ensure DOM is ready before filtering
-            setTimeout(function() {
-                self.filterOrdersByTab('current');
-                self.updateTabCounts();
-            }, 0);
+            this.filterOrdersByTab('current');
+            this.updateTabCounts();
         },
 
         /**
@@ -393,7 +388,7 @@
             // Count visible rows after filtering
             const visibleCount = this.$ordersBody.find('tr.order-row:visible').length;
 
-            this.updateSearchCount(data.total || visibleCount);
+            this.updateSearchCount(data.total !== undefined ? data.total : visibleCount);
             this.updatePagination(data.total_pages || 1, data.current_page || 1);
             this.handleNoOrdersMessage(visibleCount);
         },
