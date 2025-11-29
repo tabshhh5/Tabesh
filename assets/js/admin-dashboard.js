@@ -16,6 +16,16 @@
         return cleanBase + '/' + cleanEndpoint;
     }
 
+    // Status to tab category mapping
+    const STATUS_TAB_CATEGORY_MAP = {
+        'cancelled': 'cancelled',
+        'completed': 'archived',
+        'processing': 'processing,current',
+        'pending': 'current',
+        'confirmed': 'current',
+        'ready': 'current'
+    };
+
     // Admin Dashboard Controller
     const AdminDashboard = {
         // Configuration
@@ -666,6 +676,41 @@
             if ($progressBar.length) {
                 $progressBar.css('width', progressMap[newStatus] + '%');
             }
+
+            // Update data-status attribute
+            $row.attr('data-status', newStatus);
+
+            // Update data-tab-category based on new status using the mapping constant
+            const newTabCategory = STATUS_TAB_CATEGORY_MAP[newStatus] || 'current';
+            $row.data('tab-category', newTabCategory).attr('data-tab-category', newTabCategory);
+
+            // Update tab counts and re-apply current tab filter
+            this.updateTabCounts();
+            this.filterOrdersByTab(this.state.activeOrderTab);
+        },
+
+        /**
+         * Update tab counts based on current order rows
+         */
+        updateTabCounts: function() {
+            const counts = { current: 0, processing: 0, archived: 0, cancelled: 0 };
+            
+            this.$ordersBody.find('tr.order-row').each(function() {
+                const rawCategory = $(this).data('tab-category');
+                const categories = String(rawCategory || '').split(',');
+                categories.forEach(function(cat) {
+                    cat = cat.trim();
+                    if (cat in counts) {
+                        counts[cat]++;
+                    }
+                });
+            });
+            
+            // Update tab count badges
+            $('.orders-tab').each(function() {
+                const tab = $(this).data('tab');
+                $(this).find('.tab-count').text(counts[tab] || 0);
+            });
         },
 
         /**
