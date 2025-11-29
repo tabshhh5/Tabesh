@@ -187,8 +187,8 @@
                 const $detailsRow = $row.next('.order-details-row');
                 const tabCategory = $row.data('tab-category') || '';
                 
-                // Check if the order belongs to the selected tab
-                const categories = tabCategory.split(' ');
+                // Check if the order belongs to the selected tab (comma-separated categories)
+                const categories = tabCategory.split(',').map(function(cat) { return cat.trim(); });
                 const shouldShow = categories.includes(tabId);
                 
                 if (shouldShow) {
@@ -329,7 +329,7 @@
             this.$ordersBody.find('tr.order-row').each(function() {
                 const $row = $(this);
                 const tabCategory = $row.data('tab-category') || '';
-                const categories = tabCategory.split(' ');
+                const categories = tabCategory.split(',').map(function(cat) { return cat.trim(); });
                 
                 // First check if the row belongs to the active tab
                 if (!categories.includes(activeTab)) {

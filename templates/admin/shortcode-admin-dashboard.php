@@ -287,14 +287,14 @@ if ($is_admin) {
                                     $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range
                                 }
                                 
-                                // Determine tab category for filtering
+                                // Determine tab category for filtering (comma-separated for multiple categories)
                                 $tab_category = 'current'; // Default
                                 if ($order->status === 'cancelled') {
                                     $tab_category = 'cancelled';
                                 } elseif ($order->status === 'completed') {
                                     $tab_category = 'archived';
                                 } elseif ($order->status === 'processing') {
-                                    $tab_category = 'processing current'; // Processing is also in current
+                                    $tab_category = 'processing,current'; // Processing is also in current
                                 }
                             ?>
                                 <tr class="order-row" 
