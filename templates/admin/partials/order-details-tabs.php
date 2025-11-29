@@ -26,12 +26,41 @@ if (!current_user_can('manage_woocommerce')) {
 
 global $wpdb;
 
-// Get order details
+// Get order details - search in all tables
 $orders_table = $wpdb->prefix . 'tabesh_orders';
+$archived_table = $wpdb->prefix . 'tabesh_orders_archived';
+$cancelled_table = $wpdb->prefix . 'tabesh_orders_cancelled';
+
+$order = null;
+$source_table = 'main';
+
+// First check main table
 $order = $wpdb->get_row($wpdb->prepare(
     "SELECT * FROM $orders_table WHERE id = %d",
     $order_id
 ));
+
+// If not found, check archived table
+if (!$order && Tabesh_Install::table_exists($archived_table)) {
+    $order = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $archived_table WHERE id = %d",
+        $order_id
+    ));
+    if ($order) {
+        $source_table = 'archived';
+    }
+}
+
+// If not found, check cancelled table
+if (!$order && Tabesh_Install::table_exists($cancelled_table)) {
+    $order = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $cancelled_table WHERE id = %d",
+        $order_id
+    ));
+    if ($order) {
+        $source_table = 'cancelled';
+    }
+}
 
 if (!$order) {
     echo '<div style="padding: 40px; text-align: center; color: var(--admin-error);">' . esc_html__('سفارش یافت نشد', 'tabesh') . '</div>';
@@ -548,7 +577,7 @@ $status_labels = array(
 
 <!-- Tab Content: Status Management -->
 <div class="details-tab-content" data-tab="status">
-    <div class="status-update-container" data-order-id="<?php echo esc_attr($order_id); ?>">
+    <div class="status-update-container" data-order-id="<?php echo esc_attr($order_id); ?>" data-source-table="<?php echo esc_attr($source_table); ?>">
         <h4 style="margin-bottom: 15px; color: var(--admin-text-primary);"><?php esc_html_e('تغییر وضعیت سفارش', 'tabesh'); ?></h4>
         <div class="status-select-wrapper">
             <select class="status-select">

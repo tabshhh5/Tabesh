@@ -1096,6 +1096,22 @@ final class Tabesh {
             'permission_callback' => array($this, 'can_manage_admin')
         ));
         
+        // Admin dashboard tab-based orders endpoint
+        register_rest_route(TABESH_REST_NAMESPACE, '/admin/orders-by-tab', array(
+            'methods' => 'GET',
+            'callback' => array($this->admin, 'rest_get_orders_by_tab'),
+            'permission_callback' => array($this, 'can_manage_admin'),
+            'args' => array(
+                'tab' => array(
+                    'required' => false,
+                    'default' => 'current',
+                    'type' => 'string',
+                    'enum' => array('current', 'archived', 'cancelled'),
+                    'sanitize_callback' => 'sanitize_text_field'
+                )
+            )
+        ));
+        
         register_rest_route(TABESH_REST_NAMESPACE, '/files/generate-token', array(
             'methods' => 'POST',
             'callback' => array($this, 'rest_generate_file_token'),

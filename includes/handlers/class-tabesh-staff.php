@@ -29,6 +29,7 @@ class Tabesh_Staff {
         $params = $request->get_json_params();
         $order_id = intval($params['order_id'] ?? 0);
         $status = sanitize_text_field($params['status'] ?? '');
+        $source_table = sanitize_text_field($params['source_table'] ?? 'main');
 
         if (!$order_id || !$status) {
             return new WP_REST_Response(array(
@@ -37,9 +38,22 @@ class Tabesh_Staff {
             ), 400);
         }
 
+        // Validate source_table parameter
+        if (!in_array($source_table, array('main', 'archived', 'cancelled'), true)) {
+            $source_table = 'main';
+        }
+
         // Get current order to track old status
         global $wpdb;
+        
+        // Determine which table to look in
         $table = $wpdb->prefix . 'tabesh_orders';
+        if ($source_table === 'archived') {
+            $table = $wpdb->prefix . 'tabesh_orders_archived';
+        } elseif ($source_table === 'cancelled') {
+            $table = $wpdb->prefix . 'tabesh_orders_cancelled';
+        }
+        
         $current_order = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table WHERE id = %d",
             $order_id
@@ -54,9 +68,9 @@ class Tabesh_Staff {
 
         $old_status = $current_order->status;
 
-        // Update order status
+        // Update order status (may move between tables)
         $order = Tabesh()->order;
-        $result = $order->update_status($order_id, $status);
+        $result = $order->update_status($order_id, $status, $source_table);
 
         if ($result) {
             // Log the status change with staff information
@@ -83,13 +97,23 @@ class Tabesh_Staff {
                 array('%d', '%d', '%d', '%s', '%s', '%s', '%s')
             );
 
-            return new WP_REST_Response(array(
+            // Prepare response with move info if order was moved
+            $response_data = array(
                 'success' => true,
                 'message' => __('وضعیت با موفقیت به‌روزرسانی شد', 'tabesh'),
                 'staff_name' => $current_user->display_name,
                 'old_status' => $old_status,
                 'new_status' => $status
-            ), 200);
+            );
+            
+            // Add move info if order was moved between tables
+            if (is_array($result) && isset($result['moved']) && $result['moved']) {
+                $response_data['moved'] = true;
+                $response_data['move_type'] = $result['move_type'];
+                $response_data['new_order_id'] = $result['new_order_id'];
+            }
+
+            return new WP_REST_Response($response_data, 200);
         }
 
         return new WP_REST_Response(array(

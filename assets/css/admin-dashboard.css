@@ -1920,3 +1920,163 @@ a:focus-visible {
     padding-bottom: 10px;
     border-bottom: 2px solid var(--admin-accent-blue);
 }
+
+/* ==========================================
+   Orders Tabs Section - Tab Navigation
+   ========================================== */
+
+.orders-tabs-section {
+    padding: 0 25px 15px;
+    max-width: 1600px;
+    margin: 0 auto;
+    animation: fadeIn 0.6s ease-out 0.35s both;
+}
+
+.orders-tabs-wrapper {
+    display: flex;
+    gap: 8px;
+    background: var(--admin-bg-card);
+    border-radius: var(--admin-border-radius);
+    padding: 8px;
+    box-shadow: var(--admin-shadow-card);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.orders-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: var(--admin-border-radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+    cursor: pointer;
+    transition: all var(--admin-transition-speed);
+    text-decoration: none;
+    white-space: nowrap;
+    position: relative;
+}
+
+.orders-tab:hover {
+    color: var(--admin-text-primary);
+    background: var(--admin-bg-hover);
+    border-color: var(--admin-text-muted);
+    text-decoration: none;
+}
+
+.orders-tab.active {
+    color: white;
+    background: var(--admin-gradient-header);
+    border-color: transparent;
+    box-shadow: var(--admin-shadow-button);
+}
+
+.orders-tab.active .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.orders-tab .tab-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.orders-tab .tab-label {
+    font-weight: 600;
+}
+
+.orders-tab .tab-count {
+    background: var(--admin-bg-primary);
+    color: var(--admin-text-secondary);
+    padding: 4px 10px;
+    border-radius: var(--admin-border-radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 26px;
+    text-align: center;
+    transition: all var(--admin-transition-speed);
+}
+
+/* Tab styles for different states */
+.orders-tab[data-tab="current"]:hover:not(.active) {
+    border-color: var(--admin-accent-blue);
+}
+
+.orders-tab[data-tab="archived"]:hover:not(.active) {
+    border-color: var(--admin-status-completed);
+}
+
+.orders-tab[data-tab="cancelled"]:hover:not(.active) {
+    border-color: var(--admin-status-cancelled);
+}
+
+/* Tab count colors based on tab type */
+.orders-tab[data-tab="current"] .tab-count {
+    background: rgba(74, 144, 226, 0.15);
+    color: var(--admin-accent-blue);
+}
+
+.orders-tab[data-tab="archived"] .tab-count {
+    background: rgba(39, 174, 96, 0.15);
+    color: var(--admin-status-completed);
+}
+
+.orders-tab[data-tab="cancelled"] .tab-count {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--admin-status-cancelled);
+}
+
+/* Active tab count styles */
+.orders-tab.active[data-tab="current"] .tab-count,
+.orders-tab.active[data-tab="archived"] .tab-count,
+.orders-tab.active[data-tab="cancelled"] .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+    .orders-tabs-section {
+        padding: 0 15px 15px;
+    }
+    
+    .orders-tabs-wrapper {
+        padding: 6px;
+        gap: 6px;
+    }
+    
+    .orders-tab {
+        padding: 10px 16px;
+        font-size: 13px;
+        gap: 8px;
+    }
+    
+    .orders-tab .tab-icon {
+        font-size: 16px;
+    }
+    
+    .orders-tab .tab-label {
+        display: none;
+    }
+    
+    .orders-tab .tab-count {
+        padding: 3px 8px;
+        font-size: 11px;
+        min-width: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .orders-tab {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+    
+    .orders-tab .tab-icon {
+        font-size: 14px;
+    }
+}

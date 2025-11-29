@@ -886,18 +886,98 @@ class Tabesh_Order {
 
     /**
      * Update order status
+     * 
+     * Handles status changes and automatically moves orders between tables:
+     * - "completed" status moves order to archived table
+     * - "cancelled" status moves order to cancelled table
+     * - Other statuses restore order from archived/cancelled tables if needed
      *
-     * @param int $order_id
-     * @param string $status
-     * @return bool
+     * @param int $order_id Order ID (can be from main, archived, or cancelled table)
+     * @param string $status New status
+     * @param string $source_table Optional. Source table: 'main', 'archived', 'cancelled'
+     * @return bool|array Success status or array with info about move operation
      */
-    public function update_status($order_id, $status) {
+    public function update_status($order_id, $status, $source_table = 'main') {
         global $wpdb;
-        $table = $wpdb->prefix . 'tabesh_orders';
-
+        
+        $status = sanitize_text_field($status);
+        $table_main = $wpdb->prefix . 'tabesh_orders';
+        $table_archived = $wpdb->prefix . 'tabesh_orders_archived';
+        $table_cancelled = $wpdb->prefix . 'tabesh_orders_cancelled';
+        
+        // Determine source table based on parameter
+        $source = $table_main;
+        $id_column = 'id';
+        if ($source_table === 'archived') {
+            $source = $table_archived;
+        } elseif ($source_table === 'cancelled') {
+            $source = $table_cancelled;
+        }
+        
+        // Get current order
+        $order = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $source WHERE id = %d",
+            $order_id
+        ));
+        
+        if (!$order) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("Tabesh: Order $order_id not found in $source_table table");
+            }
+            return false;
+        }
+        
+        $old_status = $order->status;
+        
+        // Determine target table based on new status
+        $should_move = false;
+        $target_table = null;
+        $move_type = null;
+        
+        if ($status === 'completed' && $source_table !== 'archived') {
+            // Move to archived table
+            $target_table = $table_archived;
+            $move_type = 'archive';
+            $should_move = true;
+        } elseif ($status === 'cancelled' && $source_table !== 'cancelled') {
+            // Move to cancelled table
+            $target_table = $table_cancelled;
+            $move_type = 'cancel';
+            $should_move = true;
+        } elseif ($status !== 'completed' && $status !== 'cancelled' && $source_table !== 'main') {
+            // Restore to main table
+            $target_table = $table_main;
+            $move_type = 'restore';
+            $should_move = true;
+        }
+        
+        if ($should_move && $target_table) {
+            // Move order to target table
+            $result = $this->move_order_to_table($order, $source, $target_table, $status, $move_type);
+            
+            if ($result) {
+                $this->log_action(
+                    $order_id, 
+                    get_current_user_id(), 
+                    'status_changed', 
+                    "وضعیت از $old_status به $status تغییر کرد (انتقال به جدول $move_type)"
+                );
+                do_action('tabesh_order_status_changed', $order_id, $status);
+                
+                return array(
+                    'success' => true,
+                    'moved' => true,
+                    'move_type' => $move_type,
+                    'new_order_id' => $result
+                );
+            }
+            return false;
+        }
+        
+        // Simple status update (no move needed)
         $result = $wpdb->update(
-            $table,
-            array('status' => sanitize_text_field($status)),
+            $source,
+            array('status' => $status),
             array('id' => $order_id)
         );
 
@@ -907,6 +987,162 @@ class Tabesh_Order {
         }
 
         return $result !== false;
+    }
+
+    /**
+     * Move order from one table to another
+     *
+     * @param object $order Order object
+     * @param string $source_table Source table name
+     * @param string $target_table Target table name  
+     * @param string $new_status New status for the order
+     * @param string $move_type Type of move: 'archive', 'cancel', 'restore'
+     * @return int|false New order ID or false on failure
+     */
+    private function move_order_to_table($order, $source_table, $target_table, $new_status, $move_type) {
+        global $wpdb;
+        
+        $table_main = $wpdb->prefix . 'tabesh_orders';
+        $table_archived = $wpdb->prefix . 'tabesh_orders_archived';
+        $table_cancelled = $wpdb->prefix . 'tabesh_orders_cancelled';
+        
+        // Determine original order ID
+        $original_order_id = isset($order->original_order_id) && $order->original_order_id > 0 
+            ? $order->original_order_id 
+            : $order->id;
+        
+        // Prepare data for insert
+        $insert_data = array(
+            'user_id' => $order->user_id,
+            'order_number' => $order->order_number,
+            'book_title' => $order->book_title,
+            'book_size' => $order->book_size,
+            'paper_type' => $order->paper_type,
+            'paper_weight' => $order->paper_weight,
+            'print_type' => $order->print_type,
+            'page_count_color' => $order->page_count_color,
+            'page_count_bw' => $order->page_count_bw,
+            'page_count_total' => $order->page_count_total,
+            'quantity' => $order->quantity,
+            'binding_type' => $order->binding_type,
+            'license_type' => $order->license_type,
+            'cover_paper_type' => $order->cover_paper_type,
+            'cover_paper_weight' => $order->cover_paper_weight,
+            'lamination_type' => $order->lamination_type,
+            'extras' => $order->extras,
+            'total_price' => $order->total_price,
+            'status' => $new_status,
+            'files' => $order->files,
+            'notes' => $order->notes,
+            'created_at' => $order->created_at,
+            'updated_at' => current_time('mysql'),
+        );
+        
+        // Add specific columns based on target table
+        if ($target_table === $table_archived || $target_table === $table_cancelled) {
+            $insert_data['original_order_id'] = $original_order_id;
+            
+            if ($target_table === $table_archived) {
+                $insert_data['archived_at'] = current_time('mysql');
+            } else {
+                $insert_data['cancelled_at'] = current_time('mysql');
+            }
+        } elseif ($target_table === $table_main) {
+            // Restoring to main - use original ID if available and slot is free
+            $insert_data['archived'] = 0;
+        }
+        
+        // Start transaction
+        $wpdb->query('START TRANSACTION');
+        
+        try {
+            // Insert into target table
+            // Note: We don't try to reuse original IDs to avoid race conditions.
+            // The original_order_id is preserved in the archived/cancelled tables for reference.
+            
+            $result = $wpdb->insert($target_table, $insert_data);
+            
+            if ($result === false) {
+                // Log detailed error only in debug mode, throw generic exception
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Tabesh: Failed to insert order into target table - ' . $wpdb->last_error);
+                }
+                throw new Exception('Failed to insert order into target table');
+            }
+            
+            $new_id = $wpdb->insert_id;
+            
+            // Delete from source table
+            $delete_result = $wpdb->delete(
+                $source_table,
+                array('id' => $order->id),
+                array('%d')
+            );
+            
+            if ($delete_result === false) {
+                // Log detailed error only in debug mode, throw generic exception
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Tabesh: Failed to delete order from source table - ' . $wpdb->last_error);
+                }
+                throw new Exception('Failed to delete order from source table');
+            }
+            
+            // Commit transaction
+            $wpdb->query('COMMIT');
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("Tabesh: Order moved from $source_table to $target_table. New ID: $new_id");
+            }
+            
+            return $new_id;
+            
+        } catch (Exception $e) {
+            // Rollback on error
+            $wpdb->query('ROLLBACK');
+            
+            error_log('Tabesh: Failed to move order - ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get order from any table (main, archived, or cancelled)
+     *
+     * @param int $order_id Order ID
+     * @param string $table Table to search: 'main', 'archived', 'cancelled', or 'all'
+     * @return object|null Order object or null if not found
+     */
+    public function get_order_from_table($order_id, $table = 'all') {
+        global $wpdb;
+        
+        $tables_to_search = array();
+        
+        if ($table === 'main' || $table === 'all') {
+            $tables_to_search['main'] = $wpdb->prefix . 'tabesh_orders';
+        }
+        if ($table === 'archived' || $table === 'all') {
+            $tables_to_search['archived'] = $wpdb->prefix . 'tabesh_orders_archived';
+        }
+        if ($table === 'cancelled' || $table === 'all') {
+            $tables_to_search['cancelled'] = $wpdb->prefix . 'tabesh_orders_cancelled';
+        }
+        
+        foreach ($tables_to_search as $table_type => $table_name) {
+            // Note: table_type is hardcoded ('main', 'archived', 'cancelled')
+            // and comes from our whitelist above, so it's safe to use
+            $order = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE id = %d",
+                $order_id
+            ));
+            
+            if ($order) {
+                // Add source_table property after retrieval to avoid SQL injection concerns
+                $order->source_table = $table_type;
+                return $order;
+            }
+        }
+        
+        return null;
     }
 
     /**

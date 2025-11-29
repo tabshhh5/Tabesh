@@ -24,7 +24,30 @@ if ($is_admin) {
     // Admin view: Show full super dashboard
     $admin = Tabesh()->admin;
     $stats = $admin->get_statistics();
-    $all_orders = $admin->get_orders('', false);
+    
+    // Get order counts for each tab
+    $order_counts = $admin->get_order_counts();
+    
+    // Get orders based on active tab (default: current)
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'current';
+    if (!in_array($active_tab, array('current', 'archived', 'cancelled'), true)) {
+        $active_tab = 'current';
+    }
+    
+    // Get orders for active tab
+    switch ($active_tab) {
+        case 'archived':
+            $all_orders = $admin->get_archived_orders();
+            break;
+        case 'cancelled':
+            $all_orders = $admin->get_cancelled_orders();
+            break;
+        case 'current':
+        default:
+            $all_orders = $admin->get_current_orders();
+            break;
+    }
+    
     $current_user = wp_get_current_user();
     $avatar_url = get_avatar_url($current_user->ID);
 
@@ -69,6 +92,8 @@ if ($is_admin) {
         'restUrl' => rest_url(TABESH_REST_NAMESPACE),
         'nonce' => wp_create_nonce('wp_rest'),
         'debug' => WP_DEBUG,
+        'activeTab' => $active_tab,
+        'orderCounts' => $order_counts,
         'strings' => array(
             'loading' => __('در حال بارگذاری...', 'tabesh'),
             'error' => __('خطا در پردازش درخواست', 'tabesh'),
@@ -182,12 +207,69 @@ if ($is_admin) {
             </div>
         </section>
 
+        <!-- Orders Tabs Section -->
+        <section class="orders-tabs-section">
+            <?php 
+            // Get base URL without tab parameter for clean tab links
+            $base_url = remove_query_arg('tab');
+            ?>
+            <div class="orders-tabs-wrapper">
+                <a href="<?php echo esc_url(add_query_arg('tab', 'current', $base_url)); ?>" 
+                   class="orders-tab <?php echo $active_tab === 'current' ? 'active' : ''; ?>" 
+                   data-tab="current">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-label"><?php esc_html_e('سفارشات جاری', 'tabesh'); ?></span>
+                    <span class="tab-count" id="count-current"><?php echo esc_html($order_counts['current']); ?></span>
+                </a>
+                <a href="<?php echo esc_url(add_query_arg('tab', 'archived', $base_url)); ?>" 
+                   class="orders-tab <?php echo $active_tab === 'archived' ? 'active' : ''; ?>" 
+                   data-tab="archived">
+                    <span class="tab-icon">✅</span>
+                    <span class="tab-label"><?php esc_html_e('سفارشات بایگانی‌شده', 'tabesh'); ?></span>
+                    <span class="tab-count" id="count-archived"><?php echo esc_html($order_counts['archived']); ?></span>
+                </a>
+                <a href="<?php echo esc_url(add_query_arg('tab', 'cancelled', $base_url)); ?>" 
+                   class="orders-tab <?php echo $active_tab === 'cancelled' ? 'active' : ''; ?>" 
+                   data-tab="cancelled">
+                    <span class="tab-icon">❌</span>
+                    <span class="tab-label"><?php esc_html_e('سفارشات لغوشده', 'tabesh'); ?></span>
+                    <span class="tab-count" id="count-cancelled"><?php echo esc_html($order_counts['cancelled']); ?></span>
+                </a>
+            </div>
+        </section>
+
         <!-- Orders Table -->
-        <section class="orders-section">
+        <section class="orders-section" data-active-tab="<?php echo esc_attr($active_tab); ?>">
             <?php if (empty($all_orders)): ?>
                 <div class="no-orders-state">
-                    <div class="no-orders-icon">📦</div>
-                    <p class="no-orders-text"><?php esc_html_e('هیچ سفارشی ثبت نشده است.', 'tabesh'); ?></p>
+                    <div class="no-orders-icon">
+                        <?php 
+                        switch ($active_tab) {
+                            case 'archived':
+                                echo '✅';
+                                break;
+                            case 'cancelled':
+                                echo '❌';
+                                break;
+                            default:
+                                echo '📦';
+                        }
+                        ?>
+                    </div>
+                    <p class="no-orders-text">
+                        <?php 
+                        switch ($active_tab) {
+                            case 'archived':
+                                esc_html_e('هیچ سفارش بایگانی‌شده‌ای یافت نشد.', 'tabesh');
+                                break;
+                            case 'cancelled':
+                                esc_html_e('هیچ سفارش لغوشده‌ای یافت نشد.', 'tabesh');
+                                break;
+                            default:
+                                esc_html_e('هیچ سفارش جاری ثبت نشده است.', 'tabesh');
+                        }
+                        ?>
+                    </p>
                 </div>
             <?php else: ?>
                 <div class="orders-table-wrapper">
@@ -238,6 +320,14 @@ if ($is_admin) {
                                     // Blend the two progress values
                                     $progress = 25 + ($substep_progress * 0.55); // Scale substeps to 25-80 range
                                 }
+                                
+                                // Determine source table for status updates
+                                $source_table = 'main';
+                                if ($active_tab === 'archived') {
+                                    $source_table = 'archived';
+                                } elseif ($active_tab === 'cancelled') {
+                                    $source_table = 'cancelled';
+                                }
                             ?>
                                 <tr class="order-row" 
                                     data-order-id="<?php echo esc_attr($order->id); ?>"
@@ -248,7 +338,8 @@ if ($is_admin) {
                                     data-customer-phone="<?php echo esc_attr($phone); ?>"
                                     data-province="<?php echo esc_attr($province); ?>"
                                     data-user-id="<?php echo esc_attr($order->user_id); ?>"
-                                    data-status="<?php echo esc_attr($order->status); ?>">
+                                    data-status="<?php echo esc_attr($order->status); ?>"
+                                    data-source-table="<?php echo esc_attr($source_table); ?>">
                                     <td class="row-number"><?php echo esc_html($row_number); ?></td>
                                     <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
                                     <td class="customer-name"><?php echo esc_html($customer_name); ?></td>

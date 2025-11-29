@@ -446,13 +446,35 @@
             const $select = $container.find('.status-select');
             const orderId = $container.data('order-id');
             const newStatus = $select.val();
+            
+            // Get source table from the expanded row or container
+            // Use $.escapeSelector if available (jQuery 3.0+), otherwise validate orderId is numeric
+            let $row = $();
+            if (typeof $.escapeSelector === 'function') {
+                $row = $('tr.order-row[data-order-id="' + $.escapeSelector(String(orderId)) + '"]');
+            } else if (/^\d+$/.test(String(orderId))) {
+                // orderId is numeric, safe to use directly
+                $row = $('tr.order-row[data-order-id="' + orderId + '"]');
+            }
+            const sourceTable = $row.data('source-table') || $container.data('source-table') || 'main';
 
             if (!newStatus) {
                 this.showToast('لطفاً وضعیت جدید را انتخاب کنید', 'warning');
                 return;
             }
 
-            if (!confirm('آیا از تغییر وضعیت این سفارش اطمینان دارید؟')) {
+            // Determine if this status change will move the order between tabs
+            const currentTab = tabeshAdminData.activeTab || 'current';
+            let moveWarning = '';
+            if (newStatus === 'completed' && currentTab !== 'archived') {
+                moveWarning = '\n\nتوجه: این سفارش به تب «سفارشات بایگانی‌شده» منتقل خواهد شد.';
+            } else if (newStatus === 'cancelled' && currentTab !== 'cancelled') {
+                moveWarning = '\n\nتوجه: این سفارش به تب «سفارشات لغوشده» منتقل خواهد شد.';
+            } else if ((newStatus !== 'completed' && newStatus !== 'cancelled') && currentTab !== 'current') {
+                moveWarning = '\n\nتوجه: این سفارش به تب «سفارشات جاری» بازگردانده خواهد شد.';
+            }
+
+            if (!confirm('آیا از تغییر وضعیت این سفارش اطمینان دارید؟' + moveWarning)) {
                 return;
             }
 
@@ -468,15 +490,34 @@
                 },
                 data: JSON.stringify({
                     order_id: orderId,
-                    status: newStatus
+                    status: newStatus,
+                    source_table: sourceTable
                 }),
                 success: (response) => {
                     this.hideLoading();
 
                     if (response.success) {
-                        this.showToast('وضعیت با موفقیت تغییر کرد', 'success');
-                        this.updateStatusInUI(orderId, newStatus);
-                        $select.val('');
+                        // Check if order was moved between tabs
+                        if (response.moved) {
+                            let moveMessage = 'وضعیت با موفقیت تغییر کرد. ';
+                            if (response.move_type === 'archive') {
+                                moveMessage += 'سفارش به بایگانی منتقل شد.';
+                            } else if (response.move_type === 'cancel') {
+                                moveMessage += 'سفارش به سفارشات لغوشده منتقل شد.';
+                            } else if (response.move_type === 'restore') {
+                                moveMessage += 'سفارش به سفارشات جاری بازگردانده شد.';
+                            }
+                            this.showToast(moveMessage, 'success');
+                            
+                            // Reload page to reflect changes
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            this.showToast('وضعیت با موفقیت تغییر کرد', 'success');
+                            this.updateStatusInUI(orderId, newStatus);
+                            $select.val('');
+                        }
                     } else {
                         this.showToast('خطا: ' + response.message, 'error');
                     }

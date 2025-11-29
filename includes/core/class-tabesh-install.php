@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.3.0';
+    const DB_VERSION = '1.4.0';
 
     /**
      * Database version option name
@@ -153,6 +153,10 @@ class Tabesh_Install {
         // Create print substeps table (v1.3.0)
         self::create_print_substeps_table();
         
+        // Create archived and cancelled orders tables (v1.4.0)
+        self::create_archived_orders_table();
+        self::create_cancelled_orders_table();
+        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -215,6 +219,156 @@ class Tabesh_Install {
             return true;
         } else {
             error_log('Tabesh: ERROR - Failed to create print substeps table');
+            return false;
+        }
+    }
+
+    /**
+     * Create archived orders table
+     * 
+     * Creates the wp_tabesh_orders_archived table for storing orders
+     * with "completed" (تحویل داده شده) status.
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function create_archived_orders_table() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 'tabesh_orders_archived';
+        
+        // Check if table already exists
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Archived orders table already exists');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Creating archived orders table');
+        }
+        
+        // Same structure as main orders table
+        $sql = "CREATE TABLE `{$table_name}` (
+            `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `original_order_id` bigint(20) UNSIGNED NOT NULL,
+            `user_id` bigint(20) UNSIGNED NOT NULL,
+            `order_number` varchar(50) NOT NULL,
+            `book_title` varchar(255) DEFAULT NULL,
+            `book_size` varchar(50) NOT NULL,
+            `paper_type` varchar(50) NOT NULL,
+            `paper_weight` varchar(20) NOT NULL,
+            `print_type` varchar(50) NOT NULL,
+            `page_count_color` int(11) DEFAULT 0,
+            `page_count_bw` int(11) DEFAULT 0,
+            `page_count_total` int(11) NOT NULL,
+            `quantity` int(11) NOT NULL,
+            `binding_type` varchar(50) NOT NULL,
+            `license_type` varchar(50) NOT NULL,
+            `cover_paper_type` varchar(50) DEFAULT NULL,
+            `cover_paper_weight` varchar(20) DEFAULT NULL,
+            `lamination_type` varchar(50) DEFAULT NULL,
+            `extras` longtext DEFAULT NULL,
+            `total_price` decimal(10,2) NOT NULL,
+            `status` varchar(50) NOT NULL DEFAULT 'completed',
+            `files` longtext DEFAULT NULL,
+            `notes` longtext DEFAULT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            `archived_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `original_order_id` (`original_order_id`),
+            KEY `user_id` (`user_id`),
+            KEY `order_number` (`order_number`),
+            KEY `status` (`status`)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Verify table was created
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Archived orders table created');
+            }
+            return true;
+        } else {
+            error_log('Tabesh: ERROR - Failed to create archived orders table');
+            return false;
+        }
+    }
+
+    /**
+     * Create cancelled orders table
+     * 
+     * Creates the wp_tabesh_orders_cancelled table for storing orders
+     * with "cancelled" (لغو شده) status.
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function create_cancelled_orders_table() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $table_name = $wpdb->prefix . 'tabesh_orders_cancelled';
+        
+        // Check if table already exists
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Cancelled orders table already exists');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Creating cancelled orders table');
+        }
+        
+        // Same structure as main orders table
+        $sql = "CREATE TABLE `{$table_name}` (
+            `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `original_order_id` bigint(20) UNSIGNED NOT NULL,
+            `user_id` bigint(20) UNSIGNED NOT NULL,
+            `order_number` varchar(50) NOT NULL,
+            `book_title` varchar(255) DEFAULT NULL,
+            `book_size` varchar(50) NOT NULL,
+            `paper_type` varchar(50) NOT NULL,
+            `paper_weight` varchar(20) NOT NULL,
+            `print_type` varchar(50) NOT NULL,
+            `page_count_color` int(11) DEFAULT 0,
+            `page_count_bw` int(11) DEFAULT 0,
+            `page_count_total` int(11) NOT NULL,
+            `quantity` int(11) NOT NULL,
+            `binding_type` varchar(50) NOT NULL,
+            `license_type` varchar(50) NOT NULL,
+            `cover_paper_type` varchar(50) DEFAULT NULL,
+            `cover_paper_weight` varchar(20) DEFAULT NULL,
+            `lamination_type` varchar(50) DEFAULT NULL,
+            `extras` longtext DEFAULT NULL,
+            `total_price` decimal(10,2) NOT NULL,
+            `status` varchar(50) NOT NULL DEFAULT 'cancelled',
+            `files` longtext DEFAULT NULL,
+            `notes` longtext DEFAULT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            `cancelled_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `original_order_id` (`original_order_id`),
+            KEY `user_id` (`user_id`),
+            KEY `order_number` (`order_number`),
+            KEY `status` (`status`)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Verify table was created
+        if (self::table_exists($table_name)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Cancelled orders table created');
+            }
+            return true;
+        } else {
+            error_log('Tabesh: ERROR - Failed to create cancelled orders table');
             return false;
         }
     }

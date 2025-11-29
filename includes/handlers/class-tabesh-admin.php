@@ -598,14 +598,14 @@ class Tabesh_Admin {
      * Get all orders
      *
      * @param string $status Filter by status
-     * @param bool $archived Get archived orders
+     * @param bool $archived Get archived orders (legacy parameter, kept for compatibility)
      * @return array
      */
     public function get_orders($status = '', $archived = false) {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_orders';
 
-        // Build base query
+        // Build base query - exclude completed and cancelled as they're in separate tables now
         $query = "SELECT * FROM $table WHERE archived = %d";
         $query_params = array($archived ? 1 : 0);
 
@@ -620,6 +620,134 @@ class Tabesh_Admin {
     }
 
     /**
+     * Get current (active) orders
+     * 
+     * Returns orders that are not completed or cancelled.
+     * These are displayed in the "سفارشات جاری" tab.
+     *
+     * @return array Array of order objects
+     */
+    public function get_current_orders() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'tabesh_orders';
+        
+        // Get orders that are not completed or cancelled
+        $query = $wpdb->prepare(
+            "SELECT * FROM $table 
+             WHERE status NOT IN ('completed', 'cancelled') 
+             AND archived = 0
+             ORDER BY created_at DESC"
+        );
+        
+        return $wpdb->get_results($query);
+    }
+
+    /**
+     * Get archived orders (completed)
+     * 
+     * Returns orders with "completed" status from the archived orders table.
+     * These are displayed in the "سفارشات بایگانی‌شده" tab.
+     *
+     * @return array Array of order objects
+     */
+    public function get_archived_orders() {
+        global $wpdb;
+        $table_archived = $wpdb->prefix . 'tabesh_orders_archived';
+        
+        // Check if table exists
+        if (!Tabesh_Install::table_exists($table_archived)) {
+            // Fallback to main table with status filter
+            $table = $wpdb->prefix . 'tabesh_orders';
+            return $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM $table WHERE status = %s ORDER BY created_at DESC",
+                'completed'
+            ));
+        }
+        
+        return $wpdb->get_results(
+            "SELECT * FROM $table_archived ORDER BY archived_at DESC"
+        );
+    }
+
+    /**
+     * Get cancelled orders
+     * 
+     * Returns orders with "cancelled" status from the cancelled orders table.
+     * These are displayed in the "سفارشات لغو‌شده" tab.
+     *
+     * @return array Array of order objects
+     */
+    public function get_cancelled_orders() {
+        global $wpdb;
+        $table_cancelled = $wpdb->prefix . 'tabesh_orders_cancelled';
+        
+        // Check if table exists
+        if (!Tabesh_Install::table_exists($table_cancelled)) {
+            // Fallback to main table with status filter
+            $table = $wpdb->prefix . 'tabesh_orders';
+            return $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM $table WHERE status = %s ORDER BY created_at DESC",
+                'cancelled'
+            ));
+        }
+        
+        return $wpdb->get_results(
+            "SELECT * FROM $table_cancelled ORDER BY cancelled_at DESC"
+        );
+    }
+
+    /**
+     * Get order counts for each tab
+     *
+     * @return array Counts for current, archived, and cancelled orders
+     */
+    public function get_order_counts() {
+        global $wpdb;
+        $table_main = $wpdb->prefix . 'tabesh_orders';
+        $table_archived = $wpdb->prefix . 'tabesh_orders_archived';
+        $table_cancelled = $wpdb->prefix . 'tabesh_orders_cancelled';
+        
+        $counts = array(
+            'current' => 0,
+            'archived' => 0,
+            'cancelled' => 0,
+        );
+        
+        // Count current orders (not completed, not cancelled)
+        $counts['current'] = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_main 
+             WHERE status NOT IN ('completed', 'cancelled') AND archived = %d",
+            0
+        ));
+        
+        // Count archived orders
+        if (Tabesh_Install::table_exists($table_archived)) {
+            $counts['archived'] = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM $table_archived"
+            );
+        } else {
+            $counts['archived'] = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_main WHERE status = %s",
+                'completed'
+            ));
+        }
+        
+        // Count cancelled orders
+        if (Tabesh_Install::table_exists($table_cancelled)) {
+            $counts['cancelled'] = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM $table_cancelled"
+            );
+        } else {
+            $counts['cancelled'] = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_main WHERE status = %s",
+                'cancelled'
+            ));
+        }
+        
+        return $counts;
+    }
+
+    /**
      * Get order statistics
      *
      * @return array
@@ -627,6 +755,7 @@ class Tabesh_Admin {
     public function get_statistics() {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_orders';
+        $table_archived = $wpdb->prefix . 'tabesh_orders_archived';
 
         $stats = array(
             'total_orders' => (int) $wpdb->get_var($wpdb->prepare(
@@ -638,13 +767,26 @@ class Tabesh_Admin {
             'processing_orders' => (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $table WHERE status = %s AND archived = %d", 'processing', 0
             )),
-            'completed_orders' => (int) $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM $table WHERE status = %s AND archived = %d", 'completed', 0
-            )),
-            'total_revenue' => (float) ($wpdb->get_var($wpdb->prepare(
-                "SELECT SUM(total_price) FROM $table WHERE status = %s", 'completed'
-            )) ?? 0),
+            'completed_orders' => 0,
+            'total_revenue' => 0.0,
         );
+        
+        // Get completed orders count from archived table if exists
+        if (Tabesh_Install::table_exists($table_archived)) {
+            $stats['completed_orders'] = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM $table_archived"
+            );
+            $stats['total_revenue'] = (float) ($wpdb->get_var(
+                "SELECT SUM(total_price) FROM $table_archived"
+            ) ?? 0);
+        } else {
+            $stats['completed_orders'] = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table WHERE status = %s AND archived = %d", 'completed', 0
+            ));
+            $stats['total_revenue'] = (float) ($wpdb->get_var($wpdb->prepare(
+                "SELECT SUM(total_price) FROM $table WHERE status = %s", 'completed'
+            )) ?? 0);
+        }
 
         return $stats;
     }
@@ -1052,6 +1194,65 @@ class Tabesh_Admin {
             'success' => true,
             'message' => __('پروفایل مشتری با موفقیت به‌روزرسانی شد', 'tabesh'),
             'updated_fields' => $updated_fields
+        ), 200);
+    }
+
+    /**
+     * REST API: Get orders by tab type
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_get_orders_by_tab($request) {
+        $tab = sanitize_text_field($request->get_param('tab') ?? 'current');
+        
+        $orders = array();
+        
+        switch ($tab) {
+            case 'current':
+                $orders = $this->get_current_orders();
+                break;
+            case 'archived':
+                $orders = $this->get_archived_orders();
+                break;
+            case 'cancelled':
+                $orders = $this->get_cancelled_orders();
+                break;
+            default:
+                $orders = $this->get_current_orders();
+        }
+        
+        // Get order counts for all tabs
+        $counts = $this->get_order_counts();
+        
+        // Format orders with additional info
+        $formatted_orders = array();
+        foreach ($orders as $order) {
+            $user = get_userdata($order->user_id);
+            $formatted_orders[] = array(
+                'id' => (int) $order->id,
+                'original_order_id' => isset($order->original_order_id) ? (int) $order->original_order_id : (int) $order->id,
+                'order_number' => $order->order_number,
+                'book_title' => $order->book_title,
+                'book_size' => $order->book_size,
+                'page_count_total' => (int) $order->page_count_total,
+                'quantity' => (int) $order->quantity,
+                'total_price' => (float) $order->total_price,
+                'status' => $order->status,
+                'customer_name' => $user ? $user->display_name : __('نامشخص', 'tabesh'),
+                'user_id' => (int) $order->user_id,
+                'created_at' => $order->created_at,
+                'source_table' => $tab,
+            );
+        }
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'data' => array(
+                'orders' => $formatted_orders,
+                'counts' => $counts,
+                'tab' => $tab,
+            )
         ), 200);
     }
 
