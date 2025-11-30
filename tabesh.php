@@ -177,6 +177,13 @@ final class Tabesh {
     public $upload;
 
     /**
+     * Archive handler
+     *
+     * @var Tabesh_Archive
+     */
+    public $archive;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -239,6 +246,8 @@ final class Tabesh {
         $this->print_substeps = new Tabesh_Print_Substeps();
         // Initialize upload manager
         $this->upload = new Tabesh_Upload();
+        // Initialize archive handler
+        $this->archive = new Tabesh_Archive();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -334,6 +343,7 @@ final class Tabesh {
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             archived tinyint(1) DEFAULT 0,
+            archived_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
             KEY user_id (user_id),
             KEY order_number (order_number),

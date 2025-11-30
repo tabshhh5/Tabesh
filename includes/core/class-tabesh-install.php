@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.3.0';
+    const DB_VERSION = '1.4.0';
 
     /**
      * Database version option name
@@ -153,6 +153,9 @@ class Tabesh_Install {
         // Create print substeps table (v1.3.0)
         self::create_print_substeps_table();
         
+        // Add archived_at column to orders table (v1.4.0)
+        self::add_archived_at_column();
+        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -217,6 +220,58 @@ class Tabesh_Install {
             error_log('Tabesh: ERROR - Failed to create print substeps table');
             return false;
         }
+    }
+
+    /**
+     * Add archived_at column to orders table
+     * 
+     * Creates the archived_at column for tracking when orders were archived.
+     * Part of the order archiving feature (v1.4.0).
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function add_archived_at_column() {
+        global $wpdb;
+        $table_orders = $wpdb->prefix . 'tabesh_orders';
+        
+        // Check if table exists
+        if (!self::table_exists($table_orders)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Orders table does not exist, skipping archived_at migration');
+            }
+            return false;
+        }
+        
+        // Check if column already exists
+        if (self::column_exists($table_orders, 'archived_at')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: archived_at column already exists');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Adding archived_at column to orders table');
+        }
+        
+        // Note: ALTER TABLE cannot use wpdb::prepare as it doesn't support DDL statements
+        // The table name comes from $wpdb->prefix which is safe and not user input
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $result = $wpdb->query(
+            "ALTER TABLE `{$table_orders}` 
+            ADD COLUMN `archived_at` DATETIME DEFAULT NULL AFTER `archived`"
+        );
+        
+        if ($result === false) {
+            error_log('Tabesh: ERROR - Failed to add archived_at column: ' . $wpdb->last_error);
+            return false;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: SUCCESS - Added archived_at column to orders table');
+        }
+        
+        return true;
     }
 
     /**
