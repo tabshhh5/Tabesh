@@ -184,6 +184,13 @@ final class Tabesh {
     public $archive;
 
     /**
+     * SMS handler
+     *
+     * @var Tabesh_SMS
+     */
+    public $sms;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -248,6 +255,8 @@ final class Tabesh {
         $this->upload = new Tabesh_Upload();
         // Initialize archive handler
         $this->archive = new Tabesh_Archive();
+        // Initialize SMS handler
+        $this->sms = new Tabesh_SMS();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -1111,6 +1120,20 @@ final class Tabesh {
             'callback' => array($this, 'rest_generate_file_token'),
             'permission_callback' => array($this, 'can_manage_admin')
         ));
+
+        // SMS test endpoint
+        register_rest_route(TABESH_REST_NAMESPACE, '/sms/test', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_test_sms'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        // User search endpoint for staff access control
+        register_rest_route(TABESH_REST_NAMESPACE, '/users/search', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'rest_search_users'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
     }
 
     /**
@@ -1169,6 +1192,101 @@ final class Tabesh {
             'success' => true,
             'download_url' => $download_url,
             'expires_at' => $result['expires_at']
+        ), 200);
+    }
+
+    /**
+     * REST: Test SMS sending
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_test_sms($request) {
+        $params = $request->get_json_params();
+        $phone = sanitize_text_field($params['phone'] ?? '');
+        $pattern_code = sanitize_text_field($params['pattern_code'] ?? '');
+
+        if (empty($phone)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شماره موبایل الزامی است', 'tabesh')
+            ), 400);
+        }
+
+        if (empty($pattern_code)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کد الگو الزامی است', 'tabesh')
+            ), 400);
+        }
+
+        // Validate phone
+        $validated_phone = $this->sms->validate_phone($phone);
+        if (!$validated_phone) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شماره موبایل نامعتبر است. فرمت صحیح: 09xxxxxxxxx', 'tabesh')
+            ), 400);
+        }
+
+        // Send test SMS
+        $result = $this->sms->send_test_sms($validated_phone, $pattern_code);
+
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => $result->get_error_message()
+            ), 400);
+        }
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'message' => __('پیامک تست با موفقیت ارسال شد', 'tabesh')
+        ), 200);
+    }
+
+    /**
+     * REST: Search users for staff access control
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_search_users($request) {
+        $search = sanitize_text_field($request->get_param('search') ?? '');
+        $per_page = min(50, max(1, intval($request->get_param('per_page') ?? 10)));
+
+        if (strlen($search) < 2) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('حداقل ۲ کاراکتر برای جستجو وارد کنید', 'tabesh')
+            ), 400);
+        }
+
+        // Search users
+        $user_query = new WP_User_Query(array(
+            'search' => '*' . $search . '*',
+            'search_columns' => array('user_login', 'user_nicename', 'display_name', 'user_email'),
+            'number' => $per_page,
+            'orderby' => 'display_name',
+            'order' => 'ASC',
+        ));
+
+        $users = $user_query->get_results();
+        $formatted_users = array();
+
+        foreach ($users as $user) {
+            $formatted_users[] = array(
+                'id' => $user->ID,
+                'display_name' => $user->display_name,
+                'user_email' => $user->user_email,
+                'user_login' => $user->user_login,
+            );
+        }
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'users' => $formatted_users,
+            'total' => $user_query->get_total(),
         ), 200);
     }
 

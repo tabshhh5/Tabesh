@@ -40,6 +40,7 @@ $admin = $tabesh->admin;
                 <a href="#tab-product" class="nav-tab">پارامترهای محصول</a>
                 <a href="#tab-pricing" class="nav-tab">قیمت‌گذاری</a>
                 <a href="#tab-sms" class="nav-tab">پیامک</a>
+                <a href="#tab-staff-access" class="nav-tab">دسترسی کارمندان</a>
             </nav>
 
             <!-- General Settings -->
@@ -554,11 +555,143 @@ $admin = $tabesh->admin;
 
             <!-- SMS Settings -->
             <div id="tab-sms" class="tabesh-tab-content">
-                <h2>تنظیمات پیامک</h2>
+                <h2>تنظیمات پیامک (سامانه ملی پیامک - ارسال الگومحور)</h2>
+
+                <div class="notice notice-info">
+                    <p>
+                        <strong>📱 راهنما:</strong> این بخش از API الگومحور (Template-based) سامانه ملی پیامک استفاده می‌کند.
+                    </p>
+                    <p>
+                        <strong>🔑 مراحل تنظیم:</strong>
+                    </p>
+                    <ol style="margin-right: 20px;">
+                        <li>ابتدا در پنل ملی‌پیامک، الگوهای پیامک خود را تعریف کنید</li>
+                        <li>کد الگو (bodyId) هر الگو را از پنل ملی‌پیامک کپی کنید</li>
+                        <li>در اینجا نام کاربری و رمز عبور را وارد کنید</li>
+                        <li>برای هر وضعیت سفارش، کد الگوی مربوطه را وارد کنید</li>
+                    </ol>
+                    <p>
+                        <strong>📌 متغیرهای قابل استفاده در الگو:</strong>
+                        <code>شماره سفارش</code>، <code>نام مشتری</code>، <code>وضعیت</code>، <code>تاریخ</code>
+                    </p>
+                </div>
+
+                <h3>تنظیمات اتصال به سامانه ملی پیامک</h3>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="sms_enabled">فعال‌سازی سیستم پیامک</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="sms_enabled" name="sms_enabled" value="1" 
+                                       <?php checked($admin->get_setting('sms_enabled', '0'), '1'); ?>>
+                                فعال
+                            </label>
+                            <p class="description">فعال کردن ارسال پیامک الگومحور برای تغییر وضعیت سفارشات</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="sms_username">نام کاربری سامانه ملی</label></th>
+                        <td>
+                            <input type="text" id="sms_username" name="sms_username" 
+                                   value="<?php echo esc_attr($admin->get_setting('sms_username')); ?>" 
+                                   class="regular-text" dir="ltr">
+                            <p class="description">نام کاربری پنل ملی‌پیامک</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="sms_password">رمز عبور سامانه ملی</label></th>
+                        <td>
+                            <input type="password" id="sms_password" name="sms_password" 
+                                   value="<?php echo esc_attr($admin->get_setting('sms_password')); ?>" 
+                                   class="regular-text" dir="ltr">
+                            <p class="description">رمز عبور پنل ملی‌پیامک (ذخیره امن می‌شود)</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="sms_sender">شماره فرستنده</label></th>
+                        <td>
+                            <input type="text" id="sms_sender" name="sms_sender" 
+                                   value="<?php echo esc_attr($admin->get_setting('sms_sender')); ?>" 
+                                   class="regular-text" dir="ltr" placeholder="50004xxx">
+                            <p class="description">شماره خط اختصاصی شما (10 رقمی)</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3>تنظیمات الگوی پیامک برای هر وضعیت</h3>
+                <p class="description">برای هر وضعیت سفارش که می‌خواهید پیامک ارسال شود، تیک فعال را بزنید و کد الگو را وارد کنید.</p>
+                
+                <table class="form-table widefat" style="margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">وضعیت سفارش</th>
+                            <th style="width: 80px;">فعال</th>
+                            <th>کد الگو (bodyId)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // Get status labels from SMS class
+                        $status_labels = Tabesh_SMS::get_status_labels();
+                        foreach ($status_labels as $status => $label) :
+                        ?>
+                        <tr>
+                            <td><strong><?php echo esc_html($label); ?></strong></td>
+                            <td>
+                                <input type="checkbox" 
+                                       id="sms_status_<?php echo esc_attr($status); ?>_enabled" 
+                                       name="sms_status_<?php echo esc_attr($status); ?>_enabled" 
+                                       value="1" 
+                                       <?php checked($admin->get_setting('sms_status_' . $status . '_enabled', '0'), '1'); ?>>
+                            </td>
+                            <td>
+                                <input type="text" 
+                                       id="sms_status_<?php echo esc_attr($status); ?>_pattern" 
+                                       name="sms_status_<?php echo esc_attr($status); ?>_pattern" 
+                                       value="<?php echo esc_attr($admin->get_setting('sms_status_' . $status . '_pattern')); ?>" 
+                                       class="regular-text" 
+                                       dir="ltr"
+                                       placeholder="مثال: 12345">
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <h3>تست ارسال پیامک</h3>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="test_sms_phone">شماره موبایل تست</label></th>
+                        <td>
+                            <input type="text" id="test_sms_phone" class="regular-text" dir="ltr" placeholder="09123456789">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="test_sms_pattern">کد الگوی تست</label></th>
+                        <td>
+                            <input type="text" id="test_sms_pattern" class="regular-text" dir="ltr" placeholder="12345">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <td>
+                            <button type="button" id="test_sms_btn" class="button button-secondary">
+                                <span class="dashicons dashicons-smartphone" style="vertical-align: middle;"></span>
+                                ارسال پیامک تست
+                            </button>
+                            <span id="test_sms_result" style="margin-right: 10px;"></span>
+                        </td>
+                    </tr>
+                </table>
+
+                <hr style="margin: 30px 0;">
+
+                <h3>تنظیمات قدیمی پیامک (سازگاری با نسخه قبل)</h3>
+                <p class="description">این تنظیمات برای روش ارسال پیامک قبلی (غیر الگومحور) است و به زودی حذف خواهند شد.</p>
 
                 <table class="form-table">
                     <tr>
-                        <th><label for="mellipayamak_username">نام کاربری ملی پیامک</label></th>
+                        <th><label for="mellipayamak_username">نام کاربری ملی پیامک (قدیمی)</label></th>
                         <td>
                             <input type="text" id="mellipayamak_username" name="mellipayamak_username" 
                                    value="<?php echo esc_attr($admin->get_setting('mellipayamak_username')); ?>" 
@@ -566,7 +699,7 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mellipayamak_password">رمز عبور ملی پیامک</label></th>
+                        <th><label for="mellipayamak_password">رمز عبور ملی پیامک (قدیمی)</label></th>
                         <td>
                             <input type="password" id="mellipayamak_password" name="mellipayamak_password" 
                                    value="<?php echo esc_attr($admin->get_setting('mellipayamak_password')); ?>" 
@@ -574,7 +707,7 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mellipayamak_from">شماره فرستنده</label></th>
+                        <th><label for="mellipayamak_from">شماره فرستنده (قدیمی)</label></th>
                         <td>
                             <input type="text" id="mellipayamak_from" name="mellipayamak_from" 
                                    value="<?php echo esc_attr($admin->get_setting('mellipayamak_from')); ?>" 
@@ -591,7 +724,7 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="sms_on_order_submit">ارسال پیامک هنگام ثبت سفارش</label></th>
+                        <th><label for="sms_on_order_submit">ارسال پیامک هنگام ثبت سفارش (قدیمی)</label></th>
                         <td>
                             <label>
                                 <input type="checkbox" id="sms_on_order_submit" name="sms_on_order_submit" value="1" 
@@ -601,7 +734,7 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="sms_on_status_change">ارسال پیامک هنگام تغییر وضعیت</label></th>
+                        <th><label for="sms_on_status_change">ارسال پیامک هنگام تغییر وضعیت (قدیمی)</label></th>
                         <td>
                             <label>
                                 <input type="checkbox" id="sms_on_status_change" name="sms_on_status_change" value="1" 
@@ -613,9 +746,251 @@ $admin = $tabesh->admin;
                 </table>
             </div>
 
+            <!-- Staff Access Control Settings -->
+            <div id="tab-staff-access" class="tabesh-tab-content">
+                <h2>دسترسی پنل کارمندان</h2>
+
+                <div class="notice notice-info">
+                    <p>
+                        <strong>👥 راهنما:</strong> در این بخش می‌توانید کاربرانی که مجاز به مشاهده و استفاده از شورت‌کد 
+                        <code>[tabesh_staff_panel]</code> هستند را تعیین کنید.
+                    </p>
+                    <p>
+                        <strong>⚠️ توجه:</strong> اگر هیچ کاربری انتخاب نشده باشد، فقط مدیران سایت به پنل دسترسی خواهند داشت (رفتار پیش‌فرض).
+                    </p>
+                </div>
+
+                <h3>جستجو و افزودن کاربر</h3>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="staff_user_search">جستجوی کاربران</label></th>
+                        <td>
+                            <input type="text" id="staff_user_search" class="regular-text" placeholder="نام کاربری، نام نمایشی یا ایمیل...">
+                            <button type="button" id="staff_user_search_btn" class="button button-secondary">
+                                <span class="dashicons dashicons-search" style="vertical-align: middle;"></span>
+                                جستجو
+                            </button>
+                            <div id="staff_user_search_results" style="margin-top: 10px;"></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3>کاربران دارای دسترسی</h3>
+                <div id="staff_allowed_users_list">
+                    <?php
+                    $allowed_users = $admin->get_setting('staff_allowed_users', array());
+                    if (!is_array($allowed_users)) {
+                        $allowed_users = array();
+                    }
+                    
+                    if (empty($allowed_users)) :
+                    ?>
+                    <p class="description" id="no_staff_users_msg">هنوز هیچ کاربری انتخاب نشده است. فقط مدیران سایت به پنل کارمندان دسترسی دارند.</p>
+                    <?php else : ?>
+                    <table class="widefat striped" id="staff_users_table">
+                        <thead>
+                            <tr>
+                                <th>شناسه</th>
+                                <th>نام نمایشی</th>
+                                <th>ایمیل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($allowed_users as $user_id) :
+                                $user = get_userdata($user_id);
+                                if (!$user) continue;
+                            ?>
+                            <tr data-user-id="<?php echo esc_attr($user_id); ?>">
+                                <td><?php echo esc_html($user_id); ?></td>
+                                <td><?php echo esc_html($user->display_name); ?></td>
+                                <td><?php echo esc_html($user->user_email); ?></td>
+                                <td>
+                                    <button type="button" class="button button-small staff-remove-user" data-user-id="<?php echo esc_attr($user_id); ?>">
+                                        <span class="dashicons dashicons-trash" style="vertical-align: middle;"></span>
+                                        حذف
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Hidden input to store selected user IDs -->
+                <input type="hidden" id="staff_allowed_users" name="staff_allowed_users" 
+                       value="<?php echo esc_attr(implode(',', $allowed_users)); ?>">
+            </div>
+
         <p class="submit">
             <input type="submit" name="tabesh_save_settings" class="button button-primary" value="ذخیره تنظیمات">
         </p>
     </form>
 </div>
 
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    // Test SMS functionality
+    $('#test_sms_btn').on('click', function() {
+        var phone = $('#test_sms_phone').val().trim();
+        var pattern = $('#test_sms_pattern').val().trim();
+        var $result = $('#test_sms_result');
+        var $btn = $(this);
+        
+        if (!phone || !pattern) {
+            $result.html('<span style="color: red;">لطفاً شماره موبایل و کد الگو را وارد کنید</span>');
+            return;
+        }
+        
+        $btn.prop('disabled', true);
+        $result.html('<span style="color: #666;">در حال ارسال...</span>');
+        
+        $.ajax({
+            url: '<?php echo esc_url(rest_url(TABESH_REST_NAMESPACE . '/sms/test')); ?>',
+            method: 'POST',
+            data: JSON.stringify({
+                phone: phone,
+                pattern_code: pattern
+            }),
+            contentType: 'application/json',
+            headers: {
+                'X-WP-Nonce': '<?php echo wp_create_nonce('wp_rest'); ?>'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $result.html('<span style="color: green;">✓ ' + response.message + '</span>');
+                } else {
+                    $result.html('<span style="color: red;">✗ ' + response.message + '</span>');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'خطا در ارسال پیامک';
+                $result.html('<span style="color: red;">✗ ' + msg + '</span>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
+    // Staff access control functionality
+    var allowedUsers = $('#staff_allowed_users').val() ? $('#staff_allowed_users').val().split(',').map(Number).filter(Boolean) : [];
+    
+    // Search users
+    $('#staff_user_search_btn').on('click', function() {
+        var search = $('#staff_user_search').val().trim();
+        var $results = $('#staff_user_search_results');
+        
+        if (search.length < 2) {
+            $results.html('<p style="color: red;">حداقل ۲ کاراکتر وارد کنید</p>');
+            return;
+        }
+        
+        $results.html('<p style="color: #666;">در حال جستجو...</p>');
+        
+        $.ajax({
+            url: '<?php echo esc_url(rest_url(TABESH_REST_NAMESPACE . '/users/search')); ?>',
+            method: 'GET',
+            data: { search: search },
+            headers: {
+                'X-WP-Nonce': '<?php echo wp_create_nonce('wp_rest'); ?>'
+            },
+            success: function(response) {
+                if (response.success && response.users.length > 0) {
+                    var html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                    response.users.forEach(function(user) {
+                        var isAdded = allowedUsers.indexOf(user.id) !== -1;
+                        html += '<li style="padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<span><strong>' + user.display_name + '</strong> (' + user.user_email + ')</span>';
+                        if (isAdded) {
+                            html += '<span style="color: green;">✓ افزوده شده</span>';
+                        } else {
+                            html += '<button type="button" class="button button-small staff-add-user" data-user-id="' + user.id + '" data-user-name="' + user.display_name + '" data-user-email="' + user.user_email + '">افزودن</button>';
+                        }
+                        html += '</li>';
+                    });
+                    html += '</ul>';
+                    $results.html(html);
+                } else {
+                    $results.html('<p>کاربری یافت نشد</p>');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'خطا در جستجو';
+                $results.html('<p style="color: red;">' + msg + '</p>');
+            }
+        });
+    });
+    
+    // Enter key to search
+    $('#staff_user_search').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#staff_user_search_btn').click();
+        }
+    });
+    
+    // Add user to allowed list
+    $(document).on('click', '.staff-add-user', function() {
+        var userId = parseInt($(this).data('user-id'));
+        var userName = $(this).data('user-name');
+        var userEmail = $(this).data('user-email');
+        
+        if (allowedUsers.indexOf(userId) === -1) {
+            allowedUsers.push(userId);
+            updateAllowedUsersList();
+            addUserToTable(userId, userName, userEmail);
+        }
+        
+        $(this).replaceWith('<span style="color: green;">✓ افزوده شده</span>');
+    });
+    
+    // Remove user from allowed list
+    $(document).on('click', '.staff-remove-user', function() {
+        var userId = parseInt($(this).data('user-id'));
+        var index = allowedUsers.indexOf(userId);
+        
+        if (index !== -1) {
+            allowedUsers.splice(index, 1);
+            updateAllowedUsersList();
+        }
+        
+        $(this).closest('tr').fadeOut(300, function() {
+            $(this).remove();
+            if ($('#staff_users_table tbody tr').length === 0) {
+                $('#staff_users_table').remove();
+                $('#staff_allowed_users_list').html('<p class="description" id="no_staff_users_msg">هنوز هیچ کاربری انتخاب نشده است. فقط مدیران سایت به پنل کارمندان دسترسی دارند.</p>');
+            }
+        });
+    });
+    
+    function updateAllowedUsersList() {
+        $('#staff_allowed_users').val(allowedUsers.join(','));
+    }
+    
+    function addUserToTable(userId, userName, userEmail) {
+        var $table = $('#staff_users_table');
+        var $noMsg = $('#no_staff_users_msg');
+        
+        if ($table.length === 0) {
+            $noMsg.remove();
+            var tableHtml = '<table class="widefat striped" id="staff_users_table">' +
+                '<thead><tr><th>شناسه</th><th>نام نمایشی</th><th>ایمیل</th><th>عملیات</th></tr></thead>' +
+                '<tbody></tbody></table>';
+            $('#staff_allowed_users_list').html(tableHtml);
+            $table = $('#staff_users_table');
+        }
+        
+        var rowHtml = '<tr data-user-id="' + userId + '">' +
+            '<td>' + userId + '</td>' +
+            '<td>' + userName + '</td>' +
+            '<td>' + userEmail + '</td>' +
+            '<td><button type="button" class="button button-small staff-remove-user" data-user-id="' + userId + '">' +
+            '<span class="dashicons dashicons-trash" style="vertical-align: middle;"></span> حذف</button></td>' +
+            '</tr>';
+        
+        $table.find('tbody').append(rowHtml);
+    }
+});
+</script>

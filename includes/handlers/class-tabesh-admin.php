@@ -226,10 +226,19 @@ class Tabesh_Admin {
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               'mellipayamak_username', 'mellipayamak_password',
-                              'mellipayamak_from', 'admin_phone');
+                              'mellipayamak_from', 'admin_phone',
+                              // New SMS settings
+                              'sms_username', 'sms_password', 'sms_sender');
         
         // Checkbox fields need special handling because unchecked boxes don't appear in POST
-        $checkbox_fields = array('sms_on_order_submit', 'sms_on_status_change');
+        $checkbox_fields = array('sms_on_order_submit', 'sms_on_status_change', 'sms_enabled');
+        
+        // Add dynamic SMS status checkbox fields
+        $status_labels = Tabesh_SMS::get_status_labels();
+        foreach ($status_labels as $status => $label) {
+            $checkbox_fields[] = 'sms_status_' . $status . '_enabled';
+            $scalar_fields[] = 'sms_status_' . $status . '_pattern';
+        }
 
         // Process simple array fields - ensure they are stored as JSON arrays
         foreach ($simple_array_fields as $field) {
@@ -469,6 +478,44 @@ class Tabesh_Admin {
                     'setting_type' => 'string'
                 )
             );
+        }
+        
+        // Handle staff_allowed_users array field (comma-separated IDs from hidden input)
+        if (isset($post_data['staff_allowed_users'])) {
+            $user_ids_string = sanitize_text_field($post_data['staff_allowed_users']);
+            $user_ids = array();
+            
+            if (!empty($user_ids_string)) {
+                // Parse comma-separated IDs
+                $ids = explode(',', $user_ids_string);
+                foreach ($ids as $id) {
+                    $id = intval(trim($id));
+                    if ($id > 0) {
+                        // Validate that user exists
+                        if (get_userdata($id)) {
+                            $user_ids[] = $id;
+                        }
+                    }
+                }
+            }
+            
+            $value = wp_json_encode(array_values(array_unique($user_ids)), JSON_UNESCAPED_UNICODE);
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => 'staff_allowed_users',
+                    'setting_value' => $value,
+                    'setting_type' => 'string'
+                )
+            );
+            
+            if ($result === false) {
+                error_log("Failed to save setting: staff_allowed_users - Error: " . $wpdb->last_error);
+            } else {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("Tabesh: Saved staff_allowed_users with " . count($user_ids) . " users");
+                }
+            }
         }
         
         // Clear the settings cache after saving to ensure fresh data is loaded

@@ -223,14 +223,53 @@ class Tabesh_Staff {
     }
 
     /**
+     * Check if a user has staff panel access
+     * 
+     * Users have access if:
+     * 1. They are in the staff_allowed_users list, OR
+     * 2. If the list is empty, they have manage_options capability (backward compatibility)
+     *
+     * @param int $user_id User ID to check
+     * @return bool True if user has access
+     */
+    private function user_has_staff_access($user_id) {
+        // Get list of allowed users from settings
+        $allowed_users = Tabesh()->get_setting('staff_allowed_users', array());
+        
+        // Ensure it's an array
+        if (!is_array($allowed_users)) {
+            $allowed_users = array();
+        }
+        
+        // If list is empty, fall back to capability check (backward compatibility)
+        if (empty($allowed_users)) {
+            // Allow users with manage_options OR edit_shop_orders capability
+            return current_user_can('manage_options') || current_user_can('edit_shop_orders');
+        }
+        
+        // Check if user ID is in the allowed list
+        return in_array(intval($user_id), array_map('intval', $allowed_users), true);
+    }
+
+    /**
      * Render staff panel shortcode
      *
      * @param array $atts
      * @return string
      */
     public function render_staff_panel($atts) {
-        if (!current_user_can('edit_shop_orders')) {
-            return '<p>' . __('شما اجازه دسترسی به این بخش را ندارید.', 'tabesh') . '</p>';
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return '<div class="tabesh-notice error">' . 
+                   __('برای دسترسی به این بخش باید وارد حساب کاربری خود شوید.', 'tabesh') . 
+                   '</div>';
+        }
+
+        // Check staff access using the new method
+        if (!$this->user_has_staff_access(get_current_user_id())) {
+            return '<div class="tabesh-notice error">' . 
+                   __('شما اجازه دسترسی به این بخش را ندارید.', 'tabesh') . 
+                   '</div>';
         }
 
         ob_start();
