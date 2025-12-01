@@ -25,12 +25,6 @@ $default_tab = isset( $default_tab ) ? $default_tab : 'order-form';
 
 <div class="tabesh-dashboard" dir="rtl" data-theme="light" data-default-tab="<?php echo esc_attr($default_tab); ?>">
     
-    <!-- Header Expand Button (shown when header is hidden) -->
-    <button class="header-expand-btn" id="header-expand-btn">
-        <span class="expand-icon">📋</span>
-        <?php esc_html_e('نمایش داشبورد', 'tabesh'); ?>
-    </button>
-
     <!-- Header Section -->
     <header class="dashboard-header">
         <div class="header-content">

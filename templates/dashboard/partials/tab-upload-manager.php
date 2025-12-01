@@ -232,30 +232,5 @@ $user_id = get_current_user_id();
                 </div>
             </div>
         </div>
-
-        <!-- Support Contact Bar -->
-        <div class="upload-support-bar">
-            <div class="support-bar-content">
-                <span class="support-bar-title">📞 <?php esc_html_e('پشتیبانی:', 'tabesh'); ?></span>
-                <div class="support-bar-links">
-                    <a href="tel:+989929828425" class="support-bar-link">
-                        <span class="link-icon">📱</span>
-                        0992-982-8425
-                    </a>
-                    <a href="tel:+989125538967" class="support-bar-link">
-                        <span class="link-icon">📱</span>
-                        0912-553-8967
-                    </a>
-                    <a href="tel:+982537237301" class="support-bar-link">
-                        <span class="link-icon">☎️</span>
-                        025-3723-7301
-                    </a>
-                    <a href="https://pchapco.com/panel/?p=send-ticket" target="_blank" rel="noopener" class="support-bar-link ticket">
-                        <span class="link-icon">🎫</span>
-                        <?php esc_html_e('ارسال تیکت', 'tabesh'); ?>
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 </div>

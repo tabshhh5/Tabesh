@@ -45,7 +45,6 @@
         initModals();
         initHelpTips();
         initUrlHistory();
-        initSmartHeader();
 
         // Load paper types from global data
         if (typeof tabeshData !== 'undefined' && tabeshData.settings) {
@@ -69,49 +68,6 @@
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             $dashboard.attr('data-theme', newTheme);
             localStorage.setItem('tabesh-dashboard-theme', newTheme);
-        });
-    }
-
-    /**
-     * Smart Header - Collapses/hides on scroll, expands when scrolling up
-     */
-    function initSmartHeader() {
-        const $dashboard = $('.tabesh-dashboard');
-        if (!$dashboard.length) return;
-
-        let lastScrollTop = 0;
-        const scrollThreshold = 150;  // Start collapsing after 150px
-        const hideThreshold = 300;    // Completely hide after 300px
-
-        $(window).on('scroll.smartHeader', function() {
-            const scrollTop = $(this).scrollTop();
-
-            if (scrollTop <= 50) {
-                // At top of page - show full header
-                $dashboard.removeClass('header-collapsed header-hidden');
-            } else if (scrollTop > lastScrollTop && scrollTop > scrollThreshold) {
-                // Scrolling down - collapse
-                $dashboard.addClass('header-collapsed');
-
-                if (scrollTop > hideThreshold) {
-                    $dashboard.addClass('header-hidden');
-                }
-            } else if (scrollTop < lastScrollTop) {
-                // Scrolling up - show header
-                $dashboard.removeClass('header-hidden');
-
-                if (scrollTop <= scrollThreshold) {
-                    $dashboard.removeClass('header-collapsed');
-                }
-            }
-
-            lastScrollTop = scrollTop;
-        });
-
-        // Expand button click handler
-        $(document).on('click', '#header-expand-btn', function() {
-            $dashboard.removeClass('header-collapsed header-hidden');
-            $('html, body').animate({ scrollTop: 0 }, 300);
         });
     }
 
@@ -488,22 +444,6 @@
 
         // File upload handlers
         initFileUploadHandlers();
-
-        // Use event delegation for dynamically created upload buttons and cards
-        $(document).on('click', '.btn-upload-files, .upload-order-card', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Don't trigger if clicking on a child button (for the card click)
-            if ($(this).hasClass('upload-order-card') && $(e.target).closest('.btn').length) {
-                return;
-            }
-            
-            const orderId = $(this).data('order-id') || $(this).closest('.upload-order-card').data('order-id');
-            if (orderId) {
-                openUploadPanel(orderId);
-            }
-        });
     }
 
     /**
@@ -602,7 +542,11 @@
             $container.append($card);
         });
 
-        // Note: Click handlers are now using event delegation in initUploadManager()
+        // Bind click handlers
+        $('.btn-upload-files').on('click', function() {
+            const orderId = $(this).data('order-id');
+            openUploadPanel(orderId);
+        });
     }
 
     /**
@@ -615,25 +559,16 @@
     }
 
     /**
-     * Open Upload Panel - Fixed Version with title update
+     * Open Upload Panel
      */
     function openUploadPanel(orderId) {
         DashboardState.currentOrderId = orderId;
         
-        // Get order info from the clicked card - orderId comes from data attribute (safe)
-        const $card = $(`.order-card[data-order-id="${orderId}"], .upload-order-card[data-order-id="${orderId}"]`);
-        const orderTitle = $card.find('.order-book-title').text().replace('📖 ', '').trim();
-        const orderNumber = $card.find('.order-number').text();
-        
-        // Update panel title
-        $('#upload-panel-title').text(`${orderNumber} - ${orderTitle}`);
-        
-        // Show panel with animation
-        $('.upload-orders-section').slideUp(200, function() {
-            $('#upload-detail-panel').slideDown(300);
-        });
-        
-        // Load order files
+        // Show panel, hide list
+        $('.upload-orders-section').slideUp();
+        $('#upload-detail-panel').slideDown();
+
+        // Load order details and files
         loadOrderFiles(orderId);
     }
 
@@ -1089,31 +1024,6 @@
                     <div class="detail-row total">
                         <span class="detail-label">مبلغ کل:</span>
                         <span class="detail-value">${totalPriceDisplay}</span>
-                    </div>
-                </div>
-
-                <!-- Support Contact Bar -->
-                <div class="order-support-bar">
-                    <div class="support-bar-content">
-                        <span class="support-bar-title">📞 پشتیبانی:</span>
-                        <div class="support-bar-links">
-                            <a href="tel:+989929828425" class="support-bar-link">
-                                <span class="link-icon">📱</span>
-                                0992-982-8425
-                            </a>
-                            <a href="tel:+989125538967" class="support-bar-link">
-                                <span class="link-icon">📱</span>
-                                0912-553-8967
-                            </a>
-                            <a href="tel:+982537237301" class="support-bar-link">
-                                <span class="link-icon">☎️</span>
-                                025-3723-7301
-                            </a>
-                            <a href="https://pchapco.com/panel/?p=send-ticket" target="_blank" rel="noopener" class="support-bar-link ticket">
-                                <span class="link-icon">🎫</span>
-                                ارسال تیکت
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>
