@@ -752,14 +752,27 @@
             $('#orders-search-results').hide();
         });
 
+        // Click on order card to show details (not upload order cards)
+        $(document).on('click', '.order-card:not(.upload-order-card)', function(e) {
+            // If clicking on buttons, do not trigger card click
+            if (!$(e.target).closest('.btn, button, a').length) {
+                const orderId = $(this).data('order-id');
+                if (orderId) {
+                    showOrderDetails(orderId);
+                }
+            }
+        });
+
         // Details button
-        $(document).on('click', '.btn-details', function() {
+        $(document).on('click', '.btn-details', function(e) {
+            e.stopPropagation();
             const orderId = $(this).data('order-id');
             showOrderDetails(orderId);
         });
 
         // Support button
-        $(document).on('click', '.btn-support', function() {
+        $(document).on('click', '.btn-support', function(e) {
+            e.stopPropagation();
             const orderNumber = $(this).data('order-number');
             const bookTitle = $(this).data('book-title');
             showSupportModal(orderNumber, bookTitle);
@@ -836,14 +849,70 @@
                 hideLoading();
                 if (response.order) {
                     renderOrderDetailsModal(response.order);
-                    $('#order-details-modal').show();
+                    $('#order-details-modal').fadeIn(200);
+                } else {
+                    showToast('سفارش یافت نشد', 'error');
                 }
             },
             error: function() {
                 hideLoading();
-                showToast('خطا در بارگذاری جزئیات سفارش', 'error');
+                // Fallback: If API is not available, extract data from DOM
+                const $card = $(`.order-card[data-order-id="${orderId}"]`);
+                if ($card.length) {
+                    const orderData = extractOrderDataFromCard($card);
+                    renderOrderDetailsModal(orderData);
+                    $('#order-details-modal').fadeIn(200);
+                } else {
+                    showToast('خطا در بارگذاری جزئیات سفارش', 'error');
+                }
             }
         });
+    }
+
+    /**
+     * Extract Order Data from Card (Fallback)
+     */
+    function extractOrderDataFromCard($card) {
+        const orderNumber = $card.find('.order-number').text().replace('#', '').trim();
+        const bookTitle = $card.find('.order-book-title').text().replace('📖', '').trim();
+        const statusLabel = $card.find('.order-status').text().trim();
+        
+        // Extract quick info items
+        const quickInfo = {};
+        $card.find('.info-item .info-text').each(function() {
+            const text = $(this).text().trim();
+            if (text.includes('صفحه')) {
+                quickInfo.page_count = text;
+            } else if (text.includes('نسخه')) {
+                quickInfo.quantity = text;
+            } else if (text.includes('تومان')) {
+                quickInfo.total_price = text;
+            } else {
+                quickInfo.book_size = text;
+            }
+        });
+        
+        const orderDate = $card.find('.order-date').text().replace('📅', '').trim();
+        
+        return {
+            order_number: orderNumber,
+            book_title: bookTitle,
+            status_label: statusLabel,
+            page_count_total: quickInfo.page_count || '',
+            page_count_bw: 0,
+            page_count_color: 0,
+            quantity: quickInfo.quantity || '',
+            book_size: quickInfo.book_size || '',
+            total_price: quickInfo.total_price || '',
+            created_at: orderDate,
+            paper_type: 'نامشخص',
+            paper_weight: '',
+            print_type: 'نامشخص',
+            binding_type: 'نامشخص',
+            lamination_type: 'نامشخص',
+            extras: [],
+            is_fallback: true
+        };
     }
 
     /**
@@ -853,9 +922,38 @@
         const $body = $('#order-modal-body');
         $('#order-modal-title').text(`جزئیات سفارش #${order.order_number}`);
 
-        const extrasHtml = order.extras.length > 0 
+        const extrasHtml = order.extras && order.extras.length > 0 
             ? order.extras.map(e => `<span class="extra-tag">${escapeHtml(e)}</span>`).join(' ')
             : 'ندارد';
+
+        // Handle fallback data (less detailed)
+        const isFallback = order.is_fallback;
+        
+        // Format total price (handle both number and string formats)
+        let totalPriceDisplay = order.total_price;
+        if (typeof totalPriceDisplay === 'number') {
+            totalPriceDisplay = formatNumber(totalPriceDisplay) + ' تومان';
+        } else if (typeof totalPriceDisplay === 'string' && !totalPriceDisplay.includes('تومان')) {
+            totalPriceDisplay = totalPriceDisplay + ' تومان';
+        }
+
+        // Page count display
+        let pageCountDisplay = order.page_count_total;
+        if (!isFallback && order.page_count_bw !== undefined && order.page_count_color !== undefined) {
+            pageCountDisplay = `${order.page_count_total} صفحه (${order.page_count_bw} سیاه‌وسفید + ${order.page_count_color} رنگی)`;
+        }
+
+        // Quantity display
+        let quantityDisplay = order.quantity;
+        if (typeof quantityDisplay === 'number' || (typeof quantityDisplay === 'string' && !quantityDisplay.includes('نسخه'))) {
+            quantityDisplay = quantityDisplay + ' نسخه';
+        }
+
+        // Paper type display
+        let paperDisplay = order.paper_type || 'نامشخص';
+        if (order.paper_weight) {
+            paperDisplay = `${order.paper_type} - ${order.paper_weight} گرم`;
+        }
 
         $body.html(`
             <div class="order-details-content">
@@ -867,15 +965,15 @@
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">قطع:</span>
-                        <span class="detail-value">${order.book_size}</span>
+                        <span class="detail-value">${order.book_size || 'نامشخص'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">نوع کاغذ:</span>
-                        <span class="detail-value">${order.paper_type} - ${order.paper_weight} گرم</span>
+                        <span class="detail-value">${paperDisplay}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">نوع چاپ:</span>
-                        <span class="detail-value">${order.print_type}</span>
+                        <span class="detail-value">${order.print_type || 'نامشخص'}</span>
                     </div>
                 </div>
                 
@@ -883,19 +981,19 @@
                     <h4>مشخصات سفارش</h4>
                     <div class="detail-row">
                         <span class="detail-label">تعداد صفحات:</span>
-                        <span class="detail-value">${order.page_count_total} صفحه (${order.page_count_bw} سیاه‌وسفید + ${order.page_count_color} رنگی)</span>
+                        <span class="detail-value">${pageCountDisplay}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">تیراژ:</span>
-                        <span class="detail-value">${order.quantity} نسخه</span>
+                        <span class="detail-value">${quantityDisplay}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">صحافی:</span>
-                        <span class="detail-value">${order.binding_type}</span>
+                        <span class="detail-value">${order.binding_type || 'نامشخص'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">سلفون:</span>
-                        <span class="detail-value">${order.lamination_type}</span>
+                        <span class="detail-value">${order.lamination_type || 'نامشخص'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">خدمات اضافی:</span>
@@ -907,7 +1005,7 @@
                     <h4>اطلاعات مالی</h4>
                     <div class="detail-row total">
                         <span class="detail-label">مبلغ کل:</span>
-                        <span class="detail-value">${formatNumber(order.total_price)} تومان</span>
+                        <span class="detail-value">${totalPriceDisplay}</span>
                     </div>
                 </div>
             </div>

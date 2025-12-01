@@ -86,8 +86,8 @@
     text-align: right;
     background: var(--bg-primary);
     color: var(--text-primary);
-    min-height: 100vh;
-    line-height: 1.6;
+    min-height: auto;
+    line-height: 1.4;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -149,7 +149,7 @@
    ============================================ */
 .tabesh-dashboard .dashboard-header {
     background: var(--bg-secondary);
-    padding: var(--spacing-lg);
+    padding: 0.75rem;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
@@ -160,7 +160,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: 0.75rem;
 }
 
 .tabesh-dashboard .dashboard-title {
@@ -208,22 +208,22 @@
     display: none;
 }
 
-/* Summary Cards */
+/* Summary Cards - Compact Version */
 .tabesh-dashboard .summary-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .tabesh-dashboard .summary-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-md);
+    padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 0.5rem;
     transition: all var(--transition-fast);
 }
 
@@ -243,18 +243,18 @@
 }
 
 .tabesh-dashboard .summary-icon {
-    font-size: 2rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 .tabesh-dashboard .summary-value {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .tabesh-dashboard .summary-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: var(--text-secondary);
 }
 
@@ -316,7 +316,7 @@
    Main Content
    ============================================ */
 .tabesh-dashboard .dashboard-content {
-    padding: var(--spacing-lg);
+    padding: 0.75rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -783,17 +783,23 @@
 }
 
 /* Order Card */
+/* Order Card - Clickable */
 .tabesh-dashboard .order-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     overflow: hidden;
     transition: all var(--transition-fast);
+    cursor: pointer;
 }
 
 .tabesh-dashboard .order-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+}
+
+.tabesh-dashboard .order-card:active {
+    transform: scale(0.98);
 }
 
 .tabesh-dashboard .order-card.archived {
@@ -1441,6 +1447,60 @@
     flex: 1;
 }
 
+/* Order Details Modal - Detail Sections */
+.tabesh-dashboard .detail-section {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabesh-dashboard .detail-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.tabesh-dashboard .detail-section h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.tabesh-dashboard .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.375rem 0;
+    font-size: 0.8125rem;
+}
+
+.tabesh-dashboard .detail-label {
+    color: var(--text-secondary);
+}
+
+.tabesh-dashboard .detail-value {
+    font-weight: 500;
+}
+
+.tabesh-dashboard .detail-row.total {
+    border-top: 2px solid var(--primary-color);
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.tabesh-dashboard .detail-row.total .detail-value {
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.tabesh-dashboard .extra-tag {
+    display: inline-block;
+    background: var(--bg-hover);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
 /* Support Modal */
 .tabesh-dashboard .support-options {
     margin-top: var(--spacing-lg);
@@ -1610,14 +1670,34 @@
 @media (max-width: 768px) {
     .tabesh-dashboard .summary-cards {
         grid-template-columns: repeat(2, 1fr);
+        gap: 0.375rem;
+    }
+    
+    .tabesh-dashboard .summary-card {
+        padding: 0.375rem 0.5rem;
+    }
+    
+    .tabesh-dashboard .summary-icon {
+        font-size: 1rem;
+    }
+    
+    .tabesh-dashboard .summary-value {
+        font-size: 0.875rem;
+    }
+    
+    .tabesh-dashboard .summary-label {
+        font-size: 0.6rem;
     }
 
     .tabesh-dashboard .tab-navigation {
         flex-wrap: wrap;
+        gap: 0.25rem;
     }
 
     .tabesh-dashboard .tab-button {
         flex: 0 0 calc(33.333% - var(--spacing-xs));
+        padding: 0.5rem;
+        font-size: 0.75rem;
     }
 
     .tabesh-dashboard .tab-label {
@@ -1625,11 +1705,19 @@
     }
 
     .tabesh-dashboard .tab-icon {
-        font-size: 1.5rem;
+        font-size: 1rem;
     }
 
     .tabesh-dashboard .form-row {
         flex-direction: column;
+    }
+
+    .tabesh-dashboard .dashboard-header {
+        padding: 0.5rem;
+    }
+
+    .tabesh-dashboard .dashboard-content {
+        padding: 0.5rem;
     }
 
     .tabesh-dashboard .header-content {
@@ -1645,6 +1733,14 @@
     .tabesh-dashboard .theme-toggle {
         order: 0;
         align-self: flex-end;
+    }
+
+    .tabesh-dashboard .dashboard-title {
+        font-size: 1rem;
+    }
+
+    .tabesh-dashboard .dashboard-subtitle {
+        font-size: 0.75rem;
     }
 
     .tabesh-dashboard .progress-stepper {
@@ -1682,11 +1778,46 @@
 
 @media (max-width: 480px) {
     .tabesh-dashboard .summary-cards {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.25rem;
+    }
+    
+    .tabesh-dashboard .summary-card {
+        padding: 0.25rem 0.375rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.125rem;
+    }
+    
+    .tabesh-dashboard .summary-icon {
+        font-size: 0.875rem;
+    }
+    
+    .tabesh-dashboard .summary-value {
+        font-size: 0.75rem;
+    }
+    
+    .tabesh-dashboard .summary-label {
+        font-size: 0.5rem;
+    }
+    
+    .tabesh-dashboard .tab-button {
+        flex-direction: column;
+        padding: 0.375rem 0.25rem;
+        gap: 0.125rem;
+    }
+    
+    .tabesh-dashboard .tab-label {
+        font-size: 0.625rem;
+        display: block;
+    }
+    
+    .tabesh-dashboard .tab-icon {
+        font-size: 0.875rem;
     }
 
     .tabesh-dashboard .dashboard-content {
-        padding: var(--spacing-md);
+        padding: var(--spacing-sm);
     }
 
     .tabesh-dashboard .dashboard-form {
