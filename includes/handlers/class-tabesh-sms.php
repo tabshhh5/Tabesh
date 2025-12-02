@@ -149,6 +149,11 @@ class Tabesh_SMS {
      * @return array|WP_Error Array with success and data on success, WP_Error on failure
      */
     public function test_connection() {
+        // Check if SOAP extension is available
+        if (!extension_loaded('soap')) {
+            return new WP_Error('soap_extension_missing', __('افزونه SOAP در سرور فعال نیست. لطفاً با مدیر سرور تماس بگیرید.', 'tabesh'));
+        }
+
         // Get API credentials
         $username = Tabesh()->get_setting('sms_username', '');
         $password = Tabesh()->get_setting('sms_password', '');
@@ -158,12 +163,12 @@ class Tabesh_SMS {
         }
 
         try {
-            // Initialize SOAP client
+            // Initialize SOAP client with shorter timeout for better UX
             $soap_options = array(
                 'encoding' => 'UTF-8',
                 'trace' => true,
                 'exceptions' => true,
-                'connection_timeout' => 30,
+                'connection_timeout' => 15, // Reduced from 30 to 15 seconds for better responsiveness
                 'cache_wsdl' => (defined('WP_DEBUG') && WP_DEBUG) ? WSDL_CACHE_NONE : WSDL_CACHE_BOTH,
             );
 
