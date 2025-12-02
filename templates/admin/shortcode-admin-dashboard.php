@@ -20,6 +20,15 @@ if (!defined('ABSPATH')) {
 // Check user capabilities
 $is_admin = current_user_can('manage_woocommerce');
 
+// If not admin, check if user is in allowed list
+if (!$is_admin) {
+    $allowed_users = Tabesh()->get_setting('admin_dashboard_allowed_users', array());
+    if (is_string($allowed_users)) {
+        $allowed_users = json_decode($allowed_users, true) ?: array();
+    }
+    $is_admin = in_array(get_current_user_id(), $allowed_users);
+}
+
 if ($is_admin) {
     // Admin view: Show full super dashboard
     $admin = Tabesh()->admin;

@@ -794,11 +794,10 @@
         downloadFile(fileId) {
             // Request a download token from the server
             $.ajax({
-                url: buildRestUrl(tabeshAdminData.restUrl, 'generate-download-token'),
+                url: buildRestUrl(tabeshAdminData.restUrl, 'files/generate-token'),
                 type: 'POST',
-                data: {
-                    file_id: fileId
-                },
+                contentType: 'application/json',
+                data: JSON.stringify({ file_id: fileId }),
                 headers: {
                     'X-WP-Nonce': tabeshAdminData.nonce
                 },

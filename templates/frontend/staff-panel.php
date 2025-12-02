@@ -11,6 +11,20 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Check if user is allowed to access staff panel
+$staff_allowed_users = Tabesh()->get_setting('staff_allowed_users', array());
+if (is_string($staff_allowed_users)) {
+    $staff_allowed_users = json_decode($staff_allowed_users, true) ?: array();
+}
+
+if (!current_user_can('manage_woocommerce') && !current_user_can('edit_shop_orders') && !in_array(get_current_user_id(), $staff_allowed_users)) {
+    echo '<div class="tabesh-notice error" style="padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24; margin: 20px 0;">';
+    echo '<p style="margin: 0;"><strong>' . esc_html__('دسترسی غیرمجاز', 'tabesh') . '</strong></p>';
+    echo '<p style="margin: 10px 0 0 0;">' . esc_html__('شما دسترسی به این بخش را ندارید.', 'tabesh') . '</p>';
+    echo '</div>';
+    return;
+}
+
 $staff = Tabesh()->staff;
 $orders = $staff->get_assigned_orders();
 $current_user = wp_get_current_user();

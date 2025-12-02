@@ -771,12 +771,6 @@ final class Tabesh {
             'min_quantity' => '10',
             'max_quantity' => '10000',
             'quantity_step' => '10',
-            'mellipayamak_username' => '',
-            'mellipayamak_password' => '',
-            'mellipayamak_from' => '',
-            'admin_phone' => '',
-            'sms_on_order_submit' => '1',
-            'sms_on_status_change' => '1',
             // Pricing configuration
             'pricing_book_sizes' => json_encode(array(
                 'A5' => 1.0,
@@ -863,6 +857,9 @@ final class Tabesh {
             // Display & Behavior
             'file_error_display_type' => 'modal',
             'file_show_progress_bar' => '1',
+            // Access Control
+            'staff_allowed_users' => json_encode(array()),
+            'admin_dashboard_allowed_users' => json_encode(array()),
         );
 
         global $wpdb;

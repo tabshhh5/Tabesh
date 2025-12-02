@@ -225,13 +225,11 @@ class Tabesh_Admin {
                                     'pricing_options_costs', 'paper_types', 'pricing_quantity_discounts');
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
-                              'mellipayamak_username', 'mellipayamak_password',
-                              'mellipayamak_from', 'admin_phone',
                               // New SMS settings
                               'sms_username', 'sms_password', 'sms_sender');
         
         // Checkbox fields need special handling because unchecked boxes don't appear in POST
-        $checkbox_fields = array('sms_on_order_submit', 'sms_on_status_change', 'sms_enabled');
+        $checkbox_fields = array('sms_enabled');
         
         // Add dynamic SMS status checkbox fields
         $status_labels = Tabesh_SMS::get_status_labels();
@@ -514,6 +512,44 @@ class Tabesh_Admin {
             } else {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     error_log("Tabesh: Saved staff_allowed_users with " . count($user_ids) . " users");
+                }
+            }
+        }
+        
+        // Handle admin_dashboard_allowed_users array field (comma-separated IDs from hidden input)
+        if (isset($post_data['admin_dashboard_allowed_users'])) {
+            $user_ids_string = sanitize_text_field($post_data['admin_dashboard_allowed_users']);
+            $user_ids = array();
+            
+            if (!empty($user_ids_string)) {
+                // Parse comma-separated IDs
+                $ids = explode(',', $user_ids_string);
+                foreach ($ids as $id) {
+                    $id = intval(trim($id));
+                    if ($id > 0) {
+                        // Validate that user exists
+                        if (get_userdata($id)) {
+                            $user_ids[] = $id;
+                        }
+                    }
+                }
+            }
+            
+            $value = wp_json_encode(array_values(array_unique($user_ids)), JSON_UNESCAPED_UNICODE);
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => 'admin_dashboard_allowed_users',
+                    'setting_value' => $value,
+                    'setting_type' => 'string'
+                )
+            );
+            
+            if ($result === false) {
+                error_log("Failed to save setting: admin_dashboard_allowed_users - Error: " . $wpdb->last_error);
+            } else {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("Tabesh: Saved admin_dashboard_allowed_users with " . count($user_ids) . " users");
                 }
             }
         }
