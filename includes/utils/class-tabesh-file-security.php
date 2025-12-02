@@ -519,13 +519,20 @@ class Tabesh_File_Security {
             ob_end_clean();
         }
 
-        // Set headers
+        // Set headers with CDN/Firewall bypass configuration
         header('Content-Type: ' . $mime_type);
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($file_path));
-        header('Cache-Control: private, must-revalidate');
+        
+        // Security headers to prevent CDN/Firewall from blocking
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-cache, no-store, must-revalidate');
+        header('X-Download-Options: noopen');
         header('Pragma: private');
         header('Expires: 0');
+        
+        // Additional headers for better compatibility
+        header('X-Robots-Tag: noindex, nofollow');
 
         // Output file
         readfile($file_path);
