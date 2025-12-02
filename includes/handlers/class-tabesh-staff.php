@@ -255,6 +255,9 @@ class Tabesh_Staff {
      * Check if a user has staff panel access (secure version)
      * Always reads from database to prevent cache-related security issues
      * 
+     * Note: This method intentionally does not use caching for security reasons.
+     * It's designed to be called once per page load for critical access control checks.
+     * 
      * @param int $user_id User ID to check
      * @return bool True if user has access, false otherwise
      */
@@ -295,7 +298,9 @@ class Tabesh_Staff {
             return false;
         }
         
-        return in_array((int)$user_id, array_map('intval', $allowed_users), true);
+        // Cast user_id to int once for comparison
+        $user_id = (int) $user_id;
+        return in_array($user_id, array_map('intval', $allowed_users), true);
     }
 
     /**
