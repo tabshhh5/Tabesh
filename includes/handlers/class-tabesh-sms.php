@@ -19,11 +19,11 @@ if (!defined('ABSPATH')) {
 class Tabesh_SMS {
 
     /**
-     * MelliPayamak API base URL for template-based SMS
+     * MelliPayamak SOAP API endpoint
      *
      * @var string
      */
-    const API_BASE_URL = 'https://console.melipayamak.com/api/send/shared/';
+    const SOAP_WSDL_URL = 'https://api.payamak-panel.com/post/Send.asmx?wsdl';
 
     /**
      * Order statuses with Persian labels
@@ -143,11 +143,13 @@ class Tabesh_SMS {
     }
 
     /**
-     * Send template-based SMS via MelliPayamak API
+     * Send template-based SMS via MelliPayamak SOAP API
+     *
+     * Uses SendByBaseNumber2 method for template-based (pattern) SMS sending
      *
      * @param string $phone Recipient phone number
      * @param string $pattern_code Pattern code (bodyId) from MelliPayamak
-     * @param array  $parameters Template parameters
+     * @param array  $parameters Template parameters (will be sent in order)
      * @return bool|WP_Error True on success, WP_Error on failure
      */
     public function send_template_sms($phone, $pattern_code, $parameters = array()) {
@@ -172,73 +174,118 @@ class Tabesh_SMS {
             return new WP_Error('pattern_missing', __('کد الگوی پیامک تعریف نشده', 'tabesh'));
         }
 
-        // Prepare API request body
-        // MelliPayamak template API uses 'args' array for template variables
-        $body = array(
-            'username' => $username,
-            'password' => $password,
-            'to'       => $phone,
-            'bodyId'   => intval($pattern_code),
-        );
-
-        // Add template parameters as 'args' array (values only, in order)
-        if (!empty($parameters) && is_array($parameters)) {
-            $body['args'] = array_values($parameters);
+        // Validate pattern code is numeric before converting
+        if (!is_numeric($pattern_code)) {
+            $this->log_error('invalid_pattern', __('کد الگوی پیامک باید عددی باشد', 'tabesh'));
+            return new WP_Error('invalid_pattern', __('کد الگوی پیامک باید عددی باشد', 'tabesh'));
+        }
+        
+        $bodyId = intval($pattern_code);
+        if ($bodyId <= 0) {
+            $this->log_error('invalid_pattern', __('کد الگوی پیامک باید عدد مثبت باشد', 'tabesh'));
+            return new WP_Error('invalid_pattern', __('کد الگوی پیامک باید عدد مثبت باشد', 'tabesh'));
         }
 
-        // Build API URL - MelliPayamak shared endpoint uses bodyId in path
-        // Sanitize pattern_code to ensure it's numeric
-        $sanitized_pattern = absint($pattern_code);
-        $api_url = self::API_BASE_URL . $sanitized_pattern;
+        try {
+            // Initialize SOAP client with options
+            $soap_options = array(
+                'encoding' => 'UTF-8',
+                'trace' => true,
+                'exceptions' => true,
+                'connection_timeout' => 30,
+                // WSDL caching: Use WSDL_CACHE_BOTH in production for better performance
+                // Use WSDL_CACHE_NONE only in debug mode (WP_DEBUG=true) for troubleshooting
+                'cache_wsdl' => (defined('WP_DEBUG') && WP_DEBUG) ? WSDL_CACHE_NONE : WSDL_CACHE_BOTH,
+            );
 
-        // Send API request using WordPress HTTP API
-        $response = wp_remote_post($api_url, array(
-            'body'    => wp_json_encode($body),
-            'headers' => array(
-                'Content-Type' => 'application/json',
-            ),
-            'timeout' => 30,
-        ));
+            // Create SOAP client
+            $client = new SoapClient(self::SOAP_WSDL_URL, $soap_options);
 
-        // Check for HTTP error
-        if (is_wp_error($response)) {
-            $this->log_error('http_error', $response->get_error_message());
-            return $response;
-        }
+            // Prepare parameters array - convert associative array to indexed array
+            $text_array = !empty($parameters) && is_array($parameters) ? array_values($parameters) : array();
 
-        // Parse response
-        $response_code = wp_remote_retrieve_response_code($response);
-        $response_body = wp_remote_retrieve_body($response);
-        $result = json_decode($response_body, true);
+            // Prepare SOAP parameters for SendByBaseNumber2
+            $soap_params = array(
+                'username' => $username,
+                'password' => $password,
+                'text' => $text_array,  // Array of parameter values in order
+                'to' => $phone,
+                'bodyId' => $bodyId,
+            );
 
-        // Log response for debugging (without sensitive data)
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                'Tabesh SMS: Response code: %d, Body: %s',
-                $response_code,
-                $response_body
-            ));
-        }
-
-        // Check response status
-        // MelliPayamak returns numeric status codes
-        // Positive values indicate success (message ID)
-        // Negative values indicate errors
-        if ($response_code === 200 && isset($result['Value'])) {
-            if (is_numeric($result['Value']) && intval($result['Value']) > 0) {
-                $this->log_success($phone, $pattern_code, intval($result['Value']));
-                return true;
+            // Log request in debug mode (without sensitive data)
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'Tabesh SMS: Sending via SOAP to %s with pattern %d, params count: %d',
+                    substr($phone, 0, 4) . '****' . substr($phone, -2),
+                    $bodyId,
+                    count($text_array)
+                ));
             }
+
+            // Call SOAP method
+            $response = $client->SendByBaseNumber2($soap_params);
+
+            // Check response
+            // MelliPayamak returns numeric values:
+            // Positive values = success (message ID)
+            // Negative values = error codes
+            if (isset($response->SendByBaseNumber2Result)) {
+                $result_value = intval($response->SendByBaseNumber2Result);
+                
+                if ($result_value > 0) {
+                    // Success - result is message ID
+                    $this->log_success($phone, $pattern_code, $result_value);
+                    return true;
+                } else {
+                    // Error - result is error code
+                    $error_message = $this->get_melipayamak_error_message($result_value);
+                    $this->log_error('api_error', $error_message, array(
+                        'phone' => substr($phone, 0, 4) . '****' . substr($phone, -2),
+                        'pattern' => $pattern_code,
+                        'error_code' => $result_value,
+                    ));
+                    return new WP_Error('sms_send_failed', $error_message);
+                }
+            } else {
+                // Unexpected response format
+                $this->log_error('unexpected_response', __('پاسخ نامعتبر از سرور SMS', 'tabesh'));
+                return new WP_Error('unexpected_response', __('پاسخ نامعتبر از سرور SMS', 'tabesh'));
+            }
+
+        } catch (SoapFault $e) {
+            // Handle SOAP errors
+            $error_message = sprintf(
+                __('خطای SOAP: %s', 'tabesh'),
+                $e->getMessage()
+            );
+            
+            $this->log_error('soap_error', $error_message, array(
+                'phone' => substr($phone, 0, 4) . '****' . substr($phone, -2),
+                'pattern' => $pattern_code,
+            ));
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh SMS SOAP Error: ' . $e->getMessage());
+                error_log('Tabesh SMS SOAP Trace: ' . $e->getTraceAsString());
+            }
+            
+            return new WP_Error('soap_error', $error_message);
+        } catch (Exception $e) {
+            // Handle general exceptions
+            $error_message = sprintf(
+                __('خطای ارسال پیامک: %s', 'tabesh'),
+                $e->getMessage()
+            );
+            
+            $this->log_error('general_error', $error_message);
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh SMS Error: ' . $e->getMessage());
+            }
+            
+            return new WP_Error('general_error', $error_message);
         }
-
-        // Handle error response
-        $error_message = isset($result['RetStatus']) ? $result['RetStatus'] : __('خطا در ارسال پیامک', 'tabesh');
-        $this->log_error('api_error', $error_message, array(
-            'phone'   => substr($phone, 0, 4) . '****' . substr($phone, -2),
-            'pattern' => $pattern_code,
-        ));
-
-        return new WP_Error('sms_send_failed', $error_message);
     }
 
     /**
@@ -374,20 +421,22 @@ class Tabesh_SMS {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_logs';
 
-        // Handle order_id - use 0 if not provided (NULL causes issues with %d format)
+        // Handle order_id - use NULL if not provided
+        // Note: WordPress wpdb handles NULL values correctly even with %d format
+        // It will insert NULL into the database when value is null
         $order_id = isset($context['order_id']) && $context['order_id'] > 0 
             ? intval($context['order_id']) 
-            : 0;
+            : null;
 
         $wpdb->insert(
             $table,
             array(
-                'order_id'    => $order_id > 0 ? $order_id : null,
+                'order_id'    => $order_id,
                 'user_id'     => get_current_user_id(),
                 'action'      => 'sms_error_' . sanitize_key($code),
                 'description' => sanitize_text_field($message),
             ),
-            $order_id > 0 ? array('%d', '%d', '%s', '%s') : array(null, '%d', '%s', '%s')
+            array('%d', '%d', '%s', '%s')
         );
     }
 
@@ -421,5 +470,33 @@ class Tabesh_SMS {
      */
     public static function get_status_labels() {
         return self::$status_labels;
+    }
+
+    /**
+     * Get Persian error message for MelliPayamak error codes
+     *
+     * @param int $error_code Error code from API
+     * @return string Persian error message
+     */
+    private function get_melipayamak_error_message($error_code) {
+        $error_messages = array(
+            -1  => __('پارامترها ناقص است', 'tabesh'),
+            -2  => __('نام کاربری یا رمز عبور اشتباه است', 'tabesh'),
+            -3  => __('امکان ارسال روزانه شما به پایان رسیده', 'tabesh'),
+            -4  => __('پیامک با موفقیت ارسال شد اما به دلیل عدم تکمیل اطلاعات پنل کاربری، تمام پیام‌ها ارسال نشده است', 'tabesh'),
+            -5  => __('کاربر مسدود شده است', 'tabesh'),
+            -6  => __('اعتبار کافی نیست', 'tabesh'),
+            -7  => __('متن پیام بیش از حد طولانی است', 'tabesh'),
+            -8  => __('شماره فرستنده معتبر نیست', 'tabesh'),
+            -9  => __('شماره گیرنده معتبر نیست', 'tabesh'),
+            -10 => __('خطا در ارسال پیامک به سامانه ملی', 'tabesh'),
+            -11 => __('کد الگو پیدا نشد یا متعلق به شما نیست', 'tabesh'),
+            -12 => __('پارامترهای ارسالی با الگوی تعریف شده مطابقت ندارد', 'tabesh'),
+            -13 => __('IP شما در لیست سفید قرار ندارد', 'tabesh'),
+        );
+
+        return isset($error_messages[$error_code]) 
+            ? $error_messages[$error_code] 
+            : sprintf(__('خطای ناشناخته با کد %d', 'tabesh'), $error_code);
     }
 }

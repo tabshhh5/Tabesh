@@ -638,14 +638,51 @@
                 }),
                 success: (response) => {
                     if (response.success && response.download_url) {
-                        // Open download URL in new tab/window - more reliable than iframe
-                        window.open(response.download_url, '_blank');
-                        
-                        // Re-enable button after short delay
-                        setTimeout(() => {
-                            $btn.prop('disabled', false).html(originalText);
-                            this.showToast('دانلود شروع شد', 'success');
-                        }, 500);
+                        // Use fetch with Blob to bypass CDN/Firewall restrictions
+                        // This method is more reliable than window.open() which can be blocked
+                        fetch(response.download_url)
+                            .then(fetchResponse => {
+                                if (!fetchResponse.ok) {
+                                    throw new Error('خطا در دانلود فایل');
+                                }
+                                return fetchResponse.blob();
+                            })
+                            .then(blob => {
+                                // Create a temporary URL for the blob
+                                const blobUrl = window.URL.createObjectURL(blob);
+                                
+                                // Create a temporary anchor element and trigger download
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = blobUrl;
+                                
+                                // Extract filename from Content-Disposition header or URL
+                                const urlParams = new URLSearchParams(new URL(response.download_url).search);
+                                const fileId = urlParams.get('file_id');
+                                a.download = fileId ? `tabesh-file-${fileId}` : 'tabesh-download';
+                                
+                                document.body.appendChild(a);
+                                a.click();
+                                
+                                // Clean up
+                                setTimeout(() => {
+                                    window.URL.revokeObjectURL(blobUrl);
+                                    document.body.removeChild(a);
+                                }, 100);
+                                
+                                // Re-enable button and show success
+                                $btn.prop('disabled', false).html(originalText);
+                                this.showToast('دانلود شروع شد', 'success');
+                            })
+                            .catch(error => {
+                                console.error('Download error:', error);
+                                
+                                // Fallback to window.open for older browsers or CORS issues
+                                window.open(response.download_url, '_blank');
+                                
+                                $btn.prop('disabled', false).html(originalText);
+                                this.showToast('دانلود شروع شد', 'success');
+                            });
                     } else {
                         $btn.prop('disabled', false).html(originalText);
                         this.showToast(response.message || 'خطا در ایجاد لینک دانلود', 'error');

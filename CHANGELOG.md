@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **File download and SMS configuration issues:**
+  - Fixed admin dashboard file download blocked by CDN/Firewall - changed from `window.open()` to `fetch()` with Blob approach
+  - Added CDN-bypass headers in file security class: `X-Content-Type-Options`, `Cache-Control`, `X-Download-Options`
+  - Fixed SMS sending with MelliPayamak - replaced REST API with SOAP API using `SendByBaseNumber2` method
+  - Updated MelliPayamak endpoint to `https://api.payamak-panel.com/post/Send.asmx?wsdl`
+  - Added proper error code handling with Persian error messages for MelliPayamak responses
+  - Added fallback to `window.open()` for older browsers or CORS issues in file download
+  
 - **Post-removal cleanup from Customer Files Panel (PR #94):**
   - Removed FTP settings from admin settings handler (12 fields: host, port, username, password, path, passive, SSL, encryption, transfer delay, retention, immediate transfer)
   - Removed smart upload template settings handling from admin class (3 methods: `save_format_settings()`, `save_category_format_settings()`, `sanitize_optional_int()`)
