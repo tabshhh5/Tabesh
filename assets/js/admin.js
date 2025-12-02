@@ -426,7 +426,82 @@
 
         // Initialize SMS pattern validation
         if ($('.sms-pattern-input').length) {
-            TabeshAdmin.initSMSPatternValidation();
+            // Call inline SMS validation function
+            (function() {
+                // Add real-time validation for SMS pattern inputs
+                $('.sms-pattern-input').on('input', function() {
+                    const value = $(this).val().trim();
+                    // Use more robust selector
+                    const $description = $(this).closest('td').find('.description small');
+                    
+                    if (value === '') {
+                        $(this)[0].setCustomValidity('');
+                        if ($description.length) {
+                            $description.css('color', '#666');
+                        }
+                        return;
+                    }
+                    
+                    if (!/^\d+$/.test(value)) {
+                        $(this)[0].setCustomValidity('کد الگو باید فقط شامل اعداد باشد');
+                        if ($description.length) {
+                            $description.css('color', '#dc3232').text('⚠️ فقط عدد وارد کنید');
+                        }
+                    } else {
+                        $(this)[0].setCustomValidity('');
+                        if ($description.length) {
+                            $description.css('color', '#46b450').text('✓ معتبر');
+                        }
+                    }
+                });
+
+                // Validate on form submit
+                $('form:has(.sms-pattern-input)').on('submit', function(e) {
+                    let hasError = false;
+                    let $firstErrorInput = null;
+                    
+                    $(this).find('.sms-pattern-input').each(function() {
+                        const value = $(this).val().trim();
+                        if (value !== '' && !/^\d+$/.test(value)) {
+                            hasError = true;
+                            if (!$firstErrorInput) {
+                                $firstErrorInput = $(this);
+                            }
+                        }
+                    });
+                    
+                    if (hasError) {
+                        e.preventDefault();
+                        if ($firstErrorInput) {
+                            $firstErrorInput.focus();
+                        }
+                        
+                        // Use specific container
+                        const $targetContainer = $('.tabesh-admin-settings .wrap').first();
+                        const $noticeContainer = $targetContainer.length ? $targetContainer : $(this).parent();
+                        
+                        const $notice = $('<div>')
+                            .addClass('notice notice-error is-dismissible')
+                            .html('<p><strong>خطا:</strong> لطفاً کد الگوهای پیامک را به صورت عددی وارد کنید.</p>')
+                            .prependTo($noticeContainer);
+                        
+                        $notice.append('<button type="button" class="notice-dismiss"><span class="screen-reader-text">بستن این پیام</span></button>');
+                        $notice.find('.notice-dismiss').on('click', function() {
+                            $notice.fadeOut(function() {
+                                $notice.remove();
+                            });
+                        });
+                        
+                        setTimeout(function() {
+                            $notice.fadeOut(function() {
+                                $notice.remove();
+                            });
+                        }, 5000);
+                        
+                        return false;
+                    }
+                });
+            })();
         }
 
         // Initialize orders manager
@@ -824,83 +899,6 @@
                 }
             });
         }
-    },
-
-    /**
-     * Initialize SMS pattern validation
-     */
-    initSMSPatternValidation: function() {
-        // Add real-time validation for SMS pattern inputs
-        $('.sms-pattern-input').on('input', function() {
-            const value = $(this).val().trim();
-            const $description = $(this).siblings('.description').find('small');
-            
-            if (value === '') {
-                // Empty is ok (optional field)
-                $(this)[0].setCustomValidity('');
-                $description.css('color', '#666');
-                return;
-            }
-            
-            // Check if value is numeric
-            if (!/^\d+$/.test(value)) {
-                $(this)[0].setCustomValidity('کد الگو باید فقط شامل اعداد باشد');
-                $description.css('color', '#dc3232').text('⚠️ فقط عدد وارد کنید');
-            } else {
-                $(this)[0].setCustomValidity('');
-                $description.css('color', '#46b450').text('✓ معتبر');
-            }
-        });
-
-        // Validate on form submit - only for forms containing SMS pattern inputs
-        $('form:has(.sms-pattern-input)').on('submit', function(e) {
-            let hasError = false;
-            let $firstErrorInput = null;
-            
-            $(this).find('.sms-pattern-input').each(function() {
-                const value = $(this).val().trim();
-                if (value !== '' && !/^\d+$/.test(value)) {
-                    hasError = true;
-                    if (!$firstErrorInput) {
-                        $firstErrorInput = $(this);
-                    }
-                }
-            });
-            
-            if (hasError) {
-                e.preventDefault();
-                
-                // Focus on first error input
-                if ($firstErrorInput) {
-                    $firstErrorInput.focus();
-                }
-                
-                // Show user-friendly notification using WordPress admin notice style
-                const $notice = $('<div>')
-                    .addClass('notice notice-error is-dismissible')
-                    .html('<p><strong>خطا:</strong> لطفاً کد الگوهای پیامک را به صورت عددی وارد کنید (فقط اعداد مجاز هستند).</p>')
-                    .prependTo('.wrap');
-                
-                // Make dismissible
-                $notice.append('<button type="button" class="notice-dismiss"><span class="screen-reader-text">بستن این پیام</span></button>');
-                
-                // Handle dismiss button
-                $notice.find('.notice-dismiss').on('click', function() {
-                    $notice.fadeOut(function() {
-                        $notice.remove();
-                    });
-                });
-                
-                // Auto-remove after 5 seconds
-                setTimeout(function() {
-                    $notice.fadeOut(function() {
-                        $notice.remove();
-                    });
-                }, 5000);
-                
-                return false;
-            }
-        });
     }
 
 })(jQuery);
