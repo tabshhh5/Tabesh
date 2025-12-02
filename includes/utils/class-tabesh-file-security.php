@@ -519,9 +519,19 @@ class Tabesh_File_Security {
             ob_end_clean();
         }
 
-        // Set headers with CDN/Firewall bypass configuration
+        // Sanitize filename to prevent header injection
+        $safe_filename = preg_replace('/[^a-zA-Z0-9\-\_\.\u0600-\u06FF]/', '_', $filename);
+        
+        // Set CORS headers for same-origin and authenticated requests
+        header('Access-Control-Allow-Origin: ' . get_site_url());
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST');
+        header('Access-Control-Allow-Headers: X-WP-Nonce, Content-Type');
+        
+        // Set content headers
         header('Content-Type: ' . $mime_type);
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        // Use both ASCII filename and UTF-8 filename* for better compatibility
+        header('Content-Disposition: attachment; filename="' . $safe_filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
         header('Content-Length: ' . filesize($file_path));
         
         // Security headers to prevent CDN/Firewall from blocking

@@ -613,7 +613,7 @@
 
         /**
          * Handle file download
-         * Opens download in new window/tab for better browser compatibility
+         * Improved method with better CORS handling and fallback strategies
          */
         handleFileDownload: function(e) {
             e.preventDefault();
@@ -638,16 +638,40 @@
                 }),
                 success: (response) => {
                     if (response.success && response.download_url) {
-                        // Use fetch with Blob to bypass CDN/Firewall restrictions
-                        // This method is more reliable than window.open() which can be blocked
-                        fetch(response.download_url)
+                        // Try fetch with Blob first (better for CORS and CDN issues)
+                        fetch(response.download_url, {
+                            method: 'GET',
+                            credentials: 'same-origin',
+                            mode: 'cors'
+                        })
                             .then(fetchResponse => {
                                 if (!fetchResponse.ok) {
                                     throw new Error('خطا در دانلود فایل');
                                 }
-                                return fetchResponse.blob();
+                                
+                                // Extract filename from Content-Disposition header
+                                const contentDisposition = fetchResponse.headers.get('Content-Disposition');
+                                let filename = 'tabesh-download';
+                                
+                                if (contentDisposition) {
+                                    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                                    if (filenameMatch && filenameMatch[1]) {
+                                        filename = filenameMatch[1].replace(/['"]/g, '');
+                                    }
+                                }
+                                
+                                // If no filename from header, try URL parameters
+                                if (filename === 'tabesh-download') {
+                                    const urlParams = new URLSearchParams(new URL(response.download_url).search);
+                                    const fileIdParam = urlParams.get('file_id');
+                                    if (fileIdParam) {
+                                        filename = `tabesh-file-${fileIdParam}`;
+                                    }
+                                }
+                                
+                                return fetchResponse.blob().then(blob => ({ blob, filename }));
                             })
-                            .then(blob => {
+                            .then(({ blob, filename }) => {
                                 // Create a temporary URL for the blob
                                 const blobUrl = window.URL.createObjectURL(blob);
                                 
@@ -655,11 +679,7 @@
                                 const a = document.createElement('a');
                                 a.style.display = 'none';
                                 a.href = blobUrl;
-                                
-                                // Extract filename from Content-Disposition header or URL
-                                const urlParams = new URLSearchParams(new URL(response.download_url).search);
-                                const fileId = urlParams.get('file_id');
-                                a.download = fileId ? `tabesh-file-${fileId}` : 'tabesh-download';
+                                a.download = filename;
                                 
                                 document.body.appendChild(a);
                                 a.click();
@@ -675,13 +695,30 @@
                                 this.showToast('دانلود شروع شد', 'success');
                             })
                             .catch(error => {
-                                console.error('Download error:', error);
+                                console.error('Fetch download error:', error);
                                 
-                                // Fallback to window.open for older browsers or CORS issues
-                                window.open(response.download_url, '_blank');
-                                
-                                $btn.prop('disabled', false).html(originalText);
-                                this.showToast('دانلود شروع شد', 'success');
+                                // Fallback 1: Try using hidden iframe (works better with some CDNs)
+                                try {
+                                    const iframe = document.createElement('iframe');
+                                    iframe.style.display = 'none';
+                                    iframe.src = response.download_url;
+                                    document.body.appendChild(iframe);
+                                    
+                                    setTimeout(() => {
+                                        document.body.removeChild(iframe);
+                                    }, 5000);
+                                    
+                                    $btn.prop('disabled', false).html(originalText);
+                                    this.showToast('دانلود شروع شد', 'success');
+                                } catch (iframeError) {
+                                    console.error('Iframe fallback error:', iframeError);
+                                    
+                                    // Fallback 2: Simple window.open as last resort
+                                    window.open(response.download_url, '_blank');
+                                    
+                                    $btn.prop('disabled', false).html(originalText);
+                                    this.showToast('دانلود شروع شد', 'success');
+                                }
                             });
                     } else {
                         $btn.prop('disabled', false).html(originalText);

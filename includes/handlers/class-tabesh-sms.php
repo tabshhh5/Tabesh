@@ -143,6 +143,87 @@ class Tabesh_SMS {
     }
 
     /**
+     * Test connection to MelliPayamak panel
+     * Uses GetCredit SOAP method to verify username/password and get remaining credit
+     *
+     * @return array|WP_Error Array with success and data on success, WP_Error on failure
+     */
+    public function test_connection() {
+        // Get API credentials
+        $username = Tabesh()->get_setting('sms_username', '');
+        $password = Tabesh()->get_setting('sms_password', '');
+
+        if (empty($username) || empty($password)) {
+            return new WP_Error('config_missing', __('نام کاربری یا رمز عبور وارد نشده است', 'tabesh'));
+        }
+
+        try {
+            // Initialize SOAP client
+            $soap_options = array(
+                'encoding' => 'UTF-8',
+                'trace' => true,
+                'exceptions' => true,
+                'connection_timeout' => 30,
+                'cache_wsdl' => (defined('WP_DEBUG') && WP_DEBUG) ? WSDL_CACHE_NONE : WSDL_CACHE_BOTH,
+            );
+
+            $client = new SoapClient(self::SOAP_WSDL_URL, $soap_options);
+
+            // Call GetCredit method to test connection and get remaining credit
+            $response = $client->GetCredit(array(
+                'username' => $username,
+                'password' => $password
+            ));
+
+            // Check response
+            if (isset($response->GetCreditResult)) {
+                $credit = floatval($response->GetCreditResult);
+                
+                if ($credit >= 0) {
+                    // Success - connection is valid
+                    return array(
+                        'success' => true,
+                        'credit' => $credit,
+                        'message' => sprintf(
+                            __('اتصال برقرار شد. اعتبار باقیمانده: %s ریال', 'tabesh'),
+                            number_format($credit)
+                        )
+                    );
+                } else {
+                    // Negative value indicates error
+                    $error_message = $this->get_melipayamak_error_message(intval($credit));
+                    return new WP_Error('connection_failed', $error_message);
+                }
+            } else {
+                return new WP_Error('unexpected_response', __('پاسخ نامعتبر از سرور', 'tabesh'));
+            }
+
+        } catch (SoapFault $e) {
+            $error_message = sprintf(
+                __('خطای اتصال: %s', 'tabesh'),
+                $e->getMessage()
+            );
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh SMS Connection Test Error: ' . $e->getMessage());
+            }
+            
+            return new WP_Error('soap_error', $error_message);
+        } catch (Exception $e) {
+            $error_message = sprintf(
+                __('خطا: %s', 'tabesh'),
+                $e->getMessage()
+            );
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh SMS Connection Test Exception: ' . $e->getMessage());
+            }
+            
+            return new WP_Error('general_error', $error_message);
+        }
+    }
+
+    /**
      * Send template-based SMS via MelliPayamak SOAP API
      *
      * Uses SendByBaseNumber2 method for template-based (pattern) SMS sending
@@ -320,12 +401,23 @@ class Tabesh_SMS {
         }
 
         // Get customer phone number
-        $phone = get_user_meta($order->user_id, 'billing_phone', true);
-        if (empty($phone)) {
-            $this->log_error('no_phone', __('شماره موبایل مشتری یافت نشد', 'tabesh'), array(
+        // First, try to get it from user_login (main phone number for Iranian users)
+        $user = get_userdata($order->user_id);
+        $phone = $user ? $user->user_login : '';
+
+        // Validate phone from user_login
+        if (empty($phone) || !$this->validate_phone($phone)) {
+            // Fallback to billing_phone from user meta if user_login is not a valid phone
+            $phone = get_user_meta($order->user_id, 'billing_phone', true);
+        }
+
+        // Final validation
+        if (empty($phone) || !$this->validate_phone($phone)) {
+            $this->log_error('no_phone', __('شماره موبایل مشتری یافت نشد یا نامعتبر است', 'tabesh'), array(
                 'order_id' => $order_id,
+                'user_id' => $order->user_id,
             ));
-            return new WP_Error('no_phone', __('شماره موبایل مشتری یافت نشد', 'tabesh'));
+            return new WP_Error('no_phone', __('شماره موبایل مشتری یافت نشد یا نامعتبر است', 'tabesh'));
         }
 
         // Get order variables for template
