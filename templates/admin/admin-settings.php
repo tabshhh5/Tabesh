@@ -595,7 +595,7 @@ $admin = $tabesh->admin;
                             <input type="text" id="sms_username" name="sms_username" 
                                    value="<?php echo esc_attr($admin->get_setting('sms_username')); ?>" 
                                    class="regular-text" dir="ltr">
-                            <p class="description">نام کاربری پنل ملی‌پیامک</p>
+                            <p class="description">نام کاربری پنل ملی‌پیامک (معمولاً شماره موبایل شما)</p>
                         </td>
                     </tr>
                     <tr>
@@ -608,12 +608,17 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="sms_sender">شماره فرستنده</label></th>
+                        <th><label>تست اتصال به پنل</label></th>
                         <td>
-                            <input type="text" id="sms_sender" name="sms_sender" 
-                                   value="<?php echo esc_attr($admin->get_setting('sms_sender')); ?>" 
-                                   class="regular-text" dir="ltr" placeholder="50004xxx">
-                            <p class="description">شماره خط اختصاصی شما (10 رقمی)</p>
+                            <button type="button" id="test_connection_btn" class="button button-secondary">
+                                <span class="dashicons dashicons-admin-plugins" style="vertical-align: middle;"></span>
+                                بررسی اتصال و اعتبار
+                            </button>
+                            <span id="test_connection_result" style="margin-right: 10px;"></span>
+                            <p class="description">
+                                با کلیک بر این دکمه، صحت نام کاربری و رمز عبور بررسی می‌شود و اعتبار باقیمانده نمایش داده می‌شود.<br>
+                                <strong>توجه:</strong> برای استفاده از پیامک الگومحور، نیاز به شماره فرستنده ندارید.
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -863,6 +868,7 @@ jQuery(document).ready(function($) {
     // Configuration passed from PHP
     var tabeshAdminConfig = {
         smsTestUrl: <?php echo wp_json_encode(esc_url_raw(rest_url(TABESH_REST_NAMESPACE . '/sms/test'))); ?>,
+        smsTestConnectionUrl: <?php echo wp_json_encode(esc_url_raw(rest_url(TABESH_REST_NAMESPACE . '/sms/test-connection'))); ?>,
         usersSearchUrl: <?php echo wp_json_encode(esc_url_raw(rest_url(TABESH_REST_NAMESPACE . '/users/search'))); ?>,
         nonce: <?php echo wp_json_encode(wp_create_nonce('wp_rest')); ?>
     };
@@ -874,6 +880,38 @@ jQuery(document).ready(function($) {
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // Test SMS connection functionality
+    $('#test_connection_btn').on('click', function() {
+        var $result = $('#test_connection_result');
+        var $btn = $(this);
+        
+        $btn.prop('disabled', true);
+        $result.html('<span style="color: #666;">در حال بررسی اتصال...</span>');
+        
+        $.ajax({
+            url: tabeshAdminConfig.smsTestConnectionUrl,
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-WP-Nonce': tabeshAdminConfig.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $result.html('<span style="color: green; font-weight: bold;">✓ ' + escapeHtml(response.message) + '</span>');
+                } else {
+                    $result.html('<span style="color: red;">✗ ' + escapeHtml(response.message) + '</span>');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'خطا در اتصال به سرور';
+                $result.html('<span style="color: red;">✗ ' + escapeHtml(msg) + '</span>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
     
     // Test SMS functionality
     $('#test_sms_btn').on('click', function() {

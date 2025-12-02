@@ -1125,6 +1125,13 @@ final class Tabesh {
             'permission_callback' => array($this, 'can_manage_admin')
         ));
 
+        // SMS connection test endpoint
+        register_rest_route(TABESH_REST_NAMESPACE, '/sms/test-connection', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_test_sms_connection'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
         // User search endpoint for staff access control
         register_rest_route(TABESH_REST_NAMESPACE, '/users/search', array(
             'methods' => 'GET',
@@ -1262,6 +1269,30 @@ final class Tabesh {
         return new WP_REST_Response(array(
             'success' => true,
             'message' => __('پیامک تست با موفقیت ارسال شد', 'tabesh')
+        ), 200);
+    }
+
+    /**
+     * REST: Test SMS connection to MelliPayamak panel
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_test_sms_connection($request) {
+        // Test connection using SMS handler
+        $result = $this->sms->test_connection();
+
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => $result->get_error_message()
+            ), 400);
+        }
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'message' => $result['message'],
+            'credit' => $result['credit']
         ), 200);
     }
 
