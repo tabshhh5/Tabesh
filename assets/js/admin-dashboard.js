@@ -643,7 +643,7 @@
                         fetch(response.download_url)
                             .then(fetchResponse => {
                                 if (!fetchResponse.ok) {
-                                    throw new Error('Network response was not ok');
+                                    throw new Error('خطا در دانلود فایل');
                                 }
                                 return fetchResponse.blob();
                             })
@@ -659,7 +659,7 @@
                                 // Extract filename from Content-Disposition header or URL
                                 const urlParams = new URLSearchParams(new URL(response.download_url).search);
                                 const fileId = urlParams.get('file_id');
-                                a.download = fileId ? `file-${fileId}` : 'download';
+                                a.download = fileId ? `tabesh-file-${fileId}` : 'tabesh-download';
                                 
                                 document.body.appendChild(a);
                                 a.click();

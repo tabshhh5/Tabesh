@@ -193,7 +193,8 @@ class Tabesh_SMS {
                 'trace' => true,
                 'exceptions' => true,
                 'connection_timeout' => 30,
-                // Disable WSDL caching only in development mode for easier debugging
+                // Enable WSDL caching for production (better performance)
+                // Disable only when WP_DEBUG is true for easier troubleshooting
                 'cache_wsdl' => (defined('WP_DEBUG') && WP_DEBUG) ? WSDL_CACHE_NONE : WSDL_CACHE_BOTH,
             );
 
@@ -420,20 +421,20 @@ class Tabesh_SMS {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_logs';
 
-        // Handle order_id - use 0 if not provided (NULL causes issues with %d format)
+        // Handle order_id - use NULL if not provided
         $order_id = isset($context['order_id']) && $context['order_id'] > 0 
             ? intval($context['order_id']) 
-            : 0;
+            : null;
 
         $wpdb->insert(
             $table,
             array(
-                'order_id'    => $order_id > 0 ? $order_id : null,
+                'order_id'    => $order_id,
                 'user_id'     => get_current_user_id(),
                 'action'      => 'sms_error_' . sanitize_key($code),
                 'description' => sanitize_text_field($message),
             ),
-            $order_id > 0 ? array('%d', '%d', '%s', '%s') : array(null, '%d', '%s', '%s')
+            array('%d', '%d', '%s', '%s')
         );
     }
 
