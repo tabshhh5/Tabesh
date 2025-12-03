@@ -627,25 +627,19 @@
             // Disable button and show loading state
             $btn.prop('disabled', true).html('⏳ در حال دانلود...');
 
-            // Generate download token via REST API
+            // Generate download token via REST API - using correct endpoint like customer panel
             $.ajax({
-                url: buildRestUrl(tabeshAdminData.restUrl, 'files/generate-token'),
+                url: buildRestUrl(tabeshAdminData.restUrl, 'generate-download-token/' + fileId),
                 method: 'POST',
-                contentType: 'application/json',
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
                 },
-                data: JSON.stringify({
-                    file_id: fileId
-                }),
                 success: (response) => {
-                    // Re-enable button
                     $btn.prop('disabled', false).html(originalText);
 
                     if (response.success && response.download_url) {
-                        // Use simple window.open approach - this avoids CORS preflight requests
-                        // that can be blocked by CDN/firewall (like what customers use successfully)
-                        window.open(response.download_url, '_blank');
+                        // Use window.location.href instead of window.open to avoid CDN/firewall blocking
+                        window.location.href = response.download_url;
                         this.showToast('دانلود شروع شد', 'success');
                     } else {
                         this.showToast(response.message || 'خطا در ایجاد لینک دانلود', 'error');
