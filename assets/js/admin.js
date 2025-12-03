@@ -883,9 +883,8 @@
                 },
                 success: function(response) {
                     if (response.success && response.download_url) {
-                        // Initiate download by redirecting to the download URL
-                        // This allows the browser to handle the download naturally
-                        window.location.href = response.download_url;
+                        // Open download URL in new tab to ensure proper Referer header for CDN/firewall compatibility
+                        window.open(response.download_url, '_blank');
                     } else {
                         alert(response.message || 'خطا در دریافت لینک دانلود');
                     }

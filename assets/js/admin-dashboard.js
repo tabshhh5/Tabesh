@@ -638,8 +638,8 @@
                     $btn.prop('disabled', false).html(originalText);
 
                     if (response.success && response.download_url) {
-                        // Use window.location.href instead of window.open to avoid CDN/firewall blocking
-                        window.location.href = response.download_url;
+                        // Use window.open to ensure proper Referer header is sent for CDN/firewall compatibility
+                        window.open(response.download_url, '_blank');
                         this.showToast('دانلود شروع شد', 'success');
                     } else {
                         this.showToast(response.message || 'خطا در ایجاد لینک دانلود', 'error');
