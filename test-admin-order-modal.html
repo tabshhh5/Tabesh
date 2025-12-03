@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست Modal ثبت سفارش - Tabesh</title>
+    <link rel="stylesheet" href="assets/css/admin-order-creator.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            background: #f0f3f7;
+            direction: rtl;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            color: #1a202c;
+            margin-bottom: 20px;
+        }
+        .test-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+        .dashicons {
+            font-family: dashicons;
+            display: inline-block;
+            line-height: 1;
+            font-weight: 400;
+            font-style: normal;
+            speak: never;
+            text-decoration: inherit;
+            text-transform: none;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            width: 20px;
+            height: 20px;
+            font-size: 20px;
+            vertical-align: top;
+        }
+        .dashicons-no-alt:before {
+            content: "✕";
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>تست Modal ثبت سفارش مدیر</h1>
+        <p>این صفحه برای تست نمایش Modal ثبت سفارش ایجاد شده است. روی دکمه زیر کلیک کنید تا Modal باز شود.</p>
+        <button class="test-btn" onclick="openModal()">📦 باز کردن Modal ثبت سفارش</button>
+    </div>
+
+    <!-- Modal HTML -->
+    <div id="tabesh-order-modal" class="tabesh-modal" style="display: none; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important;">
+        <div class="tabesh-modal-overlay"></div>
+        <div class="tabesh-modal-content">
+            <div class="tabesh-modal-header">
+                <h2>ثبت سفارش جدید</h2>
+                <button type="button" class="tabesh-modal-close" onclick="closeModal()">
+                    <span class="dashicons dashicons-no-alt"></span>
+                </button>
+            </div>
+
+            <div class="tabesh-modal-body">
+                <form id="tabesh-admin-order-form">
+                    <!-- User Selection Section -->
+                    <div class="tabesh-form-section">
+                        <h3>انتخاب یا ایجاد مشتری</h3>
+                        
+                        <div class="tabesh-user-selection">
+                            <div class="tabesh-radio-group">
+                                <label>
+                                    <input type="radio" name="user_selection_type" value="existing" checked>
+                                    انتخاب کاربر موجود
+                                </label>
+                                <label>
+                                    <input type="radio" name="user_selection_type" value="new">
+                                    ایجاد کاربر جدید
+                                </label>
+                            </div>
+
+                            <!-- Existing User Selection -->
+                            <div id="existing-user-section" class="user-section">
+                                <div class="tabesh-form-group">
+                                    <label>جستجوی کاربر:</label>
+                                    <input type="text" id="user-search" class="tabesh-input" placeholder="نام، نام کاربری، یا موبایل...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Details Section -->
+                    <div class="tabesh-form-section">
+                        <h3>مشخصات سفارش</h3>
+
+                        <div class="tabesh-form-grid">
+                            <!-- Book Title -->
+                            <div class="tabesh-form-group tabesh-form-grid-full">
+                                <label for="book_title">عنوان کتاب: <span class="required">*</span></label>
+                                <input type="text" id="book_title" name="book_title" class="tabesh-input" placeholder="نام کتاب را وارد کنید" required>
+                            </div>
+
+                            <!-- Book Size -->
+                            <div class="tabesh-form-group">
+                                <label for="book_size">قطع کتاب: <span class="required">*</span></label>
+                                <select id="book_size" name="book_size" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="رقعی">رقعی</option>
+                                    <option value="وزیری">وزیری</option>
+                                    <option value="رحلی">رحلی</option>
+                                </select>
+                            </div>
+
+                            <!-- Paper Type -->
+                            <div class="tabesh-form-group">
+                                <label for="paper_type">نوع کاغذ: <span class="required">*</span></label>
+                                <select id="paper_type" name="paper_type" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="تحریر">تحریر</option>
+                                    <option value="گلاسه">گلاسه</option>
+                                    <option value="کرافت">کرافت</option>
+                                </select>
+                            </div>
+
+                            <!-- Page Count -->
+                            <div class="tabesh-form-group">
+                                <label for="page_count_total">تعداد کل صفحات: <span class="required">*</span></label>
+                                <input type="number" id="page_count_total" name="page_count_total" class="tabesh-input" placeholder="مثال: 200" min="1">
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="tabesh-form-group">
+                                <label for="quantity">تیراژ: <span class="required">*</span></label>
+                                <input type="number" id="quantity" name="quantity" class="tabesh-input" min="10" max="10000" step="10" value="10" placeholder="10" required>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="tabesh-form-group tabesh-form-grid-full">
+                                <label for="notes">یادداشت:</label>
+                                <textarea id="notes" name="notes" class="tabesh-textarea" rows="3" placeholder="توضیحات اضافی (اختیاری)..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Section -->
+                    <div class="tabesh-form-section">
+                        <h3>قیمت</h3>
+                        
+                        <div class="tabesh-price-display">
+                            <div class="calculated-price">
+                                <label>قیمت محاسبه شده:</label>
+                                <div id="calculated-price-value">1,500,000 ریال</div>
+                            </div>
+                            
+                            <div class="final-price">
+                                <label>قیمت نهایی:</label>
+                                <div id="final-price-value">1,500,000 ریال</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tabesh-modal-footer">
+                        <button type="button" class="button" onclick="closeModal()">
+                            انصراف
+                        </button>
+                        <button type="button" class="button button-secondary">
+                            محاسبه قیمت
+                        </button>
+                        <button type="submit" class="button button-primary">
+                            ثبت سفارش
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            const modal = document.getElementById('tabesh-order-modal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('tabesh-order-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking overlay
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.querySelector('.tabesh-modal-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', closeModal);
+            }
+
+            // Close modal with ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Prevent form submission for test
+            const form = document.getElementById('tabesh-admin-order-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('فرم با موفقیت ثبت شد! (این یک تست است)');
+                    closeModal();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
