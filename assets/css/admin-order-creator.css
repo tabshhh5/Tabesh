@@ -911,7 +911,11 @@ body.modal-open {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-    * {
+    .tabesh-modal,
+    .tabesh-modal-content,
+    .tabesh-modal *,
+    .tabesh-modal *::before,
+    .tabesh-modal *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;

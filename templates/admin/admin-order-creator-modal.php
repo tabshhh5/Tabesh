@@ -159,12 +159,12 @@ $quantity_step = Tabesh()->get_setting('quantity_step', 10);
                         <!-- Page Count (conditional based on print type) -->
                         <div class="tabesh-form-group" id="page-count-color-group" style="display: none;">
                             <label for="page_count_color"><?php echo esc_html__('تعداد صفحات رنگی:', 'tabesh'); ?> <span class="required">*</span></label>
-                            <input type="number" id="page_count_color" name="page_count_color" class="tabesh-input" placeholder="0" min="0" value="0">
+                            <input type="number" id="page_count_color" name="page_count_color" class="tabesh-input" placeholder="0" min="0" value="0" required>
                         </div>
 
                         <div class="tabesh-form-group" id="page-count-bw-group" style="display: none;">
                             <label for="page_count_bw"><?php echo esc_html__('تعداد صفحات سیاه و سفید:', 'tabesh'); ?> <span class="required">*</span></label>
-                            <input type="number" id="page_count_bw" name="page_count_bw" class="tabesh-input" placeholder="0" min="0" value="0">
+                            <input type="number" id="page_count_bw" name="page_count_bw" class="tabesh-input" placeholder="0" min="0" value="0" required>
                         </div>
 
                         <div class="tabesh-form-group" id="page-count-total-group">

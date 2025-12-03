@@ -119,7 +119,8 @@
             createNewUser();
         });
 
-        // Update page count fields based on print type
+        // Dynamically manage required attributes based on print type selection
+        // This prevents browser validation errors for hidden fields with required attribute
         $('#print_type').on('change', function() {
             const printType = $(this).val();
             
