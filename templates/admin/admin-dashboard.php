@@ -30,7 +30,15 @@ $stats = $admin->get_statistics();
 ?>
 
 <div class="wrap tabesh-admin-dashboard" dir="rtl">
-    <h1>داشبورد تابش</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">داشبورد تابش</h1>
+        <?php
+        // Render new order button
+        if (isset(Tabesh()->admin_order_creator)) {
+            Tabesh()->admin_order_creator->render_new_order_button();
+        }
+        ?>
+    </div>
 
     <!-- FTP Connection Status -->
     <?php
@@ -241,3 +249,11 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+
+<?php
+// Render order creator modal
+if (isset(Tabesh()->admin_order_creator)) {
+    Tabesh()->admin_order_creator->render_order_modal();
+}
+?>
+

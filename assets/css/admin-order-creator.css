@@ -1,0 +1,434 @@
+/**
+ * Admin Order Creator CSS
+ * 
+ * Styles for the order creation modal
+ * 
+ * @package Tabesh
+ */
+
+/* Modal Overlay */
+.tabesh-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999999;
+    direction: rtl;
+}
+
+.tabesh-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+/* Modal Content */
+.tabesh-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Modal Header */
+.tabesh-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tabesh-modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.tabesh-modal-close {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    color: #6b7280;
+}
+
+.tabesh-modal-close:hover {
+    background: #f3f4f6;
+    color: #1a202c;
+}
+
+.tabesh-modal-close .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Modal Body */
+.tabesh-modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Form Sections */
+.tabesh-form-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tabesh-form-section:last-of-type {
+    border-bottom: none;
+}
+
+.tabesh-form-section h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+/* Form Groups */
+.tabesh-form-group {
+    margin-bottom: 20px;
+}
+
+.tabesh-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.tabesh-form-group label .required {
+    color: #dc2626;
+    margin-right: 4px;
+}
+
+.tabesh-form-group small {
+    display: block;
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* Form Inputs */
+.tabesh-input,
+.tabesh-select,
+.tabesh-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #fff;
+    color: #1a202c;
+}
+
+.tabesh-input:focus,
+.tabesh-select:focus,
+.tabesh-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tabesh-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Radio and Checkbox Groups */
+.tabesh-radio-group,
+.tabesh-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tabesh-radio-group label,
+.tabesh-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.tabesh-radio-group input[type="radio"],
+.tabesh-checkbox-label input[type="checkbox"] {
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+/* User Selection */
+.tabesh-user-selection {
+    margin-top: 15px;
+}
+
+.user-section {
+    margin-top: 20px;
+}
+
+/* User Search Results */
+.tabesh-search-results {
+    position: relative;
+    margin-top: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.tabesh-search-results:empty {
+    display: none;
+}
+
+.user-result-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.2s;
+}
+
+.user-result-item:last-child {
+    border-bottom: none;
+}
+
+.user-result-item:hover {
+    background: #f9fafb;
+}
+
+.user-result-item .user-name {
+    font-weight: 500;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.user-result-item .user-login {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.searching,
+.no-results,
+.error {
+    padding: 12px 16px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* Selected User Display */
+.selected-user-display {
+    margin-top: 10px;
+}
+
+.selected-user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+}
+
+.selected-user strong {
+    color: #1e40af;
+}
+
+.remove-user {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.remove-user:hover {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Price Display */
+.tabesh-price-display {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.calculated-price,
+.final-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.final-price {
+    margin-bottom: 0;
+    padding-top: 15px;
+    border-top: 2px solid #d1d5db;
+}
+
+.calculated-price label,
+.final-price label {
+    font-weight: 500;
+    color: #374151;
+}
+
+#calculated-price-value,
+#final-price-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #059669;
+}
+
+#calculated-price-value {
+    color: #6b7280;
+}
+
+#final-price-value {
+    color: #059669;
+}
+
+/* Modal Footer */
+.tabesh-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 30px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 0 0 12px 12px;
+}
+
+.tabesh-modal-footer .button {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabesh-modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .tabesh-modal-header,
+    .tabesh-modal-body,
+    .tabesh-modal-footer {
+        padding: 20px;
+    }
+
+    .tabesh-modal-header h2 {
+        font-size: 20px;
+    }
+
+    .tabesh-form-section h3 {
+        font-size: 16px;
+    }
+
+    .tabesh-radio-group,
+    .tabesh-checkbox-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tabesh-modal-footer {
+        flex-direction: column;
+    }
+
+    .tabesh-modal-footer .button {
+        width: 100%;
+    }
+}
+
+/* RTL Adjustments */
+[dir="rtl"] .tabesh-modal-close {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+[dir="rtl"] .tabesh-radio-group input[type="radio"],
+[dir="rtl"] .tabesh-checkbox-label input[type="checkbox"] {
+    margin-left: 8px;
+    margin-right: 0;
+}
+
+[dir="rtl"] .remove-user {
+    margin-right: auto;
+    margin-left: 0;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.tabesh-modal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Loading States */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* New Order Button Styling */
+#tabesh-open-order-modal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#tabesh-open-order-modal .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}

@@ -191,6 +191,13 @@ final class Tabesh {
     public $sms;
 
     /**
+     * Admin order creator handler
+     *
+     * @var Tabesh_Admin_Order_Creator
+     */
+    public $admin_order_creator;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -257,6 +264,8 @@ final class Tabesh {
         $this->archive = new Tabesh_Archive();
         // Initialize SMS handler
         $this->sms = new Tabesh_SMS();
+        // Initialize admin order creator handler
+        $this->admin_order_creator = new Tabesh_Admin_Order_Creator();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -1136,6 +1145,25 @@ final class Tabesh {
         register_rest_route(TABESH_REST_NAMESPACE, '/users/search', array(
             'methods' => 'GET',
             'callback' => array($this, 'rest_search_users'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        // Admin order creator routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/admin/search-users-live', array(
+            'methods' => 'GET',
+            'callback' => array($this->admin_order_creator, 'rest_search_users_live'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/admin/create-user', array(
+            'methods' => 'POST',
+            'callback' => array($this->admin_order_creator, 'rest_create_user'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/admin/create-order', array(
+            'methods' => 'POST',
+            'callback' => array($this->admin_order_creator, 'rest_create_order'),
             'permission_callback' => array($this, 'can_manage_admin')
         ));
     }

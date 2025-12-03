@@ -1,0 +1,560 @@
+/**
+ * Admin Order Creator JavaScript
+ * 
+ * Handles modal functionality, user search, and order submission
+ * 
+ * @package Tabesh
+ */
+
+(function($) {
+    'use strict';
+
+    // Global variables
+    let userSearchTimeout = null;
+    let calculatedPrice = null;
+    let selectedUserId = null;
+
+    $(document).ready(function() {
+        initModal();
+        initUserSelection();
+        initPriceCalculation();
+        initFormSubmission();
+    });
+
+    /**
+     * Initialize modal
+     */
+    function initModal() {
+        // Open modal button
+        $(document).on('click', '#tabesh-open-order-modal', function(e) {
+            e.preventDefault();
+            $('#tabesh-order-modal').fadeIn(300);
+            $('body').addClass('modal-open');
+        });
+
+        // Close modal
+        $(document).on('click', '.tabesh-modal-close, .tabesh-modal-overlay, #cancel-order-btn', function(e) {
+            e.preventDefault();
+            closeModal();
+        });
+
+        // Prevent modal content clicks from closing
+        $(document).on('click', '.tabesh-modal-content', function(e) {
+            e.stopPropagation();
+        });
+
+        // ESC key to close
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#tabesh-order-modal').is(':visible')) {
+                closeModal();
+            }
+        });
+    }
+
+    /**
+     * Close modal and reset form
+     */
+    function closeModal() {
+        $('#tabesh-order-modal').fadeOut(300);
+        $('body').removeClass('modal-open');
+        resetForm();
+    }
+
+    /**
+     * Reset form to initial state
+     */
+    function resetForm() {
+        $('#tabesh-admin-order-form')[0].reset();
+        $('#user-search-results').empty();
+        $('#selected-user-display').empty();
+        $('#selected-user-id').val('');
+        $('#calculated-price-value').text('-');
+        $('#final-price-value').text('-');
+        calculatedPrice = null;
+        selectedUserId = null;
+        
+        // Reset user selection
+        $('input[name="user_selection_type"][value="existing"]').prop('checked', true).trigger('change');
+    }
+
+    /**
+     * Initialize user selection functionality
+     */
+    function initUserSelection() {
+        // Toggle between existing and new user
+        $('input[name="user_selection_type"]').on('change', function() {
+            const type = $(this).val();
+            
+            if (type === 'existing') {
+                $('#existing-user-section').show();
+                $('#new-user-section').hide();
+            } else {
+                $('#existing-user-section').hide();
+                $('#new-user-section').show();
+                // Clear existing user selection
+                selectedUserId = null;
+                $('#selected-user-id').val('');
+                $('#selected-user-display').empty();
+            }
+        });
+
+        // Live search for users
+        $('#user-search').on('input', function() {
+            const search = $(this).val().trim();
+            
+            clearTimeout(userSearchTimeout);
+            
+            if (search.length < 2) {
+                $('#user-search-results').empty();
+                return;
+            }
+
+            userSearchTimeout = setTimeout(function() {
+                searchUsers(search);
+            }, 300);
+        });
+
+        // Create new user button
+        $('#create-user-btn').on('click', function() {
+            createNewUser();
+        });
+
+        // Update page count fields based on print type
+        $('#print_type').on('change', function() {
+            const printType = $(this).val();
+            
+            if (printType === 'رنگی') {
+                $('#page-count-color-group').show();
+                $('#page-count-bw-group').hide();
+                $('#page-count-total-group').hide();
+                $('#page_count_bw').val(0);
+            } else if (printType === 'سیاه و سفید') {
+                $('#page-count-color-group').hide();
+                $('#page-count-bw-group').show();
+                $('#page-count-total-group').hide();
+                $('#page_count_color').val(0);
+            } else if (printType === 'ترکیبی') {
+                $('#page-count-color-group').show();
+                $('#page-count-bw-group').show();
+                $('#page-count-total-group').hide();
+            } else {
+                $('#page-count-color-group').hide();
+                $('#page-count-bw-group').hide();
+                $('#page-count-total-group').show();
+            }
+        });
+
+        // Update paper weight options when paper type changes
+        $('#paper_type').on('change', function() {
+            updatePaperWeights();
+        });
+
+        // Override price checkbox
+        $('#override-price-check').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#override_price').prop('disabled', false);
+                updateFinalPrice();
+            } else {
+                $('#override_price').prop('disabled', true).val('');
+                updateFinalPrice();
+            }
+        });
+
+        // Update final price when override changes
+        $('#override_price').on('input', function() {
+            updateFinalPrice();
+        });
+    }
+
+    /**
+     * Search users via API
+     */
+    function searchUsers(search) {
+        $.ajax({
+            url: tabeshAdminOrderCreator.restUrl + '/admin/search-users-live',
+            method: 'GET',
+            data: { search: search },
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderCreator.nonce);
+                $('#user-search-results').html('<div class="searching">در حال جستجو...</div>');
+            },
+            success: function(response) {
+                if (response.success && response.users && response.users.length > 0) {
+                    displayUserResults(response.users);
+                } else {
+                    $('#user-search-results').html('<div class="no-results">' + tabeshAdminOrderCreator.strings.noResults + '</div>');
+                }
+            },
+            error: function() {
+                $('#user-search-results').html('<div class="error">خطا در جستجو</div>');
+            }
+        });
+    }
+
+    /**
+     * Display user search results
+     */
+    function displayUserResults(users) {
+        const $results = $('#user-search-results');
+        $results.empty();
+
+        users.forEach(function(user) {
+            const displayName = user.display_name || (user.first_name + ' ' + user.last_name);
+            const $item = $('<div class="user-result-item"></div>');
+            $item.html(
+                '<div class="user-name">' + displayName + '</div>' +
+                '<div class="user-login">' + user.user_login + '</div>'
+            );
+            
+            $item.on('click', function() {
+                selectUser(user);
+            });
+            
+            $results.append($item);
+        });
+    }
+
+    /**
+     * Select a user from search results
+     */
+    function selectUser(user) {
+        selectedUserId = user.id;
+        $('#selected-user-id').val(user.id);
+        
+        const displayName = user.display_name || (user.first_name + ' ' + user.last_name);
+        $('#selected-user-display').html(
+            '<div class="selected-user">' +
+            '<strong>' + displayName + '</strong> (' + user.user_login + ')' +
+            '<button type="button" class="remove-user">&times;</button>' +
+            '</div>'
+        );
+        
+        $('#user-search').val('');
+        $('#user-search-results').empty();
+    }
+
+    /**
+     * Remove selected user
+     */
+    $(document).on('click', '.remove-user', function() {
+        selectedUserId = null;
+        $('#selected-user-id').val('');
+        $('#selected-user-display').empty();
+    });
+
+    /**
+     * Create new user
+     */
+    function createNewUser() {
+        const mobile = $('#new-user-mobile').val().trim();
+        const firstName = $('#new-user-first-name').val().trim();
+        const lastName = $('#new-user-last-name').val().trim();
+
+        // Validate
+        if (!mobile || !firstName || !lastName) {
+            alert('لطفاً تمام فیلدها را پر کنید');
+            return;
+        }
+
+        if (!/^09[0-9]{9}$/.test(mobile)) {
+            alert('فرمت شماره موبایل نامعتبر است');
+            return;
+        }
+
+        const $btn = $('#create-user-btn');
+        $btn.prop('disabled', true).text('در حال ایجاد...');
+
+        $.ajax({
+            url: tabeshAdminOrderCreator.restUrl + '/admin/create-user',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                mobile: mobile,
+                first_name: firstName,
+                last_name: lastName
+            }),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderCreator.nonce);
+            },
+            success: function(response) {
+                if (response.success && response.user) {
+                    // Switch to existing user mode and select the new user
+                    $('input[name="user_selection_type"][value="existing"]').prop('checked', true).trigger('change');
+                    selectUser(response.user);
+                    
+                    // Clear new user form
+                    $('#new-user-mobile').val('');
+                    $('#new-user-first-name').val('');
+                    $('#new-user-last-name').val('');
+                    
+                    alert(response.message || 'کاربر با موفقیت ایجاد شد');
+                }
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.message 
+                    ? xhr.responseJSON.message 
+                    : 'خطا در ایجاد کاربر';
+                alert(message);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('ایجاد کاربر');
+            }
+        });
+    }
+
+    /**
+     * Update paper weight options based on selected paper type
+     */
+    function updatePaperWeights() {
+        const paperType = $('#paper_type').val();
+        const $weightSelect = $('#paper_weight');
+        
+        $weightSelect.empty().append('<option value="">انتخاب کنید...</option>');
+        
+        if (paperType && tabeshData.settings.paperTypes && tabeshData.settings.paperTypes[paperType]) {
+            const weights = tabeshData.settings.paperTypes[paperType];
+            weights.forEach(function(weight) {
+                $weightSelect.append('<option value="' + weight + '">' + weight + '</option>');
+            });
+        }
+    }
+
+    /**
+     * Initialize price calculation
+     */
+    function initPriceCalculation() {
+        // Calculate price button
+        $('#calculate-price-btn').on('click', function() {
+            calculatePrice();
+        });
+
+        // Auto-calculate on field change (debounced)
+        let calcTimeout = null;
+        $('#tabesh-admin-order-form select, #tabesh-admin-order-form input[type="number"]').on('change', function() {
+            clearTimeout(calcTimeout);
+            calcTimeout = setTimeout(function() {
+                if (isFormValid()) {
+                    calculatePrice();
+                }
+            }, 500);
+        });
+    }
+
+    /**
+     * Calculate order price
+     */
+    function calculatePrice() {
+        const formData = getFormData();
+        
+        // Validate required fields
+        if (!formData.book_size || !formData.paper_type || !formData.quantity || !formData.binding_type) {
+            return;
+        }
+
+        const $btn = $('#calculate-price-btn');
+        $btn.prop('disabled', true).text(tabeshAdminOrderCreator.strings.calculating);
+
+        $.ajax({
+            url: tabeshAdminOrderCreator.restUrl + '/calculate-price',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderCreator.nonce);
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    calculatedPrice = response.data.total_price;
+                    displayCalculatedPrice(response.data);
+                    updateFinalPrice();
+                }
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.message 
+                    ? xhr.responseJSON.message 
+                    : 'خطا در محاسبه قیمت';
+                alert(message);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('محاسبه قیمت');
+            }
+        });
+    }
+
+    /**
+     * Display calculated price
+     */
+    function displayCalculatedPrice(data) {
+        const formatted = new Intl.NumberFormat('fa-IR').format(data.total_price);
+        $('#calculated-price-value').html('<strong>' + formatted + '</strong> ریال');
+    }
+
+    /**
+     * Update final price display
+     */
+    function updateFinalPrice() {
+        let finalPrice = calculatedPrice;
+        
+        if ($('#override-price-check').is(':checked')) {
+            const override = parseFloat($('#override_price').val());
+            if (!isNaN(override) && override > 0) {
+                finalPrice = override;
+            }
+        }
+        
+        if (finalPrice) {
+            const formatted = new Intl.NumberFormat('fa-IR').format(finalPrice);
+            $('#final-price-value').html('<strong>' + formatted + '</strong> ریال');
+        } else {
+            $('#final-price-value').text('-');
+        }
+    }
+
+    /**
+     * Initialize form submission
+     */
+    function initFormSubmission() {
+        $('#tabesh-admin-order-form').on('submit', function(e) {
+            e.preventDefault();
+            submitOrder();
+        });
+    }
+
+    /**
+     * Submit order
+     */
+    function submitOrder() {
+        // Get user ID
+        const userType = $('input[name="user_selection_type"]:checked').val();
+        let userId = null;
+        
+        if (userType === 'existing') {
+            userId = $('#selected-user-id').val();
+            if (!userId) {
+                alert('لطفاً یک کاربر را انتخاب کنید');
+                return;
+            }
+        } else {
+            alert('لطفاً ابتدا کاربر جدید را ایجاد کنید');
+            return;
+        }
+
+        // Validate form
+        if (!isFormValid()) {
+            alert('لطفاً تمام فیلدهای الزامی را پر کنید');
+            return;
+        }
+
+        const formData = getFormData();
+        formData.user_id = parseInt(userId);
+
+        // Add override price if set
+        if ($('#override-price-check').is(':checked')) {
+            const override = parseFloat($('#override_price').val());
+            if (!isNaN(override) && override > 0) {
+                formData.override_price = override;
+            }
+        }
+
+        const $btn = $('#submit-order-btn');
+        $btn.prop('disabled', true).text(tabeshAdminOrderCreator.strings.submitting);
+
+        $.ajax({
+            url: tabeshAdminOrderCreator.restUrl + '/admin/create-order',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderCreator.nonce);
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message || tabeshAdminOrderCreator.strings.success);
+                    closeModal();
+                    // Reload page to show new order
+                    location.reload();
+                }
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.message 
+                    ? xhr.responseJSON.message 
+                    : tabeshAdminOrderCreator.strings.error;
+                alert(message);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('ثبت سفارش');
+            }
+        });
+    }
+
+    /**
+     * Check if form has all required fields
+     */
+    function isFormValid() {
+        const required = [
+            'book_title',
+            'book_size',
+            'paper_type',
+            'paper_weight',
+            'print_type',
+            'quantity',
+            'binding_type',
+            'license_type'
+        ];
+
+        for (let field of required) {
+            const value = $('#' + field).val();
+            if (!value || value.trim() === '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get form data as object
+     */
+    function getFormData() {
+        const printType = $('#print_type').val();
+        let pageCountColor = 0;
+        let pageCountBw = 0;
+
+        if (printType === 'رنگی') {
+            pageCountColor = parseInt($('#page_count_color').val()) || 0;
+        } else if (printType === 'سیاه و سفید') {
+            pageCountBw = parseInt($('#page_count_bw').val()) || 0;
+        } else if (printType === 'ترکیبی') {
+            pageCountColor = parseInt($('#page_count_color').val()) || 0;
+            pageCountBw = parseInt($('#page_count_bw').val()) || 0;
+        } else {
+            // Total page count
+            const total = parseInt($('#page_count_total').val()) || 0;
+            pageCountBw = total;
+        }
+
+        // Get extras
+        const extras = [];
+        $('input[name="extras[]"]:checked').each(function() {
+            extras.push($(this).val());
+        });
+
+        return {
+            book_title: $('#book_title').val().trim(),
+            book_size: $('#book_size').val(),
+            paper_type: $('#paper_type').val(),
+            paper_weight: $('#paper_weight').val(),
+            print_type: $('#print_type').val(),
+            page_count_color: pageCountColor,
+            page_count_bw: pageCountBw,
+            quantity: parseInt($('#quantity').val()) || 0,
+            binding_type: $('#binding_type').val(),
+            license_type: $('#license_type').val(),
+            cover_paper_weight: $('#cover_paper_weight').val() || '250',
+            lamination_type: $('#lamination_type').val() || 'براق',
+            extras: extras,
+            notes: $('#notes').val().trim()
+        };
+    }
+
+})(jQuery);
