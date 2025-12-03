@@ -94,15 +94,11 @@
     flex-direction: column !important;
     overflow: hidden !important;
     
-    /* حذف هرگونه transform یا positioning اضافی */
+    /* Remove any transform or additional positioning - حذف هرگونه transform یا positioning اضافی */
     transform: none !important;
-    top: unset !important;
-    left: unset !important;
-    right: unset !important;
-    bottom: unset !important;
     inset: unset !important;
     
-    /* جلوگیری از flex-shrink */
+    /* Prevent flex-shrink - جلوگیری از flex-shrink */
     flex-shrink: 0 !important;
 }
 
