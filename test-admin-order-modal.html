@@ -114,7 +114,7 @@
                         <h3>مشخصات سفارش</h3>
 
                         <div class="tabesh-form-grid">
-                            <!-- Book Title -->
+                            <!-- Book Title - 2 columns -->
                             <div class="tabesh-form-group tabesh-form-grid-full">
                                 <label for="book_title">عنوان کتاب: <span class="required">*</span></label>
                                 <input type="text" id="book_title" name="book_title" class="tabesh-input" placeholder="نام کتاب را وارد کنید" required>
@@ -142,16 +142,97 @@
                                 </select>
                             </div>
 
+                            <!-- Paper Weight -->
+                            <div class="tabesh-form-group">
+                                <label for="paper_weight">گرماژ کاغذ: <span class="required">*</span></label>
+                                <select id="paper_weight" name="paper_weight" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="60">60 گرم</option>
+                                    <option value="70">70 گرم</option>
+                                    <option value="80">80 گرم</option>
+                                </select>
+                            </div>
+
+                            <!-- Print Type -->
+                            <div class="tabesh-form-group">
+                                <label for="print_type">نوع چاپ: <span class="required">*</span></label>
+                                <select id="print_type" name="print_type" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="رنگی">رنگی</option>
+                                    <option value="سیاه و سفید">سیاه و سفید</option>
+                                </select>
+                            </div>
+
                             <!-- Page Count -->
                             <div class="tabesh-form-group">
-                                <label for="page_count_total">تعداد کل صفحات: <span class="required">*</span></label>
-                                <input type="number" id="page_count_total" name="page_count_total" class="tabesh-input" placeholder="مثال: 200" min="1">
+                                <label for="page_count_total">تعداد صفحات: <span class="required">*</span></label>
+                                <input type="number" id="page_count_total" name="page_count_total" class="tabesh-input" placeholder="200" min="1">
                             </div>
 
                             <!-- Quantity -->
                             <div class="tabesh-form-group">
                                 <label for="quantity">تیراژ: <span class="required">*</span></label>
-                                <input type="number" id="quantity" name="quantity" class="tabesh-input" min="10" max="10000" step="10" value="10" placeholder="10" required>
+                                <input type="number" id="quantity" name="quantity" class="tabesh-input" min="10" max="10000" step="10" value="100" placeholder="100" required>
+                            </div>
+
+                            <!-- Binding Type -->
+                            <div class="tabesh-form-group">
+                                <label for="binding_type">نوع صحافی: <span class="required">*</span></label>
+                                <select id="binding_type" name="binding_type" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="گالینگور">گالینگور</option>
+                                    <option value="شومیز">شومیز</option>
+                                    <option value="سلفون">سلفون</option>
+                                </select>
+                            </div>
+
+                            <!-- License Type -->
+                            <div class="tabesh-form-group">
+                                <label for="license_type">نوع مجوز: <span class="required">*</span></label>
+                                <select id="license_type" name="license_type" class="tabesh-select" required>
+                                    <option value="">انتخاب کنید...</option>
+                                    <option value="دارد">دارد</option>
+                                    <option value="ندارد">ندارد</option>
+                                </select>
+                            </div>
+
+                            <!-- Cover Paper Weight -->
+                            <div class="tabesh-form-group">
+                                <label for="cover_paper_weight">گرماژ جلد:</label>
+                                <select id="cover_paper_weight" name="cover_paper_weight" class="tabesh-select">
+                                    <option value="250">250 گرم</option>
+                                    <option value="300">300 گرم</option>
+                                    <option value="350">350 گرم</option>
+                                </select>
+                            </div>
+
+                            <!-- Lamination Type -->
+                            <div class="tabesh-form-group">
+                                <label for="lamination_type">نوع سلفون:</label>
+                                <select id="lamination_type" name="lamination_type" class="tabesh-select">
+                                    <option value="براق">براق</option>
+                                    <option value="مات">مات</option>
+                                    <option value="ندارد">ندارد</option>
+                                </select>
+                            </div>
+
+                            <!-- Extras -->
+                            <div class="tabesh-form-group tabesh-form-grid-full">
+                                <label>آپشن‌های اضافی:</label>
+                                <div class="tabesh-checkbox-group">
+                                    <label class="tabesh-checkbox-label">
+                                        <input type="checkbox" name="extras[]" value="خط کش">
+                                        <span>خط کش</span>
+                                    </label>
+                                    <label class="tabesh-checkbox-label">
+                                        <input type="checkbox" name="extras[]" value="ورق زرین">
+                                        <span>ورق زرین</span>
+                                    </label>
+                                    <label class="tabesh-checkbox-label">
+                                        <input type="checkbox" name="extras[]" value="سربند">
+                                        <span>سربند</span>
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Notes -->
@@ -170,6 +251,16 @@
                             <div class="calculated-price">
                                 <label>قیمت محاسبه شده:</label>
                                 <div id="calculated-price-value">1,500,000 ریال</div>
+                            </div>
+                            
+                            <div class="tabesh-form-group">
+                                <label for="override_price">
+                                    <input type="checkbox" id="override-price-check">
+                                    قیمت دلخواه (فقط سوپر ادمین)
+                                </label>
+                                <input type="number" id="override_price" name="override_price" class="tabesh-input" 
+                                        placeholder="قیمت دلخواه به ریال" 
+                                        min="0" step="1000" disabled>
                             </div>
                             
                             <div class="final-price">
