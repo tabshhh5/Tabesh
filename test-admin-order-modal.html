@@ -71,7 +71,7 @@
     </div>
 
     <!-- Modal HTML -->
-    <div id="tabesh-order-modal" class="tabesh-modal">
+    <div id="tabesh-order-modal" class="tabesh-modal" style="display: none; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important;">
         <div class="tabesh-modal-overlay"></div>
         <div class="tabesh-modal-content">
             <div class="tabesh-modal-header">
@@ -289,75 +289,13 @@
     <script>
         function openModal() {
             const modal = document.getElementById('tabesh-order-modal');
-            const content = modal.querySelector('.tabesh-modal-content');
-            const overlay = modal.querySelector('.tabesh-modal-overlay');
-            
-            // Apply critical inline styles to modal container
-            Object.assign(modal.style, {
-                display: 'flex',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                right: '0',
-                bottom: '0',
-                width: '100vw',
-                height: '100vh',
-                margin: '0',
-                padding: '20px',
-                zIndex: '999999',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'transparent',
-                direction: 'rtl',
-                boxSizing: 'border-box'
-            });
-            
-            // Apply critical inline styles to overlay
-            Object.assign(overlay.style, {
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                right: '0',
-                bottom: '0',
-                width: '100vw',
-                height: '100vh',
-                background: 'rgba(0, 0, 0, 0.7)',
-                backdropFilter: 'blur(10px)',
-                webkitBackdropFilter: 'blur(10px)',
-                zIndex: '1'
-            });
-            
-            // Apply critical inline styles to modal content
-            Object.assign(content.style, {
-                position: 'relative',
-                zIndex: '2',
-                background: '#ffffff',
-                borderRadius: '16px',
-                boxShadow: '0 30px 60px rgba(0, 0, 0, 0.3)',
-                width: '95%',
-                maxWidth: '1400px',
-                maxHeight: 'calc(100vh - 40px)',
-                margin: '0',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                transform: 'none',
-                flexShrink: '0'
-            });
-            
+            modal.removeAttribute('style');
             modal.classList.add('tabesh-modal-open');
             document.body.classList.add('modal-open');
         }
 
         function closeModal() {
             const modal = document.getElementById('tabesh-order-modal');
-            const content = modal.querySelector('.tabesh-modal-content');
-            const overlay = modal.querySelector('.tabesh-modal-overlay');
-            
-            // Remove inline styles and class
-            modal.removeAttribute('style');
-            content.removeAttribute('style');
-            overlay.removeAttribute('style');
             modal.classList.remove('tabesh-modal-open');
             document.body.classList.remove('modal-open');
         }

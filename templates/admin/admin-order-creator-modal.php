@@ -48,7 +48,7 @@ $max_quantity  = Tabesh()->get_setting( 'max_quantity', 10000 );
 $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 ?>
 
-<div id="tabesh-order-modal" class="tabesh-modal">
+<div id="tabesh-order-modal" class="tabesh-modal" style="display: none;">
 	<div class="tabesh-modal-overlay"></div>
 	<div class="tabesh-modal-content">
 		<div class="tabesh-modal-header">

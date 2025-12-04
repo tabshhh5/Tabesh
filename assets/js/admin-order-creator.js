@@ -34,62 +34,9 @@
             e.stopPropagation();
             
             var $modal = $('#tabesh-order-modal');
-            var $content = $modal.find('.tabesh-modal-content');
-            var $overlay = $modal.find('.tabesh-modal-overlay');
             
-            // Apply critical inline styles to modal container
-            $modal.css({
-                'display': 'flex',
-                'position': 'fixed',
-                'top': '0',
-                'left': '0',
-                'right': '0',
-                'bottom': '0',
-                'width': '100vw',
-                'height': '100vh',
-                'margin': '0',
-                'padding': '20px',
-                'z-index': '999999',
-                'align-items': 'center',
-                'justify-content': 'center',
-                'background': 'transparent',
-                'direction': 'rtl',
-                'box-sizing': 'border-box'
-            }).addClass('tabesh-modal-open');
-            
-            // Apply critical inline styles to overlay
-            $overlay.css({
-                'position': 'fixed',
-                'top': '0',
-                'left': '0',
-                'right': '0',
-                'bottom': '0',
-                'width': '100vw',
-                'height': '100vh',
-                'background': 'rgba(0, 0, 0, 0.7)',
-                'backdrop-filter': 'blur(10px)',
-                '-webkit-backdrop-filter': 'blur(10px)',
-                'z-index': '1'
-            });
-            
-            // Apply critical inline styles to modal content
-            $content.css({
-                'position': 'relative',
-                'z-index': '2',
-                'background': '#ffffff',
-                'border-radius': '16px',
-                'box-shadow': '0 30px 60px rgba(0, 0, 0, 0.3)',
-                'width': '95%',
-                'max-width': '1400px',
-                'max-height': 'calc(100vh - 40px)',
-                'margin': '0',
-                'display': 'flex',
-                'flex-direction': 'column',
-                'overflow': 'hidden',
-                'transform': 'none',
-                'flex-shrink': '0'
-            });
-            
+            // Remove inline display:none style and add open class
+            $modal.removeAttr('style').addClass('tabesh-modal-open');
             $('body').addClass('modal-open');
         });
 
@@ -124,12 +71,7 @@
      */
     function closeModal() {
         var $modal = $('#tabesh-order-modal');
-        
-        // Remove inline styles and class
-        $modal.removeAttr('style').removeClass('tabesh-modal-open');
-        $modal.find('.tabesh-modal-content').removeAttr('style');
-        $modal.find('.tabesh-modal-overlay').removeAttr('style');
-        
+        $modal.removeClass('tabesh-modal-open');
         $('body').removeClass('modal-open');
         
         // Optional: Reset form after short delay for animation
