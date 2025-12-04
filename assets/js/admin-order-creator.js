@@ -119,40 +119,28 @@
             createNewUser();
         });
 
-        // Dynamically manage required attributes based on print type selection
-        // This prevents browser validation errors for hidden fields with required attribute
+        // Update page count fields based on print type
         $('#print_type').on('change', function() {
             const printType = $(this).val();
             
-            // Remove required from page_count_total when other fields are shown
             if (printType === 'رنگی') {
                 $('#page-count-color-group').show();
                 $('#page-count-bw-group').hide();
                 $('#page-count-total-group').hide();
                 $('#page_count_bw').val(0);
-                $('#page_count_total').prop('required', false);
-                $('#page_count_color').prop('required', true);
             } else if (printType === 'سیاه و سفید') {
                 $('#page-count-color-group').hide();
                 $('#page-count-bw-group').show();
                 $('#page-count-total-group').hide();
                 $('#page_count_color').val(0);
-                $('#page_count_total').prop('required', false);
-                $('#page_count_bw').prop('required', true);
             } else if (printType === 'ترکیبی') {
                 $('#page-count-color-group').show();
                 $('#page-count-bw-group').show();
                 $('#page-count-total-group').hide();
-                $('#page_count_total').prop('required', false);
-                $('#page_count_color').prop('required', true);
-                $('#page_count_bw').prop('required', true);
             } else {
                 $('#page-count-color-group').hide();
                 $('#page-count-bw-group').hide();
                 $('#page-count-total-group').show();
-                $('#page_count_total').prop('required', true);
-                $('#page_count_color').prop('required', false);
-                $('#page_count_bw').prop('required', false);
             }
         });
 
