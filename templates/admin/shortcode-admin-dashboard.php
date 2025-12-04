@@ -86,14 +86,6 @@ if ($is_admin) {
         TABESH_VERSION
     );
 
-    // Enqueue admin order creator CSS
-    wp_enqueue_style(
-        'tabesh-admin-order-creator',
-        TABESH_PLUGIN_URL . 'assets/css/admin-order-creator.css',
-        array(),
-        TABESH_VERSION
-    );
-
     wp_enqueue_script(
         'tabesh-admin-dashboard',
         TABESH_PLUGIN_URL . 'assets/js/admin-dashboard.js',
@@ -101,18 +93,6 @@ if ($is_admin) {
         TABESH_VERSION,
         true
     );
-
-    // Enqueue admin order creator JS
-    wp_enqueue_script(
-        'tabesh-admin-order-creator',
-        TABESH_PLUGIN_URL . 'assets/js/admin-order-creator.js',
-        array('jquery'),
-        TABESH_VERSION,
-        true
-    );
-
-    // Get settings for order creator
-    $paper_types = Tabesh()->get_setting('paper_types', array());
 
     wp_localize_script('tabesh-admin-dashboard', 'tabeshAdminData', array(
         'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -126,25 +106,9 @@ if ($is_admin) {
             'confirmStatusChange' => __('آیا از تغییر وضعیت این سفارش اطمینان دارید؟', 'tabesh'),
         )
     ));
-
-    // Localize admin order creator script
-    wp_localize_script('tabesh-admin-order-creator', 'tabeshAdminOrderCreator', array(
-        'restUrl' => rest_url(TABESH_REST_NAMESPACE),
-        'nonce' => wp_create_nonce('wp_rest'),
-        'settings' => array(
-            'paperTypes' => $paper_types
-        ),
-        'strings' => array(
-            'selectUser' => __('انتخاب کاربر', 'tabesh'),
-            'createNewUser' => __('ایجاد کاربر جدید', 'tabesh'),
-            'searchUsers' => __('جستجوی کاربران...', 'tabesh'),
-            'noResults' => __('کاربری یافت نشد', 'tabesh'),
-            'calculating' => __('در حال محاسبه قیمت...', 'tabesh'),
-            'submitting' => __('در حال ثبت سفارش...', 'tabesh'),
-            'success' => __('سفارش با موفقیت ثبت شد', 'tabesh'),
-            'error' => __('خطا در ثبت سفارش', 'tabesh'),
-        )
-    ));
+    
+    // Note: Admin order creator assets are enqueued via Tabesh_Admin_Order_Creator::enqueue_assets()
+    // which hooks into wp_enqueue_scripts and checks for the shortcode
     ?>
 
     <div class="tabesh-admin-dashboard" dir="rtl" data-theme="light">
