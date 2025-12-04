@@ -2,7 +2,7 @@
  * Admin Order Creator CSS
  * 
  * Modern centered modal with responsive design
- * Clean CSS without excessive !important
+ * Clean CSS without excessive !important declarations
  * 
  * @package Tabesh
  */
@@ -55,7 +55,7 @@
 @keyframes tabeshModalScaleIn {
     from {
         opacity: 0;
-        transform: scale(0.95);
+        transform: scale(0.95); /* Subtle scale for smoother animation */
     }
     to {
         opacity: 1;

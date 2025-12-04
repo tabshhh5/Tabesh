@@ -49,7 +49,7 @@ temp/
 # Ignore test files
 test-*.php
 test-*.js
+test-*.html
 
 # Ignore composer lock (for libraries, not applications)
 composer.lock
-test-order-creator-modal.html
