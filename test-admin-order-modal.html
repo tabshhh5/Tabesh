@@ -289,15 +289,14 @@
     <script>
         function openModal() {
             const modal = document.getElementById('tabesh-order-modal');
-            modal.removeAttribute('style');
-            modal.classList.add('tabesh-modal-open');
-            document.body.classList.add('modal-open');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
             const modal = document.getElementById('tabesh-order-modal');
-            modal.classList.remove('tabesh-modal-open');
-            document.body.classList.remove('modal-open');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
         // Close modal when clicking overlay

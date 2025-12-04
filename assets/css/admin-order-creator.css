@@ -18,7 +18,7 @@
     display: none !important;
 }
 
-/* Modal Visible State - Full screen overlay with FLEX centering */
+/* Modal Visible State - Full screen overlay */
 #tabesh-order-modal.tabesh-modal.tabesh-modal-open {
     display: flex !important;
     position: fixed !important;
@@ -29,13 +29,12 @@
     width: 100vw !important;
     height: 100vh !important;
     margin: 0 !important;
-    padding: 20px !important;
+    padding: 0 !important;
     z-index: 999999 !important;
     align-items: center !important;
     justify-content: center !important;
     background: transparent !important;
     direction: rtl !important;
-    box-sizing: border-box !important;
     animation: tabeshModalFadeIn var(--tabesh-modal-animation-duration) ease-out !important;
 }
 
@@ -79,7 +78,7 @@
     z-index: 1 !important;
 }
 
-/* Modal Content - MUST be centered with flex, not grid */
+/* Modal Content - Centered white box */
 #tabesh-order-modal .tabesh-modal-content {
     position: relative !important;
     z-index: 2 !important;
@@ -88,18 +87,16 @@
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3) !important;
     width: 95% !important;
     max-width: 1400px !important;
-    max-height: calc(100vh - 40px) !important;
-    margin: 0 !important;
+    max-height: 85vh !important;
+    margin: 5vh auto !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    
-    /* Remove any transform or additional positioning - حذف هرگونه transform یا positioning اضافی */
     transform: none !important;
-    inset: unset !important;
-    
-    /* Prevent flex-shrink - جلوگیری از flex-shrink */
-    flex-shrink: 0 !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
 }
 
 /* Modal Header */
