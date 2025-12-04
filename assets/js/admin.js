@@ -5,11 +5,28 @@
 (function($) {
     'use strict';
 
+    // Constants
+    const MODAL_ANIMATION_DURATION = 300; // milliseconds
+
     // Helper function to safely construct REST URLs without double slashes
     function buildRestUrl(base, endpoint) {
         const cleanBase = base.replace(/\/+$/, ''); // Remove trailing slashes
         const cleanEndpoint = endpoint.replace(/^\/+/, ''); // Remove leading slashes
         return cleanBase + '/' + cleanEndpoint;
+    }
+
+    /**
+     * Helper function to close a modal with animation
+     * @param {string} modalId - The ID of the modal to close (with or without #)
+     */
+    function closeModal(modalId) {
+        // Ensure modalId has # prefix
+        const $modal = modalId.startsWith('#') ? $(modalId) : $('#' + modalId);
+        
+        $modal.removeClass('show');
+        setTimeout(function() {
+            $modal.remove();
+        }, MODAL_ANIMATION_DURATION);
     }
 
     // Dynamic Parameter Manager Class
@@ -656,18 +673,12 @@
             
             // Bind close events
             $('.tabesh-modal-close').on('click', function() {
-                $('#reject-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#reject-modal').remove();
-                }, 300);
+                closeModal('reject-modal');
             });
             
             // Close on backdrop click
             $('#reject-modal .tabesh-modal-overlay').on('click', function() {
-                $('#reject-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#reject-modal').remove();
-                }, 300);
+                closeModal('reject-modal');
             });
             
             // Bind confirm event
@@ -701,10 +712,7 @@
                     } else {
                         alert(response.message || 'خطا در رد فایل');
                     }
-                    $('#reject-modal').removeClass('show');
-                    setTimeout(function() {
-                        $('#reject-modal').remove();
-                    }, 300);
+                    closeModal('reject-modal');
                 },
                 error: function() {
                     alert('خطا در ارتباط با سرور');
@@ -750,18 +758,12 @@
             
             // Bind close events
             $('.tabesh-modal-close').on('click', function() {
-                $('#comment-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#comment-modal').remove();
-                }, 300);
+                closeModal('comment-modal');
             });
             
             // Close on backdrop click
             $('#comment-modal .tabesh-modal-overlay').on('click', function() {
-                $('#comment-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#comment-modal').remove();
-                }, 300);
+                closeModal('comment-modal');
             });
             
             // Bind confirm event
@@ -795,10 +797,7 @@
                     } else {
                         alert(response.message || 'خطا در ثبت نظر');
                     }
-                    $('#comment-modal').removeClass('show');
-                    setTimeout(function() {
-                        $('#comment-modal').remove();
-                    }, 300);
+                    closeModal('comment-modal');
                 },
                 error: function() {
                     alert('خطا در ارتباط با سرور');
@@ -839,18 +838,12 @@
             
             // Bind close events
             $('.tabesh-modal-close').on('click', function() {
-                $('#comments-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#comments-modal').remove();
-                }, 300);
+                closeModal('comments-modal');
             });
             
             // Close on backdrop click
             $('#comments-modal .tabesh-modal-overlay').on('click', function() {
-                $('#comments-modal').removeClass('show');
-                setTimeout(function() {
-                    $('#comments-modal').remove();
-                }, 300);
+                closeModal('comments-modal');
             });
             
             // Load comments
