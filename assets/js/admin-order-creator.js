@@ -26,7 +26,7 @@
      */
     function initModal() {
         // Open modal button
-        $(document).on('click', '#tabesh-show-new-order-modal-btn', function(e) {
+        $(document).on('click', '#tabesh-open-order-modal', function(e) {
             e.preventDefault();
             $('#tabesh-order-modal').fadeIn(300);
             $('body').addClass('modal-open');

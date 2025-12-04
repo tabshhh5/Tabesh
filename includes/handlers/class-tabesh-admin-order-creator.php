@@ -380,7 +380,7 @@ class Tabesh_Admin_Order_Creator {
      */
     public function render_new_order_button() {
         ?>
-        <button type="button" class="page-title-action" id="tabesh-show-new-order-modal-btn">
+        <button type="button" class="button button-primary" id="tabesh-open-order-modal">
             <span class="dashicons dashicons-plus-alt" style="margin-top: 3px;"></span>
             <?php echo esc_html__('ثبت سفارش جدید', 'tabesh'); ?>
         </button>
