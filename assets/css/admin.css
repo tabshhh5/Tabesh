@@ -381,7 +381,8 @@
     background-color: rgba(0, 0, 0, 0.6);
 }
 
-.tabesh-modal-content {
+/* Exclude #tabesh-order-modal from generic styles - it has its own specific styles */
+.tabesh-modal-content:not(#tabesh-order-modal *) {
     background-color: #fff;
     margin: 5% auto;
     padding: 30px;
@@ -510,8 +511,8 @@
     flex-wrap: wrap;
 }
 
-/* Modal Styles */
-.tabesh-modal {
+/* Modal Styles - Exclude #tabesh-order-modal which has its own specific styles */
+.tabesh-modal:not(#tabesh-order-modal) {
     display: none; /* Hidden by default */
     position: fixed;
     top: 0;
@@ -525,8 +526,8 @@
     transition: opacity 0.3s ease;
 }
 
-/* Show modal when .show class is added */
-.tabesh-modal.show {
+/* Show modal when .show class is added - Exclude #tabesh-order-modal */
+.tabesh-modal.show:not(#tabesh-order-modal) {
     display: flex;
     opacity: 1;
 }
