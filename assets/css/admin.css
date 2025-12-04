@@ -404,7 +404,8 @@
     }
 }
 
-.tabesh-modal-close {
+/* Exclude #tabesh-order-modal from generic styles */
+.tabesh-modal-close:not(#tabesh-order-modal *) {
     color: #aaa;
     float: left;
     font-size: 28px;
@@ -413,8 +414,8 @@
     line-height: 20px;
 }
 
-.tabesh-modal-close:hover,
-.tabesh-modal-close:focus {
+.tabesh-modal-close:not(#tabesh-order-modal *):hover,
+.tabesh-modal-close:not(#tabesh-order-modal *):focus {
     color: #000;
 }
 
@@ -461,7 +462,8 @@
         grid-template-columns: 1fr;
     }
 
-    .tabesh-modal-content {
+    /* Exclude #tabesh-order-modal from generic styles */
+    .tabesh-modal-content:not(#tabesh-order-modal *) {
         width: 95%;
         margin: 10% auto;
         padding: 20px;
@@ -532,7 +534,8 @@
     opacity: 1;
 }
 
-.tabesh-modal-overlay {
+/* Exclude #tabesh-order-modal from generic styles */
+.tabesh-modal-overlay:not(#tabesh-order-modal *) {
     position: absolute;
     top: 0;
     left: 0;
@@ -542,7 +545,7 @@
     animation: fadeIn 0.3s ease;
 }
 
-.tabesh-modal-dialog {
+.tabesh-modal-dialog:not(#tabesh-order-modal *) {
     position: relative;
     max-width: 500px;
     width: 90%;
@@ -552,17 +555,19 @@
     animation: slideIn 0.3s ease;
 }
 
-.tabesh-modal-dialog.tabesh-modal-large {
+.tabesh-modal-dialog.tabesh-modal-large:not(#tabesh-order-modal *) {
     max-width: 700px;
 }
 
-.tabesh-modal-content {
+/* Exclude #tabesh-order-modal from generic styles */
+.tabesh-modal-content:not(#tabesh-order-modal *) {
     background: #fff;
     border-radius: 6px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.tabesh-modal-header {
+/* Exclude #tabesh-order-modal from generic styles */
+.tabesh-modal-header:not(#tabesh-order-modal *) {
     padding: 20px;
     border-bottom: 1px solid #ddd;
     display: flex;
@@ -570,13 +575,13 @@
     align-items: center;
 }
 
-.tabesh-modal-header h3 {
+.tabesh-modal-header:not(#tabesh-order-modal *) h3 {
     margin: 0;
     font-size: 18px;
     color: #23282d;
 }
 
-.tabesh-modal-close {
+.tabesh-modal-close:not(#tabesh-order-modal *) {
     background: none;
     border: none;
     cursor: pointer;
@@ -585,23 +590,23 @@
     transition: color 0.2s ease;
 }
 
-.tabesh-modal-close:hover {
+.tabesh-modal-close:not(#tabesh-order-modal *):hover {
     color: #000;
 }
 
-.tabesh-modal-close .dashicons {
+.tabesh-modal-close:not(#tabesh-order-modal *) .dashicons {
     font-size: 24px;
     width: 24px;
     height: 24px;
 }
 
-.tabesh-modal-body {
+.tabesh-modal-body:not(#tabesh-order-modal *) {
     padding: 20px;
     max-height: 60vh;
     overflow-y: auto;
 }
 
-.tabesh-modal-footer {
+.tabesh-modal-footer:not(#tabesh-order-modal *) {
     padding: 20px;
     border-top: 1px solid #ddd;
     text-align: left;
@@ -691,12 +696,12 @@
     .nav-tab-wrapper,
     .tabesh-filter-bar,
     .button,
-    .tabesh-modal-close,
-    .tabesh-modal {
+    .tabesh-modal-close:not(#tabesh-order-modal *),
+    .tabesh-modal:not(#tabesh-order-modal) {
         display: none !important;
     }
 
-    .tabesh-modal-content {
+    .tabesh-modal-content:not(#tabesh-order-modal *) {
         box-shadow: none;
         border: 1px solid #000;
     }
