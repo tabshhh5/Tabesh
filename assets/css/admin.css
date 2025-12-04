@@ -368,8 +368,9 @@
     margin-bottom: 25px;
 }
 
-/* Modal */
-.tabesh-modal {
+/* Modal - DEPRECATED: Use .tabesh-modal styles starting at line 512 */
+/* Keeping for backwards compatibility with any legacy code */
+.tabesh-modal-legacy {
     position: fixed;
     z-index: 100000;
     left: 0;
@@ -511,15 +512,23 @@
 
 /* Modal Styles */
 .tabesh-modal {
+    display: none; /* Hidden by default */
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 999999;
-    display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Show modal when .show class is added */
+.tabesh-modal.show {
+    display: flex;
+    opacity: 1;
 }
 
 .tabesh-modal-overlay {
