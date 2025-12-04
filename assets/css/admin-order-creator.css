@@ -8,19 +8,8 @@
 
 /* === CRITICAL: Override all conflicting styles === */
 
-/* CSS Custom Properties */
-:root {
-    --tabesh-modal-animation-duration: 0.3s;
-}
-
-/* Modal Hidden State */
+/* Modal Container - Full screen overlay */
 #tabesh-order-modal.tabesh-modal {
-    display: none !important;
-}
-
-/* Modal Visible State - Full screen overlay */
-#tabesh-order-modal.tabesh-modal.tabesh-modal-open {
-    display: flex !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -31,36 +20,11 @@
     margin: 0 !important;
     padding: 0 !important;
     z-index: 999999 !important;
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     background: transparent !important;
     direction: rtl !important;
-    animation: tabeshModalFadeIn var(--tabesh-modal-animation-duration) ease-out !important;
-}
-
-/* Animation Keyframes */
-@keyframes tabeshModalFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes tabeshModalScaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-#tabesh-order-modal.tabesh-modal-open .tabesh-modal-content {
-    animation: tabeshModalScaleIn var(--tabesh-modal-animation-duration) ease-out !important;
 }
 
 /* Overlay - Dark blur background */
