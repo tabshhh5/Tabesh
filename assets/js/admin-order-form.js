@@ -259,6 +259,9 @@
         $('#aof-print-type').on('change', function() {
             updatePageCountFields();
         });
+        
+        // Initialize page count fields on load / راه‌اندازی فیلدهای تعداد صفحات در بارگذاری
+        updatePageCountFields();
 
         // Override price checkbox / چک‌باکس قیمت دلخواه
         $('#aof-override-price-check').on('change', function() {
@@ -302,26 +305,43 @@
     /**
      * Update page count fields based on print type
      * به‌روزرسانی فیلدهای تعداد صفحات بر اساس نوع چاپ
+     * 
+     * Manages visibility and required attributes for page count fields
+     * based on the selected print type
+     * مدیریت نمایش و ویژگی‌های الزامی برای فیلدهای تعداد صفحات
+     * بر اساس نوع چاپ انتخاب شده
      */
     function updatePageCountFields() {
         const printType = $('#aof-print-type').val();
         
-        // Hide all first / ابتدا همه را مخفی کن
+        // Hide all first and remove required attributes / ابتدا همه را مخفی کن و الزامی بودن را بردار
         $('#aof-page-count-color-group').hide();
         $('#aof-page-count-bw-group').hide();
         $('#aof-page-count-total-group').hide();
         
+        // Remove required from all page count inputs / حذف الزامی بودن از تمام ورودی‌های تعداد صفحات
+        $('#aof-page-count-color').removeAttr('required');
+        $('#aof-page-count-bw').removeAttr('required');
+        $('#aof-page-count-total').removeAttr('required');
+        
         if (printType === 'رنگی') {
             $('#aof-page-count-color-group').show();
+            $('#aof-page-count-color').attr('required', 'required');
             $('#aof-page-count-bw').val(0);
         } else if (printType === 'سیاه و سفید') {
             $('#aof-page-count-bw-group').show();
+            $('#aof-page-count-bw').attr('required', 'required');
             $('#aof-page-count-color').val(0);
         } else if (printType === 'ترکیبی') {
             $('#aof-page-count-color-group').show();
             $('#aof-page-count-bw-group').show();
+            // For combined print, at least one field should have a value
+            // This is validated in isFormValid() - not using HTML required here
+            // برای چاپ ترکیبی، حداقل یکی از فیلدها باید مقدار داشته باشد
+            // این در isFormValid() اعتبارسنجی می‌شود - اینجا از required استفاده نمی‌کنیم
         } else {
             $('#aof-page-count-total-group').show();
+            $('#aof-page-count-total').attr('required', 'required');
         }
     }
 
