@@ -198,6 +198,13 @@ final class Tabesh {
     public $admin_order_creator;
 
     /**
+     * Admin order form shortcode handler
+     *
+     * @var Tabesh_Admin_Order_Form
+     */
+    public $admin_order_form;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -266,6 +273,8 @@ final class Tabesh {
         $this->sms = new Tabesh_SMS();
         // Initialize admin order creator handler
         $this->admin_order_creator = new Tabesh_Admin_Order_Creator();
+        // Initialize admin order form shortcode handler
+        $this->admin_order_form = new Tabesh_Admin_Order_Form();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -869,6 +878,9 @@ final class Tabesh {
             // Access Control
             'staff_allowed_users' => json_encode(array()),
             'admin_dashboard_allowed_users' => json_encode(array()),
+            // Admin Order Form Shortcode Access Control
+            'admin_order_form_allowed_roles' => json_encode(array('administrator')),
+            'admin_order_form_allowed_users' => json_encode(array()),
         );
 
         global $wpdb;
@@ -1574,6 +1586,7 @@ final class Tabesh {
         add_shortcode('tabesh_admin_dashboard', array($this->admin, 'render_admin_dashboard'));
         add_shortcode('tabesh_file_upload', array($this, 'render_file_upload'));
         add_shortcode('tabesh_upload_manager', array($this->upload, 'render_upload_manager'));
+        add_shortcode('tabesh_admin_order_form', array($this->admin_order_form, 'render'));
     }
 
     /**

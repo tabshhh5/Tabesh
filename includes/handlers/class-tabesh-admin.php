@@ -554,6 +554,80 @@ class Tabesh_Admin {
             }
         }
         
+        // Handle admin_order_form_allowed_roles array field (checkboxes)
+        if (isset($post_data['admin_order_form_allowed_roles']) && is_array($post_data['admin_order_form_allowed_roles'])) {
+            $roles = array_map('sanitize_text_field', $post_data['admin_order_form_allowed_roles']);
+            // Always ensure 'administrator' is included
+            if (!in_array('administrator', $roles, true)) {
+                $roles[] = 'administrator';
+            }
+            $value = wp_json_encode(array_values(array_unique($roles)), JSON_UNESCAPED_UNICODE);
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => 'admin_order_form_allowed_roles',
+                    'setting_value' => $value,
+                    'setting_type' => 'string'
+                )
+            );
+            
+            if ($result === false) {
+                error_log("Failed to save setting: admin_order_form_allowed_roles - Error: " . $wpdb->last_error);
+            } else {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("Tabesh: Saved admin_order_form_allowed_roles with " . count($roles) . " roles");
+                }
+            }
+        } else {
+            // If no checkboxes selected, save default array with administrator
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => 'admin_order_form_allowed_roles',
+                    'setting_value' => wp_json_encode(array('administrator'), JSON_UNESCAPED_UNICODE),
+                    'setting_type' => 'string'
+                )
+            );
+        }
+        
+        // Handle admin_order_form_allowed_users array field (comma-separated IDs from hidden input)
+        if (isset($post_data['admin_order_form_allowed_users'])) {
+            $user_ids_string = sanitize_text_field($post_data['admin_order_form_allowed_users']);
+            $user_ids = array();
+            
+            if (!empty($user_ids_string)) {
+                // Parse comma-separated IDs
+                $ids = explode(',', $user_ids_string);
+                foreach ($ids as $id) {
+                    $id = intval(trim($id));
+                    if ($id > 0) {
+                        // Validate that user exists
+                        if (get_userdata($id)) {
+                            $user_ids[] = $id;
+                        }
+                    }
+                }
+            }
+            
+            $value = wp_json_encode(array_values(array_unique($user_ids)), JSON_UNESCAPED_UNICODE);
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => 'admin_order_form_allowed_users',
+                    'setting_value' => $value,
+                    'setting_type' => 'string'
+                )
+            );
+            
+            if ($result === false) {
+                error_log("Failed to save setting: admin_order_form_allowed_users - Error: " . $wpdb->last_error);
+            } else {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("Tabesh: Saved admin_order_form_allowed_users with " . count($user_ids) . " users");
+                }
+            }
+        }
+        
         // Clear the settings cache after saving to ensure fresh data is loaded
         self::clear_settings_cache();
         

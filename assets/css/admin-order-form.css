@@ -1,0 +1,776 @@
+/**
+ * Admin Order Form Shortcode CSS
+ * 
+ * استایل فرم ثبت سفارش ویژه مدیر
+ * Modern styling for the admin order form shortcode
+ * 
+ * @package Tabesh
+ * @since 1.0.3
+ */
+
+/* ==========================================================================
+   Variables / متغیرها
+   ========================================================================== */
+
+.tabesh-admin-order-form-wrapper {
+    --aof-primary: #667eea;
+    --aof-primary-hover: #5568d3;
+    --aof-secondary: #764ba2;
+    --aof-success: #16a34a;
+    --aof-success-hover: #15803d;
+    --aof-warning: #f59e0b;
+    --aof-error: #ef4444;
+    --aof-bg-primary: #f8fafc;
+    --aof-bg-secondary: #ffffff;
+    --aof-text-primary: #1a202c;
+    --aof-text-secondary: #4a5568;
+    --aof-text-muted: #6b7280;
+    --aof-border: #e5e7eb;
+    --aof-border-focus: var(--aof-primary);
+    --aof-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --aof-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --aof-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+    --aof-radius-sm: 6px;
+    --aof-radius-md: 10px;
+    --aof-radius-lg: 16px;
+    --aof-transition: all 0.3s ease;
+}
+
+/* ==========================================================================
+   Wrapper / پوشش اصلی
+   ========================================================================== */
+
+.tabesh-admin-order-form-wrapper {
+    font-family: 'Vazirmatn', 'Vazir', 'Tahoma', 'Arial', sans-serif;
+    direction: rtl;
+    text-align: right;
+    padding: 20px 0;
+}
+
+.tabesh-aof-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--aof-bg-secondary);
+    border-radius: var(--aof-radius-lg);
+    box-shadow: var(--aof-shadow-lg);
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Header / هدر
+   ========================================================================== */
+
+.tabesh-aof-header {
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #ffffff;
+    padding: 30px 40px;
+    text-align: center;
+}
+
+.tabesh-aof-title {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.tabesh-aof-title .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+}
+
+.tabesh-aof-subtitle {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Form / فرم
+   ========================================================================== */
+
+.tabesh-aof-form {
+    padding: 30px 40px;
+    background: var(--aof-bg-primary);
+}
+
+/* ==========================================================================
+   Sections / بخش‌ها
+   ========================================================================== */
+
+.tabesh-aof-section {
+    background: var(--aof-bg-secondary);
+    border-radius: var(--aof-radius-md);
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--aof-shadow-sm);
+    border: 1px solid var(--aof-border);
+}
+
+.tabesh-aof-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.tabesh-aof-section-title {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--aof-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--aof-primary);
+}
+
+.section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Form Groups / گروه‌های فرم
+   ========================================================================== */
+
+.tabesh-aof-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.tabesh-aof-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.tabesh-aof-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabesh-aof-form-group.tabesh-aof-full-width {
+    grid-column: 1 / -1;
+}
+
+.tabesh-aof-form-group label {
+    font-weight: 600;
+    color: var(--aof-text-primary);
+    font-size: 14px;
+}
+
+.tabesh-aof-form-group label .required {
+    color: var(--aof-error);
+    margin-right: 4px;
+    font-weight: 700;
+}
+
+.field-hint {
+    font-size: 12px;
+    color: var(--aof-text-muted);
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   Inputs / ورودی‌ها
+   ========================================================================== */
+
+.tabesh-aof-input,
+.tabesh-aof-select,
+.tabesh-aof-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--aof-border);
+    border-radius: var(--aof-radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--aof-bg-secondary);
+    color: var(--aof-text-primary);
+    transition: var(--aof-transition);
+    box-sizing: border-box;
+}
+
+.tabesh-aof-input:hover,
+.tabesh-aof-select:hover,
+.tabesh-aof-textarea:hover {
+    border-color: #cbd5e1;
+}
+
+.tabesh-aof-input:focus,
+.tabesh-aof-select:focus,
+.tabesh-aof-textarea:focus {
+    outline: none;
+    border-color: var(--aof-primary);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.tabesh-aof-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* ==========================================================================
+   Search Wrapper / پوشش جستجو
+   ========================================================================== */
+
+.tabesh-aof-search-wrapper {
+    position: relative;
+}
+
+.tabesh-aof-search-wrapper .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--aof-text-muted);
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.tabesh-aof-search-wrapper .tabesh-aof-input {
+    padding-left: 45px;
+}
+
+/* ==========================================================================
+   Search Results / نتایج جستجو
+   ========================================================================== */
+
+.tabesh-aof-search-results {
+    position: absolute;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background: var(--aof-bg-secondary);
+    border: 2px solid var(--aof-border);
+    border-top: none;
+    border-radius: 0 0 var(--aof-radius-sm) var(--aof-radius-sm);
+    box-shadow: var(--aof-shadow-md);
+    z-index: 100;
+}
+
+.tabesh-aof-search-results:empty {
+    display: none;
+}
+
+.tabesh-aof-search-results .user-result-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--aof-border);
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-search-results .user-result-item:last-child {
+    border-bottom: none;
+}
+
+.tabesh-aof-search-results .user-result-item:hover {
+    background: #f0f9ff;
+    border-right: 3px solid var(--aof-primary);
+}
+
+.tabesh-aof-search-results .user-name {
+    font-weight: 600;
+    color: var(--aof-text-primary);
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+.tabesh-aof-search-results .user-login {
+    font-size: 13px;
+    color: var(--aof-text-muted);
+}
+
+.tabesh-aof-search-results .searching,
+.tabesh-aof-search-results .no-results,
+.tabesh-aof-search-results .error {
+    padding: 16px;
+    text-align: center;
+    color: var(--aof-text-muted);
+    font-size: 14px;
+}
+
+.tabesh-aof-search-results .error {
+    color: var(--aof-error);
+}
+
+/* ==========================================================================
+   Selected User / کاربر انتخاب شده
+   ========================================================================== */
+
+.tabesh-aof-selected-user:empty {
+    display: none;
+}
+
+.tabesh-aof-selected-user .selected-user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    border: 2px solid #93c5fd;
+    border-radius: var(--aof-radius-sm);
+    margin-top: 10px;
+}
+
+.tabesh-aof-selected-user .selected-user strong {
+    color: #1e40af;
+    font-size: 15px;
+}
+
+.tabesh-aof-selected-user .remove-user {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--aof-text-muted);
+    padding: 0 8px;
+    border-radius: 4px;
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-selected-user .remove-user:hover {
+    background: #bfdbfe;
+    color: #1e40af;
+}
+
+/* ==========================================================================
+   Radio & Checkbox / رادیو و چک‌باکس
+   ========================================================================== */
+
+.tabesh-aof-radio-group,
+.tabesh-aof-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tabesh-aof-radio,
+.tabesh-aof-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 400;
+    padding: 10px 15px;
+    border-radius: var(--aof-radius-sm);
+    transition: var(--aof-transition);
+    background: var(--aof-bg-primary);
+    border: 2px solid transparent;
+}
+
+.tabesh-aof-radio:hover,
+.tabesh-aof-checkbox:hover {
+    background: #f3f4f6;
+    border-color: var(--aof-border);
+}
+
+.tabesh-aof-radio input[type="radio"],
+.tabesh-aof-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-custom,
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--aof-border);
+    background: var(--aof-bg-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    transition: var(--aof-transition);
+}
+
+.radio-custom {
+    border-radius: 50%;
+}
+
+.checkbox-custom {
+    border-radius: 4px;
+}
+
+.tabesh-aof-radio input:checked + .radio-custom,
+.tabesh-aof-checkbox input:checked + .checkbox-custom {
+    background: var(--aof-primary);
+    border-color: var(--aof-primary);
+}
+
+.tabesh-aof-radio input:checked + .radio-custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.tabesh-aof-checkbox input:checked + .checkbox-custom::after {
+    content: '✓';
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.radio-label,
+.checkbox-label {
+    color: var(--aof-text-primary);
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   Customer Selection / انتخاب مشتری
+   ========================================================================== */
+
+.tabesh-aof-customer-selection {
+    margin-top: 15px;
+}
+
+.tabesh-aof-subsection {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--aof-border);
+}
+
+/* ==========================================================================
+   Price Display / نمایش قیمت
+   ========================================================================== */
+
+.tabesh-aof-price-section {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #86efac;
+}
+
+.tabesh-aof-price-display {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--aof-radius-sm);
+}
+
+.tabesh-aof-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.tabesh-aof-price-row .price-label {
+    font-weight: 600;
+    color: #166534;
+    font-size: 16px;
+}
+
+.tabesh-aof-price-row .price-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--aof-text-muted);
+}
+
+.tabesh-aof-final-price {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #22c55e;
+}
+
+.tabesh-aof-final-price .price-value {
+    color: var(--aof-success);
+}
+
+.tabesh-aof-override-price {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px 0;
+    flex-wrap: wrap;
+}
+
+.tabesh-aof-override-price .tabesh-aof-input {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+/* ==========================================================================
+   Buttons / دکمه‌ها
+   ========================================================================== */
+
+.tabesh-aof-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: var(--aof-radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-btn .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.tabesh-aof-btn-primary {
+    background: linear-gradient(135deg, var(--aof-success) 0%, var(--aof-success-hover) 100%);
+    color: #ffffff;
+}
+
+.tabesh-aof-btn-primary:hover {
+    background: linear-gradient(135deg, var(--aof-success-hover) 0%, #166534 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.tabesh-aof-btn-secondary {
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #ffffff;
+}
+
+.tabesh-aof-btn-secondary:hover {
+    background: linear-gradient(135deg, var(--aof-primary-hover) 0%, #653b8a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.tabesh-aof-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ==========================================================================
+   Actions / عملیات
+   ========================================================================== */
+
+.tabesh-aof-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid var(--aof-border);
+}
+
+/* ==========================================================================
+   Notice Messages / پیام‌ها
+   ========================================================================== */
+
+.tabesh-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 25px 30px;
+    border-radius: var(--aof-radius-md);
+    max-width: 500px;
+    margin: 40px auto;
+}
+
+.tabesh-notice-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+}
+
+.tabesh-notice-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 2px solid #ef4444;
+}
+
+.tabesh-notice-icon {
+    font-size: 32px;
+}
+
+.tabesh-notice-warning .tabesh-notice-icon {
+    color: #d97706;
+}
+
+.tabesh-notice-error .tabesh-notice-icon {
+    color: #dc2626;
+}
+
+.tabesh-notice-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.tabesh-notice-warning .tabesh-notice-content h3 {
+    color: #92400e;
+}
+
+.tabesh-notice-error .tabesh-notice-content h3 {
+    color: #991b1b;
+}
+
+.tabesh-notice-content p {
+    margin: 0 0 15px 0;
+    color: var(--aof-text-secondary);
+}
+
+.tabesh-notice .tabesh-btn {
+    background: var(--aof-primary);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: var(--aof-radius-sm);
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: var(--aof-transition);
+}
+
+.tabesh-notice .tabesh-btn:hover {
+    background: var(--aof-primary-hover);
+}
+
+/* ==========================================================================
+   Responsive / واکنش‌گرا
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .tabesh-aof-header {
+        padding: 25px 20px;
+    }
+
+    .tabesh-aof-title {
+        font-size: 22px;
+    }
+
+    .tabesh-aof-form {
+        padding: 20px;
+    }
+
+    .tabesh-aof-section {
+        padding: 20px;
+    }
+
+    .tabesh-aof-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tabesh-aof-radio-group,
+    .tabesh-aof-checkbox-group {
+        flex-direction: column;
+    }
+
+    .tabesh-aof-actions {
+        flex-direction: column;
+    }
+
+    .tabesh-aof-btn {
+        width: 100%;
+    }
+
+    .tabesh-aof-override-price {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabesh-aof-override-price .tabesh-aof-input {
+        max-width: none;
+    }
+
+    .tabesh-aof-price-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tabesh-aof-container {
+        margin: 0 10px;
+        border-radius: var(--aof-radius-md);
+    }
+
+    .tabesh-aof-header {
+        padding: 20px 15px;
+    }
+
+    .tabesh-aof-title {
+        font-size: 18px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tabesh-aof-form {
+        padding: 15px;
+    }
+
+    .tabesh-aof-section {
+        padding: 15px;
+    }
+
+    .tabesh-aof-section-title {
+        font-size: 16px;
+    }
+}
+
+/* ==========================================================================
+   Scrollbar / نوار اسکرول
+   ========================================================================== */
+
+.tabesh-aof-search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabesh-aof-search-results::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.tabesh-aof-search-results::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.tabesh-aof-search-results::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ==========================================================================
+   Animations / انیمیشن‌ها
+   ========================================================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tabesh-aof-section {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.tabesh-aof-section:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.tabesh-aof-section:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.tabesh-aof-section:nth-child(3) {
+    animation-delay: 0.3s;
+}

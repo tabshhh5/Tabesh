@@ -876,6 +876,112 @@ $admin = $tabesh->admin;
                 <!-- Hidden input to store selected user IDs -->
                 <input type="hidden" id="admin_dashboard_allowed_users" name="admin_dashboard_allowed_users" 
                        value="<?php echo esc_attr(implode(',', $admin_dashboard_allowed_users)); ?>">
+
+                <hr style="margin: 30px 0;">
+
+                <h2>دسترسی شورتکد فرم سفارش مدیر</h2>
+
+                <div class="notice notice-info">
+                    <p>
+                        <strong>📝 راهنما:</strong> در این بخش می‌توانید کاربرانی که مجاز به مشاهده و استفاده از شورت‌کد 
+                        <code>[tabesh_admin_order_form]</code> هستند را تعیین کنید.
+                    </p>
+                    <p>
+                        <strong>⚠️ توجه:</strong> کاربرانی با نقش مدیر (administrator) همیشه دسترسی دارند. شما می‌توانید نقش‌های دیگر یا کاربران خاص را نیز اضافه کنید.
+                    </p>
+                </div>
+
+                <h3>نقش‌های مجاز</h3>
+                <table class="form-table">
+                    <tr>
+                        <th><label>انتخاب نقش‌های مجاز</label></th>
+                        <td>
+                            <div class="tabesh-roles-checkboxes">
+                                <?php
+                                $admin_order_form_allowed_roles = $admin->get_setting('admin_order_form_allowed_roles', array('administrator'));
+                                if (!is_array($admin_order_form_allowed_roles)) {
+                                    $admin_order_form_allowed_roles = array('administrator');
+                                }
+                                $all_roles = Tabesh_Admin_Order_Form::get_available_roles();
+                                foreach ($all_roles as $role_key => $role_name) :
+                                ?>
+                                <label style="display: block; margin-bottom: 10px;">
+                                    <input type="checkbox" 
+                                           name="admin_order_form_allowed_roles[]" 
+                                           value="<?php echo esc_attr($role_key); ?>"
+                                           <?php checked(in_array($role_key, $admin_order_form_allowed_roles, true)); ?>>
+                                    <?php echo esc_html($role_name); ?>
+                                    <?php if ($role_key === 'administrator') : ?>
+                                        <em style="color: #6b7280;">(همیشه دسترسی دارد)</em>
+                                    <?php endif; ?>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3>جستجو و افزودن کاربر</h3>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="admin_order_form_user_search">جستجوی کاربران</label></th>
+                        <td>
+                            <input type="text" id="admin_order_form_user_search" class="regular-text" placeholder="نام کاربری، نام نمایشی یا ایمیل...">
+                            <button type="button" id="admin_order_form_user_search_btn" class="button button-secondary">
+                                <span class="dashicons dashicons-search" style="vertical-align: middle;"></span>
+                                جستجو
+                            </button>
+                            <div id="admin_order_form_user_search_results" style="margin-top: 10px;"></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3>کاربران دارای دسترسی</h3>
+                <div id="admin_order_form_allowed_users_list">
+                    <?php
+                    $admin_order_form_allowed_users = $admin->get_setting('admin_order_form_allowed_users', array());
+                    if (!is_array($admin_order_form_allowed_users)) {
+                        $admin_order_form_allowed_users = array();
+                    }
+                    
+                    if (empty($admin_order_form_allowed_users)) :
+                    ?>
+                    <p class="description" id="no_admin_order_form_users_msg">هنوز هیچ کاربر خاصی انتخاب نشده است. فقط کاربران با نقش‌های مجاز بالا به فرم سفارش مدیر دسترسی دارند.</p>
+                    <?php else : ?>
+                    <table class="widefat striped" id="admin_order_form_users_table">
+                        <thead>
+                            <tr>
+                                <th>شناسه</th>
+                                <th>نام نمایشی</th>
+                                <th>ایمیل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($admin_order_form_allowed_users as $user_id) :
+                                $user = get_userdata($user_id);
+                                if (!$user) continue;
+                            ?>
+                            <tr data-user-id="<?php echo esc_attr($user_id); ?>">
+                                <td><?php echo esc_html($user_id); ?></td>
+                                <td><?php echo esc_html($user->display_name); ?></td>
+                                <td><?php echo esc_html($user->user_email); ?></td>
+                                <td>
+                                    <button type="button" class="button button-small admin-order-form-remove-user" data-user-id="<?php echo esc_attr($user_id); ?>">
+                                        <span class="dashicons dashicons-trash" style="vertical-align: middle;"></span>
+                                        حذف
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Hidden input to store selected user IDs -->
+                <input type="hidden" id="admin_order_form_allowed_users" name="admin_order_form_allowed_users" 
+                       value="<?php echo esc_attr(implode(',', $admin_order_form_allowed_users)); ?>">
             </div>
 
         <p class="submit">
@@ -1209,6 +1315,125 @@ jQuery(document).ready(function($) {
             '<td>' + escapeHtml(userName) + '</td>' +
             '<td>' + escapeHtml(userEmail) + '</td>' +
             '<td><button type="button" class="button button-small admin-dashboard-remove-user" data-user-id="' + userId + '">' +
+            '<span class="dashicons dashicons-trash" style="vertical-align: middle;"></span> حذف</button></td>' +
+            '</tr>';
+        
+        $table.find('tbody').append(rowHtml);
+    }
+
+    // Admin Order Form access control functionality
+    var adminOrderFormAllowedUsers = $('#admin_order_form_allowed_users').val() ? $('#admin_order_form_allowed_users').val().split(',').map(Number).filter(Boolean) : [];
+    
+    // Search users for admin order form
+    $('#admin_order_form_user_search_btn').on('click', function() {
+        var search = $('#admin_order_form_user_search').val().trim();
+        var $results = $('#admin_order_form_user_search_results');
+        
+        if (search.length < 2) {
+            $results.html('<p style="color: red;">حداقل ۲ کاراکتر وارد کنید</p>');
+            return;
+        }
+        
+        $results.html('<p style="color: #666;">در حال جستجو...</p>');
+        
+        $.ajax({
+            url: tabeshAdminConfig.usersSearchUrl,
+            method: 'GET',
+            data: { search: search },
+            headers: {
+                'X-WP-Nonce': tabeshAdminConfig.nonce
+            },
+            success: function(response) {
+                if (response.success && response.users.length > 0) {
+                    var html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                    response.users.forEach(function(user) {
+                        var isAdded = adminOrderFormAllowedUsers.indexOf(user.id) !== -1;
+                        html += '<li style="padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<span><strong>' + escapeHtml(user.display_name) + '</strong> (' + escapeHtml(user.user_email) + ')</span>';
+                        if (isAdded) {
+                            html += '<span style="color: green;">✓ افزوده شده</span>';
+                        } else {
+                            html += '<button type="button" class="button button-small admin-order-form-add-user" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.display_name) + '" data-user-email="' + escapeHtml(user.user_email) + '">افزودن</button>';
+                        }
+                        html += '</li>';
+                    });
+                    html += '</ul>';
+                    $results.html(html);
+                } else {
+                    $results.html('<p>کاربری یافت نشد</p>');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'خطا در جستجو';
+                $results.html('<p style="color: red;">' + escapeHtml(msg) + '</p>');
+            }
+        });
+    });
+    
+    // Enter key to search for admin order form users
+    $('#admin_order_form_user_search').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#admin_order_form_user_search_btn').click();
+        }
+    });
+    
+    // Add user to admin order form allowed list
+    $(document).on('click', '.admin-order-form-add-user', function() {
+        var userId = parseInt($(this).data('user-id'));
+        var userName = $(this).data('user-name');
+        var userEmail = $(this).data('user-email');
+        
+        if (adminOrderFormAllowedUsers.indexOf(userId) === -1) {
+            adminOrderFormAllowedUsers.push(userId);
+            updateAdminOrderFormAllowedUsersList();
+            addUserToAdminOrderFormTable(userId, userName, userEmail);
+        }
+        
+        $(this).replaceWith('<span style="color: green;">✓ افزوده شده</span>');
+    });
+    
+    // Remove user from admin order form allowed list
+    $(document).on('click', '.admin-order-form-remove-user', function() {
+        var userId = parseInt($(this).data('user-id'));
+        var index = adminOrderFormAllowedUsers.indexOf(userId);
+        
+        if (index !== -1) {
+            adminOrderFormAllowedUsers.splice(index, 1);
+            updateAdminOrderFormAllowedUsersList();
+        }
+        
+        $(this).closest('tr').fadeOut(300, function() {
+            $(this).remove();
+            if ($('#admin_order_form_users_table tbody tr').length === 0) {
+                $('#admin_order_form_users_table').remove();
+                $('#admin_order_form_allowed_users_list').html('<p class="description" id="no_admin_order_form_users_msg">هنوز هیچ کاربر خاصی انتخاب نشده است. فقط کاربران با نقش‌های مجاز بالا به فرم سفارش مدیر دسترسی دارند.</p>');
+            }
+        });
+    });
+    
+    function updateAdminOrderFormAllowedUsersList() {
+        $('#admin_order_form_allowed_users').val(adminOrderFormAllowedUsers.join(','));
+    }
+    
+    function addUserToAdminOrderFormTable(userId, userName, userEmail) {
+        var $table = $('#admin_order_form_users_table');
+        var $noMsg = $('#no_admin_order_form_users_msg');
+        
+        if ($table.length === 0) {
+            $noMsg.remove();
+            var tableHtml = '<table class="widefat striped" id="admin_order_form_users_table">' +
+                '<thead><tr><th>شناسه</th><th>نام نمایشی</th><th>ایمیل</th><th>عملیات</th></tr></thead>' +
+                '<tbody></tbody></table>';
+            $('#admin_order_form_allowed_users_list').html(tableHtml);
+            $table = $('#admin_order_form_users_table');
+        }
+        
+        var rowHtml = '<tr data-user-id="' + userId + '">' +
+            '<td>' + userId + '</td>' +
+            '<td>' + escapeHtml(userName) + '</td>' +
+            '<td>' + escapeHtml(userEmail) + '</td>' +
+            '<td><button type="button" class="button button-small admin-order-form-remove-user" data-user-id="' + userId + '">' +
             '<span class="dashicons dashicons-trash" style="vertical-align: middle;"></span> حذف</button></td>' +
             '</tr>';
         
