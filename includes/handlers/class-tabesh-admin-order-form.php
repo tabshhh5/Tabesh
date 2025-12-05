@@ -73,10 +73,16 @@ class Tabesh_Admin_Order_Form {
      * بارگذاری فایل‌های CSS و JavaScript برای فرانت‌اند
      */
     public function enqueue_assets() {
-        // Only enqueue on pages with admin order form shortcode
-        // فقط در صفحاتی که شورتکد دارند بارگذاری شود
+        // Only enqueue on pages with admin order form shortcode or admin dashboard shortcode (which includes the form via modal)
+        // فقط در صفحاتی که شورتکد دارند بارگذاری شود (شامل داشبورد مدیر که فرم را در مودال نمایش می‌دهد)
         global $post;
-        if (!is_a($post, 'WP_Post') || !has_shortcode($post->post_content, 'tabesh_admin_order_form')) {
+        if (!is_a($post, 'WP_Post')) {
+            return;
+        }
+        
+        // Check for direct shortcode usage or admin dashboard shortcode (which uses the form in a modal)
+        if (!has_shortcode($post->post_content, 'tabesh_admin_order_form') && 
+            !has_shortcode($post->post_content, 'tabesh_admin_dashboard')) {
             return;
         }
 

@@ -108,6 +108,14 @@
             // Modal close
             $(document).on('click', '.modal-close-btn', this.closeModal.bind(this));
 
+            // New Order Modal
+            $(document).on('click', '.admin-new-order-btn', this.openOrderModal.bind(this));
+            $(document).on('click', '#tabesh-admin-order-modal .modal-overlay', this.closeOrderModal.bind(this));
+            $(document).on('click', '#tabesh-admin-order-modal .modal-close-btn', this.closeOrderModal.bind(this));
+            
+            // Listen for order submission success
+            $(document).on('tabesh_order_submitted', this.handleOrderSubmitted.bind(this));
+
             // Pagination
             $(document).on('click', '.pagination-btn:not(:disabled)', this.handlePagination.bind(this));
 
@@ -765,6 +773,12 @@
         handleKeyboard: function(e) {
             // Escape key - close modal or collapse expanded row
             if (e.key === 'Escape') {
+                // Close order modal first if visible
+                if ($('#tabesh-admin-order-modal').is(':visible')) {
+                    this.closeOrderModal();
+                    return;
+                }
+                
                 if ($('.fullscreen-modal.visible').length) {
                     this.closeModal();
                 } else if (this.state.expandedOrderId) {
@@ -776,6 +790,47 @@
             // Enter key in search - perform search
             if (e.key === 'Enter' && $(e.target).hasClass('global-search-input')) {
                 this.performSearchNow();
+            }
+        },
+
+        /**
+         * Open order modal
+         * باز کردن مودال ثبت سفارش
+         */
+        openOrderModal: function(e) {
+            e.preventDefault();
+            $('#tabesh-admin-order-modal').fadeIn(300);
+            $('body').css('overflow', 'hidden');
+        },
+
+        /**
+         * Close order modal
+         * بستن مودال ثبت سفارش
+         */
+        closeOrderModal: function() {
+            $('#tabesh-admin-order-modal').fadeOut(300);
+            $('body').css('overflow', '');
+        },
+
+        /**
+         * Handle order submitted event
+         * پردازش رویداد ثبت موفق سفارش
+         */
+        handleOrderSubmitted: function(e, data) {
+            if (data && data.success) {
+                // Close modal
+                this.closeOrderModal();
+                
+                // Show success toast using localized string
+                const successMessage = (typeof tabeshAdminData !== 'undefined' && tabeshAdminData.strings && tabeshAdminData.strings.orderSubmitSuccess)
+                    ? tabeshAdminData.strings.orderSubmitSuccess
+                    : 'سفارش با موفقیت ثبت شد';
+                this.showToast(successMessage, 'success');
+                
+                // Refresh page after delay
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
             }
         },
 

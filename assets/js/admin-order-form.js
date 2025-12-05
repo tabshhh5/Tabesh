@@ -551,6 +551,14 @@
             success: function(response) {
                 if (response.success) {
                     showToast(response.message || tabeshAdminOrderForm.strings.success, 'success');
+                    
+                    // Trigger custom event for parent dashboard to handle
+                    // ارسال رویداد سفارشی برای پردازش توسط داشبورد والد
+                    $(document).trigger('tabesh_order_submitted', { 
+                        success: true, 
+                        order_id: response.order_id 
+                    });
+                    
                     // Reset form after successful submission
                     // بازنشانی فرم پس از ارسال موفق
                     setTimeout(function() {
