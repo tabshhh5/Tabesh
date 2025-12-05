@@ -1,274 +1,303 @@
 /**
- * Admin Order Form Shortcode CSS - Redesigned Horizontal Layout
+ * Admin Order Form Shortcode CSS - Redesigned Compact Horizontal Layout
  * 
- * استایل فرم ثبت سفارش ویژه مدیر - بازطراحی چیدمان افقی
- * Modern horizontal styling for the admin order form shortcode
+ * استایل فرم ثبت سفارش ویژه مدیر - بازطراحی چیدمان افقی فشرده
+ * Modern compact horizontal styling for the admin order form shortcode
+ * Designed to fit on 1366x768 screens without scrolling
  * 
  * Features / ویژگی‌ها:
- * - Horizontal (inline) layout for compact display / چیدمان افقی (خطی) برای نمایش فشرده
- * - Responsive for desktop, tablet, and mobile / واکنش‌گرا برای دسکتاپ، تبلت و موبایل
- * - No horizontal scroll required / بدون نیاز به اسکرول افقی
- * - Modern UX/UI standards / استانداردهای مدرن UX/UI
+ * - Compact horizontal layout / چیدمان افقی فشرده
+ * - Sticky header and footer / هدر و فوتر ثابت
+ * - CSS Grid for form fields / گرید CSS برای فیلدهای فرم
+ * - Responsive design (desktop, tablet, mobile) / طراحی واکنش‌گرا
+ * - No scroll on 1366x768 desktop / بدون اسکرول در دسکتاپ ۱۳۶۶×۷۶۸
  * 
  * @package Tabesh
  * @since 1.0.4
  */
 
 /* ==========================================================================
-   Variables / متغیرها
-   CSS custom properties for consistent theming / متغیرهای سفارشی CSS برای تم یکپارچه
+   CSS Variables / متغیرهای CSS
+   Design tokens for consistent theming / توکن‌های طراحی برای تم یکپارچه
    ========================================================================== */
 
-.tabesh-admin-order-form-wrapper {
-    --aof-primary: #667eea;
-    --aof-primary-hover: #5568d3;
-    --aof-secondary: #764ba2;
-    --aof-success: #16a34a;
-    --aof-success-hover: #15803d;
+.tabesh-aof-wrapper {
+    /* Colors / رنگ‌ها */
+    --aof-primary: #2563eb;
+    --aof-primary-hover: #1d4ed8;
+    --aof-secondary: #7c3aed;
+    --aof-success: #10b981;
+    --aof-success-hover: #059669;
     --aof-warning: #f59e0b;
-    --aof-error: #ef4444;
-    --aof-bg-primary: #f8fafc;
-    --aof-bg-secondary: #ffffff;
-    --aof-text-primary: #1a202c;
-    --aof-text-secondary: #4a5568;
+    --aof-danger: #ef4444;
+    
+    /* Backgrounds / پس‌زمینه‌ها */
+    --aof-bg: #f9fafb;
+    --aof-bg-card: #ffffff;
+    --aof-bg-muted: #f3f4f6;
+    
+    /* Text / متن */
+    --aof-text: #111827;
+    --aof-text-secondary: #374151;
     --aof-text-muted: #6b7280;
+    
+    /* Borders / حاشیه‌ها */
     --aof-border: #e5e7eb;
     --aof-border-focus: var(--aof-primary);
+    
+    /* Shadows / سایه‌ها */
     --aof-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --aof-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --aof-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
-    --aof-radius-sm: 6px;
-    --aof-radius-md: 10px;
-    --aof-radius-lg: 16px;
-    --aof-transition: all 0.2s ease;
+    --aof-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --aof-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Spacing (Compact) / فاصله‌ها (فشرده) */
+    --aof-space-xs: 4px;
+    --aof-space-sm: 6px;
+    --aof-space-md: 10px;
+    --aof-space-lg: 14px;
+    --aof-space-xl: 20px;
+    
+    /* Typography / تایپوگرافی */
+    --aof-font-xs: 11px;
+    --aof-font-sm: 12px;
+    --aof-font-base: 13px;
+    --aof-font-lg: 14px;
+    --aof-font-xl: 16px;
+    
+    /* Radius / گردی */
+    --aof-radius-sm: 4px;
+    --aof-radius: 6px;
+    --aof-radius-lg: 8px;
+    
+    /* Transitions / انتقال‌ها */
+    --aof-transition: all 0.15s ease;
 }
 
 /* ==========================================================================
    Wrapper / پوشش اصلی
-   Main container for the form / کانتینر اصلی فرم
+   Main container - flex column layout / کانتینر اصلی - چیدمان ستونی فلکس
    ========================================================================== */
 
-.tabesh-admin-order-form-wrapper {
-    font-family: 'Vazirmatn', 'Vazir', 'Tahoma', 'Arial', sans-serif;
+.tabesh-aof-wrapper {
+    font-family: 'Vazirmatn', 'Vazir', 'Tahoma', Arial, sans-serif;
     direction: rtl;
     text-align: right;
-    padding: 15px 10px;
-}
-
-/* Container - wider for horizontal layout / کانتینر - عریض‌تر برای چیدمان افقی */
-.tabesh-aof-container {
+    display: flex;
+    flex-direction: column;
     max-width: 1400px;
     margin: 0 auto;
-    background: var(--aof-bg-secondary);
-    border-radius: var(--aof-radius-md);
-    box-shadow: var(--aof-shadow-md);
+    background: var(--aof-bg);
+    border-radius: var(--aof-radius-lg);
+    box-shadow: var(--aof-shadow-lg);
     overflow: hidden;
+    /* Fit on 1366x768 without scrolling */
+    max-height: calc(100vh - 80px);
 }
 
 /* ==========================================================================
-   Header / هدر
-   Compact header design / طراحی هدر فشرده
+   Sticky Header / هدر ثابت
+   Compact sticky header / هدر ثابت فشرده
    ========================================================================== */
 
 .tabesh-aof-header {
     background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
-    color: #ffffff;
-    padding: 15px 20px;
+    color: #fff;
+    padding: var(--aof-space-sm) var(--aof-space-lg);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.tabesh-aof-header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-md);
 }
 
 .tabesh-aof-title {
     margin: 0;
-    font-size: 18px;
+    font-size: var(--aof-font-lg);
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--aof-space-sm);
 }
 
 .tabesh-aof-title .dashicons {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
 }
 
 .tabesh-aof-subtitle {
-    margin: 0;
-    font-size: 13px;
-    opacity: 0.9;
+    font-size: var(--aof-font-xs);
+    opacity: 0.85;
+}
+
+.tabesh-aof-header-hint {
+    font-size: var(--aof-font-xs);
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-xs);
+}
+
+.tabesh-aof-header-hint kbd {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 10px;
 }
 
 /* ==========================================================================
    Form / فرم
-   Compact padding for horizontal layout / پدینگ فشرده برای چیدمان افقی
+   Scrollable form area / ناحیه فرم قابل اسکرول
    ========================================================================== */
 
 .tabesh-aof-form {
-    padding: 15px;
-    background: var(--aof-bg-primary);
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--aof-space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--aof-space-md);
+}
+
+/* Custom scrollbar / نوار اسکرول سفارشی */
+.tabesh-aof-form::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabesh-aof-form::-webkit-scrollbar-track {
+    background: var(--aof-bg-muted);
+}
+
+.tabesh-aof-form::-webkit-scrollbar-thumb {
+    background: var(--aof-border);
+    border-radius: 3px;
+}
+
+.tabesh-aof-form::-webkit-scrollbar-thumb:hover {
+    background: var(--aof-text-muted);
 }
 
 /* ==========================================================================
    Sections / بخش‌ها
-   Horizontal section layout / چیدمان افقی بخش‌ها
+   Compact section cards / کارت‌های بخش فشرده
    ========================================================================== */
 
 .tabesh-aof-section {
-    background: var(--aof-bg-secondary);
-    border-radius: var(--aof-radius-sm);
-    padding: 15px;
-    margin-bottom: 12px;
+    background: var(--aof-bg-card);
+    border-radius: var(--aof-radius);
+    padding: var(--aof-space-md);
     box-shadow: var(--aof-shadow-sm);
     border: 1px solid var(--aof-border);
 }
 
-.tabesh-aof-section:last-of-type {
-    margin-bottom: 0;
-}
-
-/* Section title - compact inline / عنوان بخش - فشرده خطی */
-.tabesh-aof-section-title {
-    margin: 0 0 12px 0;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--aof-text-primary);
-    display: inline-flex;
+.tabesh-aof-section-header {
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding-bottom: 8px;
+    gap: var(--aof-space-sm);
+    margin-bottom: var(--aof-space-md);
+    padding-bottom: var(--aof-space-sm);
     border-bottom: 2px solid var(--aof-primary);
 }
 
-/* Section number - smaller / شماره بخش - کوچک‌تر */
-.section-number {
+.section-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
-    color: #ffffff;
+    color: #fff;
     border-radius: 50%;
-    font-size: 12px;
+    font-size: var(--aof-font-xs);
     font-weight: 700;
 }
 
+.section-label {
+    font-size: var(--aof-font-base);
+    font-weight: 600;
+    color: var(--aof-text);
+}
+
 /* ==========================================================================
-   Form Groups / گروه‌های فرم
-   Horizontal inline form layout / چیدمان خطی افقی فرم
+   Customer Section / بخش مشتری
+   Inline customer selection / انتخاب مشتری خطی
    ========================================================================== */
 
-/* 
-   Form row - responsive multi-column grid / ردیف فرم - گرید چند ستونی واکنش‌گرا
-   Uses auto-fit with minmax for flexible column sizing
-   از auto-fit با minmax برای اندازه‌بندی انعطاف‌پذیر ستون‌ها استفاده می‌شود
-*/
-.tabesh-aof-form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: end;
+.tabesh-aof-section-customer {
+    padding: var(--aof-space-sm) var(--aof-space-md);
 }
 
-.tabesh-aof-form-row:last-child {
-    margin-bottom: 0;
-}
-
-/* Form group - compact layout / گروه فرم - چیدمان فشرده */
-.tabesh-aof-form-group {
+.tabesh-aof-customer-row {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: var(--aof-space-md);
+    flex-wrap: wrap;
+}
+
+/* Toggle group / گروه تغییر */
+.tabesh-aof-toggle-group {
+    display: inline-flex;
+    background: var(--aof-bg-muted);
+    border-radius: var(--aof-radius);
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.tabesh-aof-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--aof-space-xs) var(--aof-space-md);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    color: var(--aof-text-secondary);
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tabesh-aof-toggle input:checked + .toggle-text {
+    background: var(--aof-bg-card);
+    color: var(--aof-primary);
+    font-weight: 600;
+    box-shadow: var(--aof-shadow-sm);
+}
+
+.toggle-text {
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius-sm);
+    transition: var(--aof-transition);
+}
+
+/* Customer fields / فیلدهای مشتری */
+.tabesh-aof-customer-fields {
+    flex: 1;
     min-width: 0;
 }
 
-/* Full width groups - span all columns / گروه‌های تمام عرض - پوشش تمام ستون‌ها */
-.tabesh-aof-form-group.tabesh-aof-full-width {
-    grid-column: 1 / -1;
-}
-
-/* Labels - compact / برچسب‌ها - فشرده */
-.tabesh-aof-form-group label {
-    font-weight: 500;
-    color: var(--aof-text-primary);
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tabesh-aof-form-group label .required {
-    color: var(--aof-error);
-    margin-right: 2px;
-    font-weight: 700;
-}
-
-/* Field hint - compact / راهنمای فیلد - فشرده */
-.field-hint {
-    font-size: 10px;
-    color: var(--aof-text-muted);
-    margin-top: 2px;
-}
-
-/* ==========================================================================
-   Inputs / ورودی‌ها
-   Compact input styling for horizontal layout / استایل فشرده ورودی‌ها برای چیدمان افقی
-   ========================================================================== */
-
-.tabesh-aof-input,
-.tabesh-aof-select,
-.tabesh-aof-textarea {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--aof-border);
-    border-radius: var(--aof-radius-sm);
-    font-size: 13px;
-    font-family: inherit;
-    background: var(--aof-bg-secondary);
-    color: var(--aof-text-primary);
-    transition: var(--aof-transition);
-    box-sizing: border-box;
-}
-
-.tabesh-aof-input:hover,
-.tabesh-aof-select:hover,
-.tabesh-aof-textarea:hover {
-    border-color: #cbd5e1;
-}
-
-.tabesh-aof-input:focus,
-.tabesh-aof-select:focus,
-.tabesh-aof-textarea:focus {
-    outline: none;
-    border-color: var(--aof-primary);
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
-}
-
-/* Textarea - compact / تکست‌اریا - فشرده */
-.tabesh-aof-textarea {
-    resize: vertical;
-    min-height: 60px;
-}
-
-/* ==========================================================================
-   Search Wrapper / پوشش جستجو
-   Inline search with icon / جستجوی خطی با آیکون
-   ========================================================================== */
-
-.tabesh-aof-search-wrapper {
+/* Search box / جعبه جستجو */
+.tabesh-aof-search-box {
     position: relative;
-    display: flex;
-    align-items: center;
+    max-width: 350px;
 }
 
-.tabesh-aof-search-wrapper .search-icon {
+.tabesh-aof-search-box .search-icon {
     position: absolute;
-    left: 10px;
+    right: var(--aof-space-sm);
     top: 50%;
     transform: translateY(-50%);
     color: var(--aof-text-muted);
@@ -276,26 +305,214 @@
     pointer-events: none;
 }
 
-.tabesh-aof-search-wrapper .tabesh-aof-input {
-    padding-left: 35px;
+.tabesh-aof-search-box .tabesh-aof-input {
+    padding-right: 32px;
+}
+
+/* Inline fields / فیلدهای خطی */
+.tabesh-aof-inline-fields {
+    display: flex;
+    gap: var(--aof-space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tabesh-aof-inline-fields .tabesh-aof-input {
+    width: 130px;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Grid Layout / چیدمان گرید
+   Responsive grid for order fields / گرید واکنش‌گرا برای فیلدهای سفارش
+   ========================================================================== */
+
+.tabesh-aof-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--aof-space-sm);
+    margin-bottom: var(--aof-space-sm);
+}
+
+.tabesh-aof-grid:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Form Fields / فیلدهای فرم
+   Compact field styling / استایل فشرده فیلدها
+   ========================================================================== */
+
+.tabesh-aof-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.tabesh-aof-field-full {
+    grid-column: 1 / -1;
+    margin-bottom: var(--aof-space-sm);
+}
+
+.tabesh-aof-field label {
+    font-size: var(--aof-font-xs);
+    font-weight: 500;
+    color: var(--aof-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tabesh-aof-field label .req {
+    color: var(--aof-danger);
+    font-weight: 700;
+}
+
+/* Inputs / ورودی‌ها */
+.tabesh-aof-input,
+.tabesh-aof-select {
+    width: 100%;
+    height: 32px;
+    padding: 0 var(--aof-space-sm);
+    border: 1px solid var(--aof-border);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    font-family: inherit;
+    background: var(--aof-bg-card);
+    color: var(--aof-text);
+    transition: var(--aof-transition);
+    box-sizing: border-box;
+}
+
+.tabesh-aof-input:hover,
+.tabesh-aof-select:hover {
+    border-color: var(--aof-text-muted);
+}
+
+.tabesh-aof-input:focus,
+.tabesh-aof-select:focus {
+    outline: none;
+    border-color: var(--aof-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.tabesh-aof-input-sm {
+    height: 28px;
+    width: 120px;
+}
+
+/* Textarea / تکست‌اریا */
+.tabesh-aof-textarea {
+    width: 100%;
+    height: 36px;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border: 1px solid var(--aof-border);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    font-family: inherit;
+    background: var(--aof-bg-card);
+    color: var(--aof-text);
+    resize: none;
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-textarea:focus {
+    outline: none;
+    border-color: var(--aof-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ==========================================================================
+   Extras & Notes Row / ردیف آپشن‌ها و یادداشت
+   Inline extras with notes / آپشن‌های خطی با یادداشت
+   ========================================================================== */
+
+.tabesh-aof-extras-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--aof-space-lg);
+    margin-top: var(--aof-space-sm);
+}
+
+.tabesh-aof-extras {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.extras-label {
+    font-size: var(--aof-font-xs);
+    font-weight: 500;
+    color: var(--aof-text-secondary);
+}
+
+.tabesh-aof-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aof-space-xs);
+}
+
+/* Chip checkbox / چک‌باکس چیپ */
+.tabesh-aof-chip {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    background: var(--aof-bg-muted);
+    border: 1px solid transparent;
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-chip:hover {
+    background: var(--aof-border);
+}
+
+.tabesh-aof-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tabesh-aof-chip input:checked + .chip-text {
+    color: var(--aof-primary);
+    font-weight: 600;
+}
+
+/* Note: :has() may not work in older browsers. JS fallback adds .chip-checked class */
+.tabesh-aof-chip:has(input:checked),
+.tabesh-aof-chip.chip-checked {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--aof-primary);
+}
+
+.tabesh-aof-notes {
+    flex: 1;
+    min-width: 200px;
 }
 
 /* ==========================================================================
    Search Results / نتایج جستجو
-   Dropdown search results / نتایج جستجوی کشویی
+   Dropdown results / نتایج کشویی
    ========================================================================== */
 
 .tabesh-aof-search-results {
     position: absolute;
     width: 100%;
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
-    background: var(--aof-bg-secondary);
+    background: var(--aof-bg-card);
     border: 1px solid var(--aof-border);
     border-top: none;
     border-radius: 0 0 var(--aof-radius-sm) var(--aof-radius-sm);
-    box-shadow: var(--aof-shadow-md);
-    z-index: 100;
+    box-shadow: var(--aof-shadow-lg);
+    z-index: 200;
     top: 100%;
 }
 
@@ -304,13 +521,13 @@
 }
 
 .tabesh-aof-search-results .user-result-item {
-    padding: 10px 12px;
+    padding: var(--aof-space-sm) var(--aof-space-md);
     cursor: pointer;
     border-bottom: 1px solid var(--aof-border);
     transition: var(--aof-transition);
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .tabesh-aof-search-results .user-result-item:last-child {
@@ -318,281 +535,212 @@
 }
 
 .tabesh-aof-search-results .user-result-item:hover {
-    background: #f0f9ff;
+    background: rgba(37, 99, 235, 0.05);
     border-right: 3px solid var(--aof-primary);
 }
 
 .tabesh-aof-search-results .user-name {
     font-weight: 600;
-    color: var(--aof-text-primary);
-    font-size: 13px;
+    color: var(--aof-text);
+    font-size: var(--aof-font-sm);
 }
 
 .tabesh-aof-search-results .user-login {
-    font-size: 11px;
+    font-size: var(--aof-font-xs);
     color: var(--aof-text-muted);
 }
 
 .tabesh-aof-search-results .searching,
 .tabesh-aof-search-results .no-results,
 .tabesh-aof-search-results .error {
-    padding: 12px;
+    padding: var(--aof-space-md);
     text-align: center;
     color: var(--aof-text-muted);
-    font-size: 12px;
+    font-size: var(--aof-font-sm);
 }
 
 .tabesh-aof-search-results .error {
-    color: var(--aof-error);
+    color: var(--aof-danger);
 }
 
 /* ==========================================================================
    Selected User / کاربر انتخاب شده
-   Compact inline selected user display / نمایش فشرده خطی کاربر انتخاب شده
+   Inline selected user tag / تگ خطی کاربر انتخاب شده
    ========================================================================== */
 
 .tabesh-aof-selected-user:empty {
     display: none;
 }
 
+.tabesh-aof-selected-user {
+    margin-top: var(--aof-space-xs);
+}
+
 .tabesh-aof-selected-user .selected-user {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
-    border: 1px solid #93c5fd;
-    border-radius: var(--aof-radius-sm);
-    margin-top: 8px;
-    font-size: 13px;
+    gap: var(--aof-space-sm);
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid var(--aof-primary);
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
 }
 
 .tabesh-aof-selected-user .selected-user strong {
-    color: #1e40af;
-    font-size: 13px;
+    color: var(--aof-primary);
 }
 
 .tabesh-aof-selected-user .remove-user {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1;
     cursor: pointer;
     color: var(--aof-text-muted);
-    padding: 0 4px;
-    border-radius: 4px;
+    padding: 2px;
+    border-radius: 3px;
     transition: var(--aof-transition);
 }
 
 .tabesh-aof-selected-user .remove-user:hover {
-    background: #bfdbfe;
-    color: #1e40af;
+    background: var(--aof-danger);
+    color: #fff;
 }
 
 /* ==========================================================================
-   Radio & Checkbox / رادیو و چک‌باکس
-   Inline horizontal groups / گروه‌های افقی خطی
+   Sticky Footer / فوتر ثابت
+   Action bar with price display / نوار عملیات با نمایش قیمت
    ========================================================================== */
 
-.tabesh-aof-radio-group,
-.tabesh-aof-checkbox-group {
+.tabesh-aof-footer {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-top: 2px solid var(--aof-success);
+    padding: var(--aof-space-sm) var(--aof-space-lg);
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aof-space-lg);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+}
+
+/* Price bar / نوار قیمت */
+.tabesh-aof-price-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-lg);
     flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
 }
 
-.tabesh-aof-radio,
-.tabesh-aof-checkbox {
-    display: inline-flex;
+.tabesh-aof-price-item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aof-space-xs);
+}
+
+.tabesh-aof-price-item .price-label {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
+    font-weight: 500;
+}
+
+.tabesh-aof-price-item .price-value {
+    font-size: var(--aof-font-lg);
+    font-weight: 700;
+    color: var(--aof-text-muted);
+    min-width: 80px;
+}
+
+.tabesh-aof-price-item .price-unit {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-muted);
+}
+
+.tabesh-aof-price-final {
+    padding-right: var(--aof-space-md);
+    border-right: 2px solid var(--aof-success);
+}
+
+.tabesh-aof-price-final .price-value {
+    color: var(--aof-success);
+}
+
+/* Override price / قیمت دلخواه */
+.tabesh-aof-override {
+    display: flex;
     align-items: center;
+    gap: var(--aof-space-sm);
+}
+
+.tabesh-aof-override-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-xs);
     cursor: pointer;
-    font-weight: 400;
-    padding: 6px 10px;
-    border-radius: var(--aof-radius-sm);
-    transition: var(--aof-transition);
-    background: var(--aof-bg-primary);
-    border: 1px solid transparent;
-    font-size: 12px;
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
 }
 
-.tabesh-aof-radio:hover,
-.tabesh-aof-checkbox:hover {
-    background: #f3f4f6;
-    border-color: var(--aof-border);
-}
-
-.tabesh-aof-radio input[type="radio"],
-.tabesh-aof-checkbox input[type="checkbox"] {
+.tabesh-aof-override-toggle input {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.radio-custom,
-.checkbox-custom {
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--aof-border);
-    background: var(--aof-bg-secondary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
+.toggle-slider {
+    width: 32px;
+    height: 18px;
+    background: var(--aof-border);
+    border-radius: 9px;
+    position: relative;
     transition: var(--aof-transition);
-    flex-shrink: 0;
 }
 
-.radio-custom {
-    border-radius: 50%;
-}
-
-.checkbox-custom {
-    border-radius: 3px;
-}
-
-.tabesh-aof-radio input:checked + .radio-custom,
-.tabesh-aof-checkbox input:checked + .checkbox-custom {
-    background: var(--aof-primary);
-    border-color: var(--aof-primary);
-}
-
-.tabesh-aof-radio input:checked + .radio-custom::after {
+.toggle-slider::after {
     content: '';
-    width: 6px;
-    height: 6px;
-    background: #ffffff;
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
     border-radius: 50%;
+    top: 2px;
+    right: 2px;
+    transition: var(--aof-transition);
+    box-shadow: var(--aof-shadow-sm);
 }
 
-.tabesh-aof-checkbox input:checked + .checkbox-custom::after {
-    content: '✓';
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: 700;
+.tabesh-aof-override-toggle input:checked + .toggle-slider {
+    background: var(--aof-primary);
 }
 
-.radio-label,
-.checkbox-label {
-    color: var(--aof-text-primary);
-    font-size: 12px;
+.tabesh-aof-override-toggle input:checked + .toggle-slider::after {
+    right: 16px;
 }
 
-/* ==========================================================================
-   Customer Selection / انتخاب مشتری
-   Horizontal inline customer selection / انتخاب مشتری خطی افقی
-   ========================================================================== */
-
-.tabesh-aof-customer-selection {
-    margin-top: 8px;
-}
-
-/* Inline customer section layout / چیدمان خطی بخش مشتری */
-.tabesh-aof-customer-selection > .tabesh-aof-radio-group {
-    margin-bottom: 10px;
-}
-
-.tabesh-aof-subsection {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--aof-border);
-}
-
-/* Existing user section - horizontal layout / بخش کاربر موجود - چیدمان افقی */
-#aof-existing-user-section .tabesh-aof-form-group {
-    max-width: 100%;
-}
-
-/* New user section - horizontal form row / بخش کاربر جدید - ردیف فرم افقی */
-#aof-new-user-section .tabesh-aof-form-row {
-    grid-template-columns: repeat(3, 1fr);
-    align-items: end;
-}
-
-#aof-new-user-section .tabesh-aof-btn {
-    margin-top: 10px;
-}
-
-/* ==========================================================================
-   Price Display / نمایش قیمت
-   Compact inline price section / بخش قیمت فشرده خطی
-   ========================================================================== */
-
-.tabesh-aof-price-section {
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    border: 1px solid #86efac;
-}
-
-.tabesh-aof-price-display {
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: var(--aof-radius-sm);
-}
-
-/* Price row - inline horizontal / ردیف قیمت - افقی خطی */
-.tabesh-aof-price-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-}
-
-.tabesh-aof-price-row .price-label {
-    font-weight: 500;
-    color: #166534;
-    font-size: 13px;
-}
-
-.tabesh-aof-price-row .price-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--aof-text-muted);
-}
-
-.tabesh-aof-final-price {
-    margin-right: 20px;
-    padding-right: 20px;
-    border-right: 2px solid #22c55e;
-}
-
-.tabesh-aof-final-price .price-value {
-    color: var(--aof-success);
-}
-
-/* Override price - inline compact / قیمت دلخواه - خطی فشرده */
-.tabesh-aof-override-price {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    flex-wrap: wrap;
-}
-
-.tabesh-aof-override-price .tabesh-aof-checkbox {
-    margin: 0;
-}
-
-.tabesh-aof-override-price .tabesh-aof-input {
-    width: auto;
-    min-width: 150px;
-    max-width: 180px;
+/* Actions / عملیات */
+.tabesh-aof-actions {
+    display: flex;
+    gap: var(--aof-space-sm);
 }
 
 /* ==========================================================================
    Buttons / دکمه‌ها
-   Compact inline buttons / دکمه‌های فشرده خطی
+   Compact action buttons / دکمه‌های عملیات فشرده
    ========================================================================== */
 
 .tabesh-aof-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: var(--aof-space-xs);
+    padding: var(--aof-space-sm) var(--aof-space-lg);
     border: none;
-    border-radius: var(--aof-radius-sm);
-    font-size: 13px;
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -601,31 +749,42 @@
 }
 
 .tabesh-aof-btn .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
 }
 
-.tabesh-aof-btn-primary {
-    background: linear-gradient(135deg, var(--aof-success) 0%, var(--aof-success-hover) 100%);
-    color: #ffffff;
+.tabesh-aof-btn-sm {
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    font-size: var(--aof-font-xs);
 }
 
-.tabesh-aof-btn-primary:hover {
-    background: linear-gradient(135deg, var(--aof-success-hover) 0%, #166534 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+.tabesh-aof-btn-sm .dashicons {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
 }
 
-.tabesh-aof-btn-secondary {
+.tabesh-aof-btn-calc {
     background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
-    color: #ffffff;
+    color: #fff;
 }
 
-.tabesh-aof-btn-secondary:hover {
-    background: linear-gradient(135deg, var(--aof-primary-hover) 0%, #653b8a 100%);
+.tabesh-aof-btn-calc:hover {
+    background: linear-gradient(135deg, var(--aof-primary-hover) 0%, #6d28d9 100%);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.tabesh-aof-btn-submit {
+    background: linear-gradient(135deg, var(--aof-success) 0%, var(--aof-success-hover) 100%);
+    color: #fff;
+}
+
+.tabesh-aof-btn-submit:hover {
+    background: linear-gradient(135deg, var(--aof-success-hover) 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .tabesh-aof-btn:disabled {
@@ -635,47 +794,116 @@
 }
 
 /* ==========================================================================
-   Actions / عملیات
-   Inline action buttons / دکمه‌های عملیات خطی
+   Toast Notifications / اعلان‌های توست
+   Modern toast messages / پیام‌های توست مدرن
    ========================================================================== */
 
-.tabesh-aof-actions {
+.tabesh-aof-toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
     display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid var(--aof-border);
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: var(--aof-space-sm);
+    pointer-events: none;
+}
+
+.tabesh-aof-toast {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    padding: var(--aof-space-md) var(--aof-space-lg);
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
+    font-weight: 500;
+    box-shadow: var(--aof-shadow-lg);
+    animation: toastSlideIn 0.3s ease;
+    pointer-events: auto;
+    max-width: 400px;
+}
+
+.tabesh-aof-toast-success {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid var(--aof-success);
+    color: #166534;
+}
+
+.tabesh-aof-toast-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid var(--aof-danger);
+    color: #991b1b;
+}
+
+.tabesh-aof-toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.6;
+    margin-right: auto;
+    padding: 0;
+    color: inherit;
+}
+
+.tabesh-aof-toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.tabesh-aof-toast.fade-out {
+    animation: toastSlideOut 0.3s ease forwards;
 }
 
 /* ==========================================================================
    Notice Messages / پیام‌ها
-   Compact notice styling / استایل فشرده پیام‌ها
+   Access denied and login required / عدم دسترسی و نیاز به ورود
    ========================================================================== */
 
 .tabesh-notice {
     display: flex;
     align-items: flex-start;
-    gap: 15px;
-    padding: 20px 25px;
-    border-radius: var(--aof-radius-sm);
-    max-width: 450px;
-    margin: 30px auto;
+    gap: var(--aof-space-lg);
+    padding: var(--aof-space-xl);
+    border-radius: var(--aof-radius);
+    max-width: 400px;
+    margin: var(--aof-space-xl) auto;
 }
 
 .tabesh-notice-warning {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #f59e0b;
+    border: 1px solid var(--aof-warning);
 }
 
 .tabesh-notice-error {
     background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    border: 1px solid #ef4444;
+    border: 1px solid var(--aof-danger);
 }
 
 .tabesh-notice-icon {
-    font-size: 28px;
+    font-size: 24px;
 }
 
 .tabesh-notice-warning .tabesh-notice-icon {
@@ -687,8 +915,8 @@
 }
 
 .tabesh-notice-content h3 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
+    margin: 0 0 var(--aof-space-sm) 0;
+    font-size: var(--aof-font-lg);
     font-weight: 600;
 }
 
@@ -701,20 +929,20 @@
 }
 
 .tabesh-notice-content p {
-    margin: 0 0 12px 0;
+    margin: 0 0 var(--aof-space-md) 0;
     color: var(--aof-text-secondary);
-    font-size: 13px;
+    font-size: var(--aof-font-sm);
 }
 
 .tabesh-notice .tabesh-btn {
     background: var(--aof-primary);
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: var(--aof-radius-sm);
+    color: #fff;
+    padding: var(--aof-space-sm) var(--aof-space-lg);
+    border-radius: var(--aof-radius);
     text-decoration: none;
     display: inline-block;
     font-weight: 600;
-    font-size: 13px;
+    font-size: var(--aof-font-sm);
     transition: var(--aof-transition);
 }
 
@@ -724,328 +952,275 @@
 
 /* ==========================================================================
    Responsive Design / طراحی واکنش‌گرا
-   Media queries for all device sizes / کوئری‌های رسانه‌ای برای تمام اندازه‌های دستگاه
-   
-   Note: Base grid uses auto-fit with minmax for flexible columns.
-   Media queries override for specific column counts at breakpoints.
-   نکته: گرید پایه از auto-fit با minmax برای ستون‌های انعطاف‌پذیر استفاده می‌کند.
-   کوئری‌های رسانه‌ای تعداد ستون مشخص را در نقاط شکست تعیین می‌کنند.
+   Optimized for 1366x768 desktop without scroll
+   بهینه‌سازی شده برای دسکتاپ ۱۳۶۶×۷۶۸ بدون اسکرول
    ========================================================================== */
 
-/* Large Desktop (1200px+) - 6 columns max / دسکتاپ بزرگ - حداکثر ۶ ستون */
+/* Large Desktop (1200px+) - 6 columns / دسکتاپ بزرگ - ۶ ستون */
 @media (min-width: 1200px) {
-    .tabesh-aof-form-row {
+    .tabesh-aof-grid {
         grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .tabesh-aof-wrapper {
+        max-height: calc(100vh - 60px);
     }
 }
 
-/* Desktop (992px - 1199px) - 4 columns / دسکتاپ - ۴ ستون */
+/* Small Desktop (992px - 1199px) - 4 columns / دسکتاپ کوچک - ۴ ستون */
 @media (min-width: 992px) and (max-width: 1199px) {
-    .tabesh-aof-form-row {
+    .tabesh-aof-grid {
         grid-template-columns: repeat(4, 1fr);
     }
     
-    #aof-new-user-section .tabesh-aof-form-row {
-        grid-template-columns: repeat(3, 1fr);
+    .tabesh-aof-inline-fields .tabesh-aof-input {
+        width: 110px;
     }
 }
 
-/* Small Desktop / Large Tablet (768px - 991px) - 3 columns / دسکتاپ کوچک / تبلت بزرگ - ۳ ستون */
+/* Tablet Landscape (768px - 991px) - 3 columns / تبلت افقی - ۳ ستون */
 @media (min-width: 768px) and (max-width: 991px) {
-    .tabesh-aof-form-row {
+    .tabesh-aof-grid {
         grid-template-columns: repeat(3, 1fr);
     }
     
-    #aof-new-user-section .tabesh-aof-form-row {
-        grid-template-columns: repeat(3, 1fr);
+    .tabesh-aof-wrapper {
+        max-height: none;
     }
     
     .tabesh-aof-header {
         flex-direction: column;
-        text-align: center;
+        gap: var(--aof-space-xs);
     }
     
-    /* Price section horizontal on tablet / بخش قیمت افقی در تبلت */
-    .tabesh-aof-price-display {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 15px;
+    .tabesh-aof-header-hint {
+        display: none;
+    }
+    
+    .tabesh-aof-customer-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabesh-aof-search-box {
+        max-width: 100%;
+    }
+    
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+    }
+    
+    .tabesh-aof-price-bar {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tabesh-aof-actions {
+        width: 100%;
+        justify-content: center;
     }
 }
 
-/* Tablet (576px - 767px) - 2 columns / تبلت - ۲ ستون */
+/* Tablet Portrait (576px - 767px) - 2 columns / تبلت عمودی - ۲ ستون */
 @media (min-width: 576px) and (max-width: 767px) {
-    .tabesh-aof-form-row {
+    .tabesh-aof-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    #aof-new-user-section .tabesh-aof-form-row {
-        grid-template-columns: repeat(2, 1fr);
+    .tabesh-aof-header-hint {
+        display: none;
     }
     
-    .tabesh-aof-header {
+    .tabesh-aof-customer-row {
         flex-direction: column;
-        text-align: center;
-        padding: 12px 15px;
+        align-items: stretch;
     }
     
-    .tabesh-aof-title {
-        font-size: 16px;
+    .tabesh-aof-inline-fields {
+        flex-direction: column;
     }
     
-    .tabesh-aof-form {
-        padding: 12px;
-    }
-    
-    .tabesh-aof-section {
-        padding: 12px;
-    }
-    
-    /* Stack price rows on smaller tablets / قرار دادن ردیف‌های قیمت روی هم در تبلت‌های کوچکتر */
-    .tabesh-aof-price-display {
-        display: block;
-    }
-    
-    .tabesh-aof-final-price {
-        margin-right: 0;
-        padding-right: 0;
-        border-right: none;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #22c55e;
-    }
-    
-    .tabesh-aof-override-price {
-        display: block;
-    }
-    
-    .tabesh-aof-override-price .tabesh-aof-input {
+    .tabesh-aof-inline-fields .tabesh-aof-input {
         width: 100%;
-        max-width: none;
-        margin-top: 8px;
+    }
+    
+    .tabesh-aof-extras-row {
+        flex-direction: column;
+    }
+    
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+        padding: var(--aof-space-md);
+    }
+    
+    .tabesh-aof-price-bar {
+        width: 100%;
+        flex-direction: column;
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-price-final {
+        border-right: none;
+        padding-right: 0;
+        border-top: 1px solid var(--aof-success);
+        padding-top: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-override {
+        flex-wrap: wrap;
+    }
+    
+    .tabesh-aof-override .tabesh-aof-input-sm {
+        width: 100%;
+    }
+    
+    .tabesh-aof-actions {
+        width: 100%;
+    }
+    
+    .tabesh-aof-btn {
+        flex: 1;
     }
 }
 
 /* Mobile (< 576px) - 1 column / موبایل - ۱ ستون */
 @media (max-width: 575px) {
-    .tabesh-admin-order-form-wrapper {
-        padding: 10px 5px;
-    }
-    
-    .tabesh-aof-container {
-        border-radius: var(--aof-radius-sm);
+    .tabesh-aof-wrapper {
+        max-height: none;
+        border-radius: 0;
     }
     
     .tabesh-aof-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 10px 12px;
+        padding: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-header-hint {
+        display: none;
     }
     
     .tabesh-aof-title {
-        font-size: 15px;
-        gap: 6px;
-    }
-    
-    .tabesh-aof-title .dashicons {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-    }
-    
-    .tabesh-aof-subtitle {
-        font-size: 11px;
+        font-size: var(--aof-font-base);
     }
     
     .tabesh-aof-form {
-        padding: 10px;
+        padding: var(--aof-space-sm);
+        gap: var(--aof-space-sm);
     }
     
     .tabesh-aof-section {
-        padding: 10px;
-        margin-bottom: 10px;
+        padding: var(--aof-space-sm);
     }
     
-    .tabesh-aof-section-title {
-        font-size: 13px;
-        padding-bottom: 6px;
-        margin-bottom: 10px;
-    }
-    
-    .section-number {
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
-    
-    /* Single column layout for mobile / چیدمان تک ستونی برای موبایل */
-    .tabesh-aof-form-row {
+    .tabesh-aof-grid {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: var(--aof-space-sm);
     }
     
-    #aof-new-user-section .tabesh-aof-form-row {
-        grid-template-columns: 1fr;
+    .tabesh-aof-customer-row {
+        flex-direction: column;
+        align-items: stretch;
     }
     
-    /* Compact form elements for mobile / المان‌های فرم فشرده برای موبایل */
-    .tabesh-aof-form-group label {
-        font-size: 11px;
+    .tabesh-aof-toggle-group {
+        width: 100%;
+        justify-content: center;
     }
     
-    .tabesh-aof-input,
-    .tabesh-aof-select {
-        padding: 7px 8px;
-        font-size: 12px;
+    .tabesh-aof-inline-fields {
+        flex-direction: column;
     }
     
-    .tabesh-aof-textarea {
-        min-height: 50px;
+    .tabesh-aof-inline-fields .tabesh-aof-input,
+    .tabesh-aof-inline-fields .tabesh-aof-btn {
+        width: 100%;
     }
     
-    /* Radio and checkbox compact for mobile / رادیو و چک‌باکس فشرده برای موبایل */
-    .tabesh-aof-radio-group,
-    .tabesh-aof-checkbox-group {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 6px;
+    .tabesh-aof-extras-row {
+        flex-direction: column;
     }
     
-    .tabesh-aof-radio,
-    .tabesh-aof-checkbox {
-        padding: 5px 8px;
-        font-size: 11px;
-    }
-    
-    .radio-custom,
-    .checkbox-custom {
-        width: 14px;
-        height: 14px;
-        margin-left: 4px;
-    }
-    
-    .radio-label,
-    .checkbox-label {
-        font-size: 11px;
-    }
-    
-    /* Price section stacked for mobile / بخش قیمت پشته‌ای برای موبایل */
-    .tabesh-aof-price-display {
-        display: block;
-        padding: 8px;
-    }
-    
-    .tabesh-aof-price-row {
-        display: flex;
+    .tabesh-aof-extras {
         flex-direction: column;
         align-items: flex-start;
-        gap: 4px;
-        padding: 6px 0;
     }
     
-    .tabesh-aof-price-row .price-label {
-        font-size: 12px;
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+        padding: var(--aof-space-md) var(--aof-space-sm);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        z-index: 100;
     }
     
-    .tabesh-aof-price-row .price-value {
-        font-size: 14px;
-    }
-    
-    .tabesh-aof-final-price {
-        margin-right: 0;
-        padding-right: 0;
-        border-right: none;
-        margin-top: 6px;
-        padding-top: 6px;
-        border-top: 1px solid #22c55e;
-    }
-    
-    .tabesh-aof-override-price {
-        display: block;
-    }
-    
-    .tabesh-aof-override-price .tabesh-aof-input {
+    .tabesh-aof-price-bar {
+        flex-direction: column;
+        gap: var(--aof-space-sm);
         width: 100%;
-        max-width: none;
-        margin-top: 6px;
     }
     
-    /* Buttons stack on mobile / دکمه‌ها روی هم در موبایل */
+    .tabesh-aof-price-final {
+        border-right: none;
+        padding-right: 0;
+    }
+    
+    .tabesh-aof-override {
+        width: 100%;
+        flex-direction: column;
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-override .tabesh-aof-input-sm {
+        width: 100%;
+    }
+    
     .tabesh-aof-actions {
         flex-direction: column;
-        gap: 8px;
-        padding-top: 12px;
-        margin-top: 12px;
+        width: 100%;
     }
     
     .tabesh-aof-btn {
         width: 100%;
-        justify-content: center;
-        padding: 10px 16px;
+        padding: var(--aof-space-md);
     }
     
-    /* Selected user compact / کاربر انتخاب شده فشرده */
-    .tabesh-aof-selected-user .selected-user {
-        padding: 6px 10px;
-        font-size: 12px;
-    }
-    
-    /* Search results compact / نتایج جستجو فشرده */
-    .tabesh-aof-search-results .user-result-item {
-        padding: 8px 10px;
-    }
-    
-    .tabesh-aof-search-results .user-name {
-        font-size: 12px;
-    }
-    
-    .tabesh-aof-search-results .user-login {
-        font-size: 10px;
+    /* Add padding at bottom for fixed footer */
+    .tabesh-aof-form {
+        padding-bottom: 180px;
     }
 }
 
 /* Extra small mobile (< 400px) / موبایل خیلی کوچک */
 @media (max-width: 399px) {
     .tabesh-aof-title {
-        font-size: 14px;
+        font-size: var(--aof-font-sm);
     }
     
-    .tabesh-aof-subtitle {
+    .section-badge {
+        width: 18px;
+        height: 18px;
         font-size: 10px;
     }
     
-    .tabesh-aof-section-title {
-        font-size: 12px;
+    .section-label {
+        font-size: var(--aof-font-sm);
     }
     
     .tabesh-aof-input,
     .tabesh-aof-select {
-        padding: 6px 7px;
-        font-size: 11px;
+        height: 30px;
+        font-size: var(--aof-font-xs);
     }
-}
-
-/* ==========================================================================
-   Scrollbar / نوار اسکرول
-   Custom scrollbar for search results / نوار اسکرول سفارشی برای نتایج جستجو
-   ========================================================================== */
-
-.tabesh-aof-search-results::-webkit-scrollbar {
-    width: 5px;
-}
-
-.tabesh-aof-search-results::-webkit-scrollbar-track {
-    background: #f8fafc;
-}
-
-.tabesh-aof-search-results::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
-
-.tabesh-aof-search-results::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    
+    .tabesh-aof-chip {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
 }
 
 /* ==========================================================================
@@ -1065,7 +1240,7 @@
 }
 
 .tabesh-aof-section {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.25s ease-out;
 }
 
 .tabesh-aof-section:nth-child(1) {
@@ -1074,10 +1249,6 @@
 
 .tabesh-aof-section:nth-child(2) {
     animation-delay: 0.1s;
-}
-
-.tabesh-aof-section:nth-child(3) {
-    animation-delay: 0.15s;
 }
 
 /* Spinning animation for loading states / انیمیشن چرخش برای حالت بارگذاری */
@@ -1096,11 +1267,10 @@
 
 /* ==========================================================================
    Print Styles / استایل‌های چاپ
-   Hide form for print, or optimize if needed / مخفی کردن فرم برای چاپ
    ========================================================================== */
 
 @media print {
-    .tabesh-admin-order-form-wrapper {
+    .tabesh-aof-wrapper {
         display: none;
     }
 }

@@ -1,11 +1,12 @@
 /**
- * Admin Order Form Shortcode JavaScript
+ * Admin Order Form Shortcode JavaScript - Redesigned
  * 
- * جاوااسکریپت فرم ثبت سفارش ویژه مدیر
- * Handles form interactions, user search, and order submission
+ * جاوااسکریپت فرم ثبت سفارش ویژه مدیر - بازطراحی شده
+ * Handles form interactions, user search, order submission,
+ * toast notifications, and keyboard shortcuts
  * 
  * @package Tabesh
- * @since 1.0.3
+ * @since 1.0.4
  */
 
 (function($) {
@@ -31,7 +32,22 @@
         initFormFields();
         initPriceCalculation();
         initFormSubmission();
+        initKeyboardShortcuts();
     });
+
+    /**
+     * Initialize keyboard shortcuts
+     * راه‌اندازی میانبرهای صفحه‌کلید
+     */
+    function initKeyboardShortcuts() {
+        $(document).on('keydown', function(e) {
+            // Ctrl+Enter to submit / Ctrl+Enter برای ثبت
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                submitOrder();
+            }
+        });
+    }
 
     /**
      * Initialize customer selection functionality
@@ -186,12 +202,12 @@
 
         // Validate / اعتبارسنجی
         if (!mobile || !firstName || !lastName) {
-            showAlert(tabeshAdminOrderForm.strings.fillAllUserFields);
+            showToast(tabeshAdminOrderForm.strings.fillAllUserFields, 'error');
             return;
         }
 
         if (!/^09[0-9]{9}$/.test(mobile)) {
-            showAlert(tabeshAdminOrderForm.strings.invalidMobile);
+            showToast(tabeshAdminOrderForm.strings.invalidMobile, 'error');
             return;
         }
 
@@ -225,18 +241,18 @@
                     $('#aof-new-first-name').val('');
                     $('#aof-new-last-name').val('');
                     
-                    showAlert(response.message || tabeshAdminOrderForm.strings.userCreated, 'success');
+                    showToast(response.message || tabeshAdminOrderForm.strings.userCreated, 'success');
                 }
             },
             error: function(xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message 
                     ? xhr.responseJSON.message 
                     : tabeshAdminOrderForm.strings.error;
-                showAlert(message);
+                showToast(message, 'error');
             },
             complete: function() {
                 $btn.prop('disabled', false).html(
-                    '<span class="dashicons dashicons-plus-alt2"></span> ' +
+                    '<span class="dashicons dashicons-plus"></span> ' +
                     tabeshAdminOrderForm.strings.createNewUser
                 );
             }
@@ -262,6 +278,12 @@
         
         // Initialize page count fields on load / راه‌اندازی فیلدهای تعداد صفحات در بارگذاری
         updatePageCountFields();
+
+        // Chip checkbox fallback for browsers without :has() support
+        // فالبک چک‌باکس چیپ برای مرورگرهای بدون پشتیبانی :has()
+        $('input[name="extras[]"]').on('change', function() {
+            $(this).closest('.tabesh-aof-chip').toggleClass('chip-checked', $(this).is(':checked'));
+        });
 
         // Override price checkbox / چک‌باکس قیمت دلخواه
         $('#aof-override-price-check').on('change', function() {
@@ -420,7 +442,7 @@
                 const message = xhr.responseJSON && xhr.responseJSON.message 
                     ? xhr.responseJSON.message 
                     : tabeshAdminOrderForm.strings.error;
-                showAlert(message);
+                showToast(message, 'error');
             },
             complete: function() {
                 $btn.prop('disabled', false).html(
@@ -439,7 +461,7 @@
      */
     function displayCalculatedPrice(data) {
         const formatted = formatPrice(data.total_price);
-        $('#aof-calculated-price').html('<strong>' + formatted + '</strong> ریال');
+        $('#aof-calculated-price').text(formatted);
     }
 
     /**
@@ -458,9 +480,9 @@
         
         if (finalPrice) {
             const formatted = formatPrice(finalPrice);
-            $('#aof-final-price').html('<strong>' + formatted + '</strong> ریال');
+            $('#aof-final-price').text(formatted);
         } else {
-            $('#aof-final-price').text('-');
+            $('#aof-final-price').text('---');
         }
     }
 
@@ -487,17 +509,17 @@
         if (userType === 'existing') {
             userId = $('#aof-selected-user-id').val();
             if (!userId) {
-                showAlert(tabeshAdminOrderForm.strings.selectCustomer);
+                showToast(tabeshAdminOrderForm.strings.selectCustomer, 'error');
                 return;
             }
         } else {
-            showAlert(tabeshAdminOrderForm.strings.createUserFirst);
+            showToast(tabeshAdminOrderForm.strings.createUserFirst, 'error');
             return;
         }
 
         // Validate form / اعتبارسنجی فرم
         if (!isFormValid()) {
-            showAlert(tabeshAdminOrderForm.strings.fillAllFields);
+            showToast(tabeshAdminOrderForm.strings.fillAllFields, 'error');
             return;
         }
 
@@ -528,7 +550,7 @@
             },
             success: function(response) {
                 if (response.success) {
-                    showAlert(response.message || tabeshAdminOrderForm.strings.success, 'success');
+                    showToast(response.message || tabeshAdminOrderForm.strings.success, 'success');
                     // Reset form after successful submission
                     // بازنشانی فرم پس از ارسال موفق
                     setTimeout(function() {
@@ -540,7 +562,7 @@
                 const message = xhr.responseJSON && xhr.responseJSON.message 
                     ? xhr.responseJSON.message 
                     : tabeshAdminOrderForm.strings.error;
-                showAlert(message);
+                showToast(message, 'error');
             },
             complete: function() {
                 $btn.prop('disabled', false).html(
@@ -676,8 +698,8 @@
         $('#aof-user-search-results').empty();
         $('#aof-selected-user-display').empty();
         $('#aof-selected-user-id').val('');
-        $('#aof-calculated-price').text('-');
-        $('#aof-final-price').text('-');
+        $('#aof-calculated-price').text('---');
+        $('#aof-final-price').text('---');
         calculatedPrice = null;
         selectedUserId = null;
         
@@ -719,89 +741,45 @@
     }
 
     /**
-     * Show alert message
-     * نمایش پیام هشدار
+     * Show toast notification
+     * نمایش اعلان توست
      * 
      * @param {string} message Message to show / پیام برای نمایش
      * @param {string} type Message type (error|success) / نوع پیام
      */
-    function showAlert(message, type) {
+    function showToast(message, type) {
         type = type || 'error';
         
-        // Remove existing alerts / حذف هشدارهای موجود
-        $('.tabesh-aof-alert').remove();
+        let $container = $('#tabesh-aof-toast-container');
+        if ($container.length === 0) {
+            $('body').append('<div id="tabesh-aof-toast-container" class="tabesh-aof-toast-container"></div>');
+            $container = $('#tabesh-aof-toast-container');
+        }
         
-        const $alert = $(
-            '<div class="tabesh-aof-alert tabesh-aof-alert-' + type + '">' +
-            '<span class="alert-message">' + escapeHtml(message) + '</span>' +
-            '<button type="button" class="alert-close">&times;</button>' +
+        const $toast = $(
+            '<div class="tabesh-aof-toast tabesh-aof-toast-' + type + '">' +
+            '<span class="toast-message">' + escapeHtml(message) + '</span>' +
+            '<button type="button" class="tabesh-aof-toast-close">&times;</button>' +
             '</div>'
         );
         
-        // Add inline styles for the alert
-        $alert.css({
-            'position': 'fixed',
-            'top': '20px',
-            'left': '50%',
-            'transform': 'translateX(-50%)',
-            'z-index': '10000',
-            'padding': '15px 50px 15px 20px',
-            'border-radius': '8px',
-            'font-size': '15px',
-            'font-weight': '600',
-            'box-shadow': '0 4px 15px rgba(0, 0, 0, 0.15)',
-            'animation': 'fadeInDown 0.3s ease',
-            'direction': 'rtl'
-        });
-        
-        if (type === 'error') {
-            $alert.css({
-                'background': 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-                'border': '2px solid #ef4444',
-                'color': '#991b1b'
-            });
-        } else {
-            $alert.css({
-                'background': 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
-                'border': '2px solid #22c55e',
-                'color': '#166534'
-            });
-        }
-        
-        $alert.find('.alert-close').css({
-            'position': 'absolute',
-            'right': '15px',
-            'top': '50%',
-            'transform': 'translateY(-50%)',
-            'background': 'none',
-            'border': 'none',
-            'font-size': '24px',
-            'cursor': 'pointer',
-            'opacity': '0.7',
-            'color': 'inherit'
-        });
-        
-        $('body').append($alert);
+        $container.append($toast);
         
         // Auto-close after 4 seconds / بستن خودکار پس از ۴ ثانیه
         setTimeout(function() {
-            $alert.fadeOut(300, function() {
-                $(this).remove();
-            });
+            $toast.addClass('fade-out');
+            setTimeout(function() {
+                $toast.remove();
+            }, 300);
         }, 4000);
         
         // Close button / دکمه بستن
-        $alert.find('.alert-close').on('click', function() {
-            $alert.fadeOut(300, function() {
-                $(this).remove();
-            });
+        $toast.find('.tabesh-aof-toast-close').on('click', function() {
+            $toast.addClass('fade-out');
+            setTimeout(function() {
+                $toast.remove();
+            }, 300);
         });
     }
-
-    // Add CSS animation for alerts
-    // اضافه کردن انیمیشن CSS برای هشدارها
-    $('<style>')
-        .text('@keyframes fadeInDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }')
-        .appendTo('head');
 
 })(jQuery);
