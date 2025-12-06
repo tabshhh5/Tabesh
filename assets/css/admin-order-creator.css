@@ -345,12 +345,27 @@
     border: 2px solid #86efac;
 }
 
+.unit-price,
 .calculated-price,
 .final-price {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+}
+
+.unit-price {
+    background: #e8f4fd;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-right: 3px solid #2196F3;
+}
+
+.calculated-price {
+    background: #fff9e6;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-right: 3px solid #f59e0b;
 }
 
 .final-price {
@@ -360,6 +375,7 @@
     border-top: 2px solid #22c55e;
 }
 
+.unit-price label,
 .calculated-price label,
 .final-price label {
     font-weight: 600;
@@ -367,20 +383,57 @@
     font-size: 16px;
 }
 
+#unit-price-value,
 #calculated-price-value,
-#final-price-value {
+#final-price-value,
+#final-unit-price-value {
     font-size: 24px;
     font-weight: 700;
-    color: #16a34a;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+#unit-price-value {
+    color: #2196F3;
+}
+
 #calculated-price-value {
+    color: #f59e0b;
+}
+
+#final-price-value,
+#final-unit-price-value {
+    color: #16a34a;
+}
+
+.final-price .price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.final-price .price-breakdown > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-sublabel {
+    font-size: 14px;
+    color: #6b7280;
+    min-width: 60px;
+}
+
+.price-unit {
+    font-size: 14px;
     color: #6b7280;
 }
 
-#final-price-value {
-    color: #16a34a;
+.price-helper {
+    display: block;
+    margin-top: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-style: italic;
 }
 
 /* Modal Footer - Modern */

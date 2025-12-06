@@ -261,24 +261,41 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 					<h3><?php echo esc_html__( 'قیمت', 'tabesh' ); ?></h3>
 					
 					<div class="tabesh-price-display">
+						<div class="unit-price">
+							<label><?php echo esc_html__( 'قیمت تک جلد:', 'tabesh' ); ?></label>
+							<div id="unit-price-value">-</div>
+						</div>
+
 						<div class="calculated-price">
-							<label><?php echo esc_html__( 'قیمت محاسبه شده:', 'tabesh' ); ?></label>
+							<label><?php echo esc_html__( 'قیمت کل محاسبه شده:', 'tabesh' ); ?></label>
 							<div id="calculated-price-value">-</div>
 						</div>
 						
 						<div class="tabesh-form-group">
-							<label for="override_price">
+							<label for="override_unit_price">
 								<input type="checkbox" id="override-price-check">
-								<?php echo esc_html__( 'قیمت دلخواه (فقط سوپر ادمین)', 'tabesh' ); ?>
+								<?php echo esc_html__( 'قیمت تک جلد دلخواه (فقط سوپر ادمین)', 'tabesh' ); ?>
 							</label>
-							<input type="number" id="override_price" name="override_price" class="tabesh-input" 
-									placeholder="<?php echo esc_attr__( 'قیمت دلخواه به ریال', 'tabesh' ); ?>" 
-									min="0" step="1000" disabled>
+							<input type="number" id="override_unit_price" name="override_unit_price" class="tabesh-input" 
+									placeholder="<?php echo esc_attr__( 'قیمت تک جلد به تومان', 'tabesh' ); ?>" 
+									min="0" step="100" disabled>
+							<small class="price-helper"><?php echo esc_html__( 'قیمت کل = تک جلد × تیراژ', 'tabesh' ); ?></small>
 						</div>
 
 						<div class="final-price">
 							<label><?php echo esc_html__( 'قیمت نهایی:', 'tabesh' ); ?></label>
-							<div id="final-price-value">-</div>
+							<div class="price-breakdown">
+								<div>
+									<span class="price-sublabel"><?php echo esc_html__( 'تک جلد:', 'tabesh' ); ?></span>
+									<span id="final-unit-price-value">-</span>
+									<span class="price-unit"><?php echo esc_html__( 'تومان', 'tabesh' ); ?></span>
+								</div>
+								<div>
+									<span class="price-sublabel"><?php echo esc_html__( 'کل:', 'tabesh' ); ?></span>
+									<span id="final-price-value">-</span>
+									<span class="price-unit"><?php echo esc_html__( 'تومان', 'tabesh' ); ?></span>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

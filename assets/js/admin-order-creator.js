@@ -168,16 +168,16 @@
         // Override price checkbox
         $('#override-price-check').on('change', function() {
             if ($(this).is(':checked')) {
-                $('#override_price').prop('disabled', false);
+                $('#override_unit_price').prop('disabled', false);
                 updateFinalPrice();
             } else {
-                $('#override_price').prop('disabled', true).val('');
+                $('#override_unit_price').prop('disabled', true).val('');
                 updateFinalPrice();
             }
         });
 
-        // Update final price when override changes
-        $('#override_price').on('input', function() {
+        // Update final price when override unit price or quantity changes
+        $('#override_unit_price, #quantity').on('input', function() {
             updateFinalPrice();
         });
     }
@@ -400,30 +400,86 @@
     }
 
     /**
+     * Convert Rials to Tomans
+     * تبدیل ریال به تومان
+     * 
+     * @param {number} rials قیمت به ریال
+     * @returns {number} قیمت به تومان
+     */
+    function rialsToTomans(rials) {
+        return Math.round(rials / 10);
+    }
+
+    /**
+     * Convert Tomans to Rials
+     * تبدیل تومان به ریال
+     * 
+     * @param {number} tomans قیمت به تومان
+     * @returns {number} قیمت به ریال
+     */
+    function tomansToRials(tomans) {
+        return Math.round(tomans * 10);
+    }
+
+    /**
      * Display calculated price
      */
     function displayCalculatedPrice(data) {
-        const formatted = new Intl.NumberFormat('fa-IR').format(data.total_price);
-        $('#calculated-price-value').html('<strong>' + formatted + '</strong> ریال');
+        // محاسبه قیمت تک جلد و کل به تومان
+        const unitPriceRials = data.price_per_book || 0;
+        const totalPriceRials = data.total_price || 0;
+        
+        const unitPriceTomans = rialsToTomans(unitPriceRials);
+        const totalPriceTomans = rialsToTomans(totalPriceRials);
+        
+        // نمایش قیمت تک جلد
+        const formattedUnit = new Intl.NumberFormat('fa-IR').format(unitPriceTomans);
+        $('#unit-price-value').html('<strong>' + formattedUnit + '</strong> تومان');
+        
+        // نمایش قیمت کل محاسبه شده
+        const formattedTotal = new Intl.NumberFormat('fa-IR').format(totalPriceTomans);
+        $('#calculated-price-value').html('<strong>' + formattedTotal + '</strong> تومان');
+        
+        // ذخیره قیمت تک جلد به تومان برای محاسبات بعدی
+        window.calculatedUnitPriceTomans = unitPriceTomans;
+        
+        // Store calculated price in Rials for compatibility
+        calculatedPrice = totalPriceRials;
+        
+        // Update final price display
+        updateFinalPrice();
     }
 
     /**
      * Update final price display
      */
     function updateFinalPrice() {
-        let finalPrice = calculatedPrice;
+        let finalPriceTomans = rialsToTomans(calculatedPrice || 0);
+        let unitPriceTomans = window.calculatedUnitPriceTomans || 0;
         
+        const quantity = parseInt($('#quantity').val()) || 1;
+        
+        // اگر قیمت دستی فعال باشد
         if ($('#override-price-check').is(':checked')) {
-            const override = parseFloat($('#override_price').val());
-            if (!isNaN(override) && override > 0) {
-                finalPrice = override;
+            const overrideUnitPrice = parseFloat($('#override_unit_price').val());
+            if (!isNaN(overrideUnitPrice) && overrideUnitPrice > 0) {
+                unitPriceTomans = overrideUnitPrice;
+                finalPriceTomans = unitPriceTomans * quantity; // محاسبه قیمت کل
             }
         }
         
-        if (finalPrice) {
-            const formatted = new Intl.NumberFormat('fa-IR').format(finalPrice);
-            $('#final-price-value').html('<strong>' + formatted + '</strong> ریال');
+        // نمایش قیمت تک جلد نهایی
+        if (unitPriceTomans) {
+            const formattedUnit = new Intl.NumberFormat('fa-IR').format(unitPriceTomans);
+            $('#final-unit-price-value').text(formattedUnit);
+        }
+        
+        // نمایش قیمت کل نهایی
+        if (finalPriceTomans) {
+            const formattedTotal = new Intl.NumberFormat('fa-IR').format(finalPriceTomans);
+            $('#final-price-value').text(formattedTotal);
         } else {
+            $('#final-unit-price-value').text('-');
             $('#final-price-value').text('-');
         }
     }
@@ -466,11 +522,11 @@
         const formData = getFormData();
         formData.user_id = parseInt(userId);
 
-        // Add override price if set
+        // Add override UNIT price if set (convert back to Rials for backend)
         if ($('#override-price-check').is(':checked')) {
-            const override = parseFloat($('#override_price').val());
-            if (!isNaN(override) && override > 0) {
-                formData.override_price = override;
+            const overrideUnitTomans = parseFloat($('#override_unit_price').val());
+            if (!isNaN(overrideUnitTomans) && overrideUnitTomans > 0) {
+                formData.override_unit_price = tomansToRials(overrideUnitTomans); // تبدیل به ریال
             }
         }
 
