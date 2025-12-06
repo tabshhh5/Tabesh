@@ -315,6 +315,23 @@ $form_title = isset($atts['title']) ? $atts['title'] : __('ثبت سفارش ج�
                               placeholder="<?php echo esc_attr__('یادداشت (اختیاری)...', 'tabesh'); ?>"></textarea>
                 </div>
             </div>
+
+            <!-- SMS Options Section -->
+            <div class="tabesh-aof-field-group tabesh-aof-sms-options" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 14px; font-weight: 600;">
+                    <?php echo esc_html__( 'ارسال پیامک', 'tabesh' ); ?>
+                </h4>
+                <div class="tabesh-aof-checkbox-group">
+                    <label id="aof-registration-sms-label" style="display: none; margin-bottom: 10px;">
+                        <input type="checkbox" id="aof-send-registration-sms" name="send_registration_sms" value="1" checked>
+                        <?php echo esc_html__( 'ارسال پیامک ثبت‌نام به کاربر جدید', 'tabesh' ); ?>
+                    </label>
+                    <label style="display: block;">
+                        <input type="checkbox" id="aof-send-order-sms" name="send_order_sms" value="1" checked>
+                        <?php echo esc_html__( 'ارسال پیامک ثبت سفارش به مشتری', 'tabesh' ); ?>
+                    </label>
+                </div>
+            </div>
         </section>
     </form>
 

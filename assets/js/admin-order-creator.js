@@ -18,6 +18,7 @@
     $(document).ready(function() {
         initModal();
         initUserSelection();
+        initSMSOptions();
         initPriceCalculation();
         initFormSubmission();
     });
@@ -181,6 +182,33 @@
         $('#override_unit_price, #quantity').on('input', function() {
             updateFinalPrice();
         });
+    }
+
+    /**
+     * Initialize SMS options
+     */
+    function initSMSOptions() {
+        // Show/hide registration SMS checkbox based on user type
+        $('input[name="user_selection_type"]').on('change', function() {
+            const type = $(this).val();
+            const $registrationLabel = $('#registration-sms-label');
+            
+            if (type === 'new') {
+                // Show registration SMS option for new users
+                $registrationLabel.show();
+                $('#send-registration-sms').prop('checked', true);
+            } else {
+                // Hide registration SMS option for existing users
+                $registrationLabel.hide();
+                $('#send-registration-sms').prop('checked', false);
+            }
+        });
+        
+        // Initialize on page load
+        const initialType = $('input[name="user_selection_type"]:checked').val();
+        if (initialType === 'new') {
+            $('#registration-sms-label').show();
+        }
     }
 
     /**
@@ -504,6 +532,10 @@
                 formData.override_unit_price = overrideUnitTomans; // بدون تبدیل!
             }
         }
+
+        // Include SMS options
+        formData.send_registration_sms = $('#send-registration-sms').is(':checked');
+        formData.send_order_sms = $('#send-order-sms').is(':checked');
 
         const $btn = $('#submit-order-btn');
         $btn.prop('disabled', true).text(tabeshAdminOrderCreator.strings.submitting);

@@ -676,6 +676,67 @@
     outline-color: #dc3232;
 }
 
+/* SMS Variables Configuration */
+.sms-variables-config {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.sms-variable-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.sms-variable-item:hover {
+    background: #f5f9ff;
+    border-color: #2271b1;
+}
+
+.sms-variable-item label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    margin: 0;
+}
+
+.sms-variable-item label input[type="checkbox"] {
+    margin: 0;
+}
+
+.sms-variable-item label strong {
+    color: #1d2327;
+}
+
+.sms-variable-item label code {
+    background: #f0f0f1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #2271b1;
+}
+
+.sms-variable-item input[type="number"] {
+    width: 60px;
+    text-align: center;
+}
+
+.sms-variable-item .description {
+    font-size: 12px;
+    color: #646970;
+    font-style: italic;
+}
+
 /* Print Styles */
 @media print {
     .nav-tab-wrapper,

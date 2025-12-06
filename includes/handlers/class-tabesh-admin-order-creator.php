@@ -206,6 +206,15 @@ class Tabesh_Admin_Order_Creator {
         update_user_meta($user_id, 'first_name', $first_name);
         update_user_meta($user_id, 'last_name', $last_name);
 
+        // Send registration SMS if requested
+        if (isset($params['send_registration_sms']) && $params['send_registration_sms']) {
+            $user_data = array(
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+            );
+            Tabesh()->sms->send_user_registration_sms($user_id, $user_data);
+        }
+
         return new WP_REST_Response(array(
             'success' => true,
             'user_id' => $user_id,
@@ -354,6 +363,11 @@ class Tabesh_Admin_Order_Creator {
 
         // Fire action hook for notifications
         do_action('tabesh_order_submitted', $order_id, $order_data);
+
+        // Send order SMS if requested
+        if (isset($params['send_order_sms']) && $params['send_order_sms']) {
+            Tabesh()->sms->send_admin_order_created_sms($order_id, $order_data);
+        }
 
         // Log action
         $wpdb->insert(
