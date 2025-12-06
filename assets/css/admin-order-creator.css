@@ -677,3 +677,32 @@ body.modal-open {
     background: #94a3b8;
 }
 
+/* SMS Options */
+.tabesh-aoc-sms-options {
+    border: 1px solid #ddd;
+}
+
+.tabesh-aoc-sms-options h4 {
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.tabesh-aoc-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.tabesh-aoc-checkbox-group label:hover {
+    background: #f1f5f9;
+}
+
+.tabesh-aoc-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+

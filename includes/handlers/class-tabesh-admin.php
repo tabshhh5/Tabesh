@@ -226,10 +226,11 @@ class Tabesh_Admin {
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               // New SMS settings
-                              'sms_username', 'sms_password', 'sms_sender');
+                              'sms_username', 'sms_password', 'sms_sender',
+                              'sms_admin_user_registration_pattern', 'sms_admin_order_created_pattern');
         
         // Checkbox fields need special handling because unchecked boxes don't appear in POST
-        $checkbox_fields = array('sms_enabled');
+        $checkbox_fields = array('sms_enabled', 'sms_admin_user_registration_enabled', 'sms_admin_order_created_enabled');
         
         // Add dynamic SMS status checkbox fields
         $status_labels = Tabesh_SMS::get_status_labels();
@@ -625,6 +626,41 @@ class Tabesh_Admin {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     error_log("Tabesh: Saved admin_order_form_allowed_users with " . count($user_ids) . " users");
                 }
+            }
+        }
+        
+        // Handle SMS pattern variable configurations
+        $pattern_types = array('admin_user_registration', 'admin_order_created', 'status_change');
+        foreach ($pattern_types as $pattern_type) {
+            $config_key = 'sms_pattern_vars_' . $pattern_type;
+            $config = array();
+            
+            // Check if variable configuration was submitted for this pattern type
+            if (isset($post_data[$config_key]) && is_array($post_data[$config_key])) {
+                foreach ($post_data[$config_key] as $var_key => $var_config) {
+                    $sanitized_var_key = sanitize_key($var_key);
+                    $config[$sanitized_var_key] = array(
+                        'enabled' => isset($var_config['enabled']) && $var_config['enabled'] === '1',
+                        'order' => isset($var_config['order']) ? intval($var_config['order']) : 1
+                    );
+                }
+            }
+            
+            // Save the configuration as JSON
+            $value = wp_json_encode($config, JSON_UNESCAPED_UNICODE);
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'setting_key' => $config_key,
+                    'setting_value' => $value,
+                    'setting_type' => 'string'
+                )
+            );
+            
+            if ($result === false) {
+                error_log("Failed to save setting: $config_key - Error: " . $wpdb->last_error);
+            } else if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("Tabesh: Saved $config_key with " . count($config) . " variables");
             }
         }
         

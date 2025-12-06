@@ -712,16 +712,191 @@ $admin = $tabesh->admin;
 
                 <hr style="margin: 30px 0;">
 
+                <h3>پیامک ثبت‌نام کاربر توسط مدیر</h3>
+                <p class="description">زمانی که مدیر کاربر جدیدی ایجاد می‌کند، این پیامک به کاربر ارسال می‌شود.</p>
+                
+                <table class="form-table">
+                    <tr>
+                        <th><label for="sms_admin_user_registration_enabled">فعال‌سازی</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="sms_admin_user_registration_enabled" 
+                                       name="sms_admin_user_registration_enabled" value="1" 
+                                       <?php checked($admin->get_setting('sms_admin_user_registration_enabled', '0'), '1'); ?>>
+                                ارسال پیامک ثبت‌نام به کاربر جدید
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="sms_admin_user_registration_pattern">کد الگو</label></th>
+                        <td>
+                            <input type="text" id="sms_admin_user_registration_pattern" 
+                                   name="sms_admin_user_registration_pattern" 
+                                   value="<?php echo esc_attr($admin->get_setting('sms_admin_user_registration_pattern')); ?>" 
+                                   class="regular-text sms-pattern-input" 
+                                   dir="ltr"
+                                   pattern="[0-9]+"
+                                   title="کد الگو باید فقط شامل اعداد باشد"
+                                   placeholder="مثال: 12345 (فقط عدد)">
+                        </td>
+                    </tr>
+                </table>
+
+                <h4>تنظیم متغیرهای الگو</h4>
+                <p class="description">متغیرهای مورد نیاز را انتخاب کنید و ترتیب آن‌ها را مشخص کنید (1، 2، 3، ...)</p>
+                
+                <div class="sms-variables-config">
+                    <?php
+                    $pattern_type = 'admin_user_registration';
+                    $available_vars = Tabesh_SMS::get_available_variables($pattern_type);
+                    $config = $admin->get_setting('sms_pattern_vars_' . $pattern_type, array());
+                    $config = is_array($config) ? $config : json_decode($config, true);
+                    $config = is_array($config) ? $config : array();
+                    
+                    foreach ($available_vars as $var_key => $var_info) :
+                        $is_enabled = isset($config[$var_key]['enabled']) ? $config[$var_key]['enabled'] : true;
+                        $order = isset($config[$var_key]['order']) ? $config[$var_key]['order'] : 1;
+                    ?>
+                    <div class="sms-variable-item">
+                        <label>
+                            <input type="checkbox" 
+                                   name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][enabled]" 
+                                   value="1" 
+                                   <?php checked($is_enabled, true); ?>>
+                            <strong><?php echo esc_html($var_info['label']); ?></strong>
+                            <code>%<?php echo esc_html($var_info['placeholder']); ?>%</code>
+                        </label>
+                        <input type="number" 
+                               name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][order]" 
+                               value="<?php echo esc_attr($order); ?>" 
+                               min="1" 
+                               max="10" 
+                               class="small-text"
+                               placeholder="ترتیب">
+                        <span class="description"><?php echo esc_html($var_info['description']); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <hr style="margin: 30px 0;">
+
+                <h3>پیامک ثبت سفارش توسط مدیر</h3>
+                <p class="description">زمانی که مدیر سفارش جدیدی برای مشتری ثبت می‌کند، این پیامک به مشتری ارسال می‌شود.</p>
+                
+                <table class="form-table">
+                    <tr>
+                        <th><label for="sms_admin_order_created_enabled">فعال‌سازی</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="sms_admin_order_created_enabled" 
+                                       name="sms_admin_order_created_enabled" value="1" 
+                                       <?php checked($admin->get_setting('sms_admin_order_created_enabled', '0'), '1'); ?>>
+                                ارسال پیامک ثبت سفارش به مشتری
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="sms_admin_order_created_pattern">کد الگو</label></th>
+                        <td>
+                            <input type="text" id="sms_admin_order_created_pattern" 
+                                   name="sms_admin_order_created_pattern" 
+                                   value="<?php echo esc_attr($admin->get_setting('sms_admin_order_created_pattern')); ?>" 
+                                   class="regular-text sms-pattern-input" 
+                                   dir="ltr"
+                                   pattern="[0-9]+"
+                                   title="کد الگو باید فقط شامل اعداد باشد"
+                                   placeholder="مثال: 12345 (فقط عدد)">
+                        </td>
+                    </tr>
+                </table>
+
+                <h4>تنظیم متغیرهای الگو</h4>
+                <p class="description">متغیرهای مورد نیاز را انتخاب کنید و ترتیب آن‌ها را مشخص کنید (1، 2، 3، ...)</p>
+                
+                <div class="sms-variables-config">
+                    <?php
+                    $pattern_type = 'admin_order_created';
+                    $available_vars = Tabesh_SMS::get_available_variables($pattern_type);
+                    $config = $admin->get_setting('sms_pattern_vars_' . $pattern_type, array());
+                    $config = is_array($config) ? $config : json_decode($config, true);
+                    $config = is_array($config) ? $config : array();
+                    
+                    foreach ($available_vars as $var_key => $var_info) :
+                        $is_enabled = isset($config[$var_key]['enabled']) ? $config[$var_key]['enabled'] : true;
+                        $order = isset($config[$var_key]['order']) ? $config[$var_key]['order'] : 1;
+                    ?>
+                    <div class="sms-variable-item">
+                        <label>
+                            <input type="checkbox" 
+                                   name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][enabled]" 
+                                   value="1" 
+                                   <?php checked($is_enabled, true); ?>>
+                            <strong><?php echo esc_html($var_info['label']); ?></strong>
+                            <code>%<?php echo esc_html($var_info['placeholder']); ?>%</code>
+                        </label>
+                        <input type="number" 
+                               name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][order]" 
+                               value="<?php echo esc_attr($order); ?>" 
+                               min="1" 
+                               max="10" 
+                               class="small-text"
+                               placeholder="ترتیب">
+                        <span class="description"><?php echo esc_html($var_info['description']); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <hr style="margin: 30px 0;">
+
+                <h3>تنظیم متغیرهای الگوی تغییر وضعیت</h3>
+                <p class="description">برای الگوهای تغییر وضعیت سفارش، می‌توانید متغیرها و ترتیب آن‌ها را مشخص کنید.</p>
+                
+                <div class="sms-variables-config">
+                    <?php
+                    $pattern_type = 'status_change';
+                    $available_vars = Tabesh_SMS::get_available_variables($pattern_type);
+                    $config = $admin->get_setting('sms_pattern_vars_' . $pattern_type, array());
+                    $config = is_array($config) ? $config : json_decode($config, true);
+                    $config = is_array($config) ? $config : array();
+                    
+                    foreach ($available_vars as $var_key => $var_info) :
+                        $is_enabled = isset($config[$var_key]['enabled']) ? $config[$var_key]['enabled'] : true;
+                        $order = isset($config[$var_key]['order']) ? $config[$var_key]['order'] : 1;
+                    ?>
+                    <div class="sms-variable-item">
+                        <label>
+                            <input type="checkbox" 
+                                   name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][enabled]" 
+                                   value="1" 
+                                   <?php checked($is_enabled, true); ?>>
+                            <strong><?php echo esc_html($var_info['label']); ?></strong>
+                            <code>%<?php echo esc_html($var_info['placeholder']); ?>%</code>
+                        </label>
+                        <input type="number" 
+                               name="sms_pattern_vars_<?php echo esc_attr($pattern_type); ?>[<?php echo esc_attr($var_key); ?>][order]" 
+                               value="<?php echo esc_attr($order); ?>" 
+                               min="1" 
+                               max="10" 
+                               class="small-text"
+                               placeholder="ترتیب">
+                        <span class="description"><?php echo esc_html($var_info['description']); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <hr style="margin: 30px 0;">
+
                 <div class="notice notice-info">
                     <p><strong>📱 راهنمای متغیرهای الگو:</strong></p>
-                    <p>الگوی شما در ملیپیامک باید شامل متغیرهای زیر باشد (به ترتیب):</p>
-                    <ol>
-                        <li><code>%order_number%</code> - شماره سفارش (مثال: TB-00001)</li>
-                        <li><code>%customer_name%</code> - نام مشتری</li>
-                        <li><code>%status%</code> - وضعیت سفارش به فارسی</li>
-                        <li><code>%date%</code> - تاریخ (فرمت: 1402/01/01)</li>
-                    </ol>
-                    <p><strong>نمونه الگو:</strong> <code>سفارش شماره %order_number% برای %customer_name% به وضعیت %status% تغییر کرد. تاریخ: %date%</code></p>
+                    <p>الگوی شما در ملیپیامک باید شامل متغیرهای انتخاب شده باشد (به ترتیبی که مشخص کرده‌اید):</p>
+                    <ul style="margin-right: 20px;">
+                        <li>✅ متغیرهای فعال شده را در الگوی خود قرار دهید</li>
+                        <li>🔢 ترتیب متغیرها در الگوی ملیپیامک باید با شماره‌های تعیین شده مطابقت داشته باشد</li>
+                        <li>⚠️ اگر متغیری را غیرفعال کردید، آن را در الگوی ملیپیامک قرار ندهید</li>
+                    </ul>
+                    <p><strong>نمونه الگوی تغییر وضعیت:</strong> <code>سفارش شماره %order_number% برای %customer_name% به وضعیت %status% تغییر کرد. تاریخ: %date%</code></p>
+                    <p><strong>نمونه الگوی ثبت‌نام:</strong> <code>%user_name% عزیز، ثبت‌نام شما با موفقیت انجام شد. شماره موبایل: %mobile%</code></p>
+                    <p><strong>نمونه الگوی ثبت سفارش:</strong> <code>سفارش شماره %order_number% برای کتاب "%book_title%" با تیراژ %quantity% ثبت شد. قیمت: %total_price% ریال</code></p>
                 </div>
             </div>
 

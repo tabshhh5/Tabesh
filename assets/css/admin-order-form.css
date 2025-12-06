@@ -1307,6 +1307,38 @@
 }
 
 /* ==========================================================================
+   SMS Options / گزینه‌های پیامک
+   ========================================================================== */
+
+.tabesh-aof-sms-options {
+    border: 1px solid #ddd;
+}
+
+.tabesh-aof-sms-options h4 {
+    color: #1e293b;
+}
+
+.tabesh-aof-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 13px;
+}
+
+.tabesh-aof-checkbox-group label:hover {
+    background: #f1f5f9;
+}
+
+.tabesh-aof-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+/* ==========================================================================
    Print Styles / استایل‌های چاپ
    ========================================================================== */
 

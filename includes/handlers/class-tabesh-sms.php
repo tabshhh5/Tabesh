@@ -626,4 +626,377 @@ class Tabesh_SMS {
 			? $error_messages[ $error_code ]
 			: sprintf( __( 'خطای ناشناخته با کد %d', 'tabesh' ), $error_code );
 	}
+
+	/**
+	 * Get available variables for each pattern type
+	 *
+	 * @param string $pattern_type Pattern type (admin_user_registration, admin_order_created, status_change)
+	 * @return array Available variables with their labels and descriptions
+	 */
+	public static function get_available_variables( $pattern_type ) {
+		$variables = array(
+			'admin_user_registration' => array(
+				'user_name'  => array(
+					'label'       => __( 'نام کامل', 'tabesh' ),
+					'placeholder' => 'user_name',
+					'description' => __( 'نام و نام خانوادگی کاربر', 'tabesh' ),
+				),
+				'first_name' => array(
+					'label'       => __( 'نام', 'tabesh' ),
+					'placeholder' => 'first_name',
+					'description' => __( 'نام کاربر', 'tabesh' ),
+				),
+				'last_name'  => array(
+					'label'       => __( 'نام خانوادگی', 'tabesh' ),
+					'placeholder' => 'last_name',
+					'description' => __( 'نام خانوادگی کاربر', 'tabesh' ),
+				),
+				'mobile'     => array(
+					'label'       => __( 'شماره موبایل', 'tabesh' ),
+					'placeholder' => 'mobile',
+					'description' => __( 'شماره موبایل کاربر', 'tabesh' ),
+				),
+				'date'       => array(
+					'label'       => __( 'تاریخ ثبت‌نام', 'tabesh' ),
+					'placeholder' => 'date',
+					'description' => __( 'تاریخ ثبت‌نام کاربر', 'tabesh' ),
+				),
+			),
+			'admin_order_created'     => array(
+				'order_number'  => array(
+					'label'       => __( 'شماره سفارش', 'tabesh' ),
+					'placeholder' => 'order_number',
+					'description' => __( 'شماره سفارش (مثال: TB-00001)', 'tabesh' ),
+				),
+				'customer_name' => array(
+					'label'       => __( 'نام مشتری', 'tabesh' ),
+					'placeholder' => 'customer_name',
+					'description' => __( 'نام مشتری', 'tabesh' ),
+				),
+				'book_title'    => array(
+					'label'       => __( 'عنوان کتاب', 'tabesh' ),
+					'placeholder' => 'book_title',
+					'description' => __( 'عنوان کتاب', 'tabesh' ),
+				),
+				'quantity'      => array(
+					'label'       => __( 'تیراژ', 'tabesh' ),
+					'placeholder' => 'quantity',
+					'description' => __( 'تعداد نسخه', 'tabesh' ),
+				),
+				'total_price'   => array(
+					'label'       => __( 'قیمت کل', 'tabesh' ),
+					'placeholder' => 'total_price',
+					'description' => __( 'قیمت کل با فرمت (عددی)', 'tabesh' ),
+				),
+				'date'          => array(
+					'label'       => __( 'تاریخ سفارش', 'tabesh' ),
+					'placeholder' => 'date',
+					'description' => __( 'تاریخ ثبت سفارش', 'tabesh' ),
+				),
+			),
+			'status_change'           => array(
+				'order_number'  => array(
+					'label'       => __( 'شماره سفارش', 'tabesh' ),
+					'placeholder' => 'order_number',
+					'description' => __( 'شماره سفارش (مثال: TB-00001)', 'tabesh' ),
+				),
+				'customer_name' => array(
+					'label'       => __( 'نام مشتری', 'tabesh' ),
+					'placeholder' => 'customer_name',
+					'description' => __( 'نام مشتری', 'tabesh' ),
+				),
+				'status'        => array(
+					'label'       => __( 'وضعیت سفارش', 'tabesh' ),
+					'placeholder' => 'status',
+					'description' => __( 'وضعیت جدید سفارش', 'tabesh' ),
+				),
+				'book_title'    => array(
+					'label'       => __( 'عنوان کتاب', 'tabesh' ),
+					'placeholder' => 'book_title',
+					'description' => __( 'عنوان کتاب', 'tabesh' ),
+				),
+				'quantity'      => array(
+					'label'       => __( 'تیراژ', 'tabesh' ),
+					'placeholder' => 'quantity',
+					'description' => __( 'تعداد نسخه', 'tabesh' ),
+				),
+				'total_price'   => array(
+					'label'       => __( 'قیمت کل', 'tabesh' ),
+					'placeholder' => 'total_price',
+					'description' => __( 'قیمت کل با فرمت (عددی)', 'tabesh' ),
+				),
+				'date'          => array(
+					'label'       => __( 'تاریخ', 'tabesh' ),
+					'placeholder' => 'date',
+					'description' => __( 'تاریخ', 'tabesh' ),
+				),
+			),
+		);
+
+		return isset( $variables[ $pattern_type ] ) ? $variables[ $pattern_type ] : array();
+	}
+
+	/**
+	 * Get pattern variable configuration from settings
+	 *
+	 * @param string $pattern_type Pattern type
+	 * @return array Variable configuration
+	 */
+	public function get_pattern_variable_config( $pattern_type ) {
+		$config_key = 'sms_pattern_vars_' . $pattern_type;
+		$config     = Tabesh()->get_setting( $config_key, array() );
+
+		// Ensure it's an array
+		if ( ! is_array( $config ) ) {
+			// Try to decode if it's JSON string
+			$decoded = json_decode( $config, true );
+			$config  = is_array( $decoded ) ? $decoded : array();
+		}
+
+		return $config;
+	}
+
+	/**
+	 * Build variables array based on configuration
+	 *
+	 * @param array  $all_variables All available variables
+	 * @param string $pattern_type  Pattern type
+	 * @return array Ordered array of variable values
+	 */
+	public function build_variables_array( $all_variables, $pattern_type ) {
+		$config = $this->get_pattern_variable_config( $pattern_type );
+
+		// If no config, return all variables in default order
+		if ( empty( $config ) ) {
+			return array_values( $all_variables );
+		}
+
+		// Build ordered array based on config
+		$ordered_vars = array();
+		foreach ( $config as $var_key => $var_config ) {
+			// Only include enabled variables
+			if ( isset( $var_config['enabled'] ) && $var_config['enabled'] && isset( $all_variables[ $var_key ] ) ) {
+				$order                = isset( $var_config['order'] ) ? intval( $var_config['order'] ) : 999;
+				$ordered_vars[ $order ] = $all_variables[ $var_key ];
+			}
+		}
+
+		// Sort by order
+		ksort( $ordered_vars );
+
+		// Return as indexed array
+		return array_values( $ordered_vars );
+	}
+
+	/**
+	 * Get user registration variables for SMS template
+	 *
+	 * @param int   $user_id   User ID
+	 * @param array $user_data User data (optional, for newly created users)
+	 * @return array Variables for SMS template
+	 */
+	public function get_user_registration_variables( $user_id, $user_data = array() ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return array();
+		}
+
+		// Use provided data or fetch from user meta
+		$first_name = ! empty( $user_data['first_name'] ) ? $user_data['first_name'] : get_user_meta( $user_id, 'first_name', true );
+		$last_name  = ! empty( $user_data['last_name'] ) ? $user_data['last_name'] : get_user_meta( $user_id, 'last_name', true );
+		$user_name  = trim( $first_name . ' ' . $last_name );
+		$mobile     = $user->user_login; // Mobile is stored as username
+
+		// Format date in Persian (Jalali) if possible, otherwise use Gregorian
+		$date = date_i18n( 'Y/m/d' );
+
+		$all_variables = array(
+			'user_name'  => $user_name,
+			'first_name' => $first_name,
+			'last_name'  => $last_name,
+			'mobile'     => $mobile,
+			'date'       => $date,
+		);
+
+		return $this->build_variables_array( $all_variables, 'admin_user_registration' );
+	}
+
+	/**
+	 * Get admin order variables for SMS template
+	 *
+	 * @param int   $order_id   Order ID
+	 * @param array $order_data Order data (optional)
+	 * @return array Variables for SMS template
+	 */
+	public function get_admin_order_variables( $order_id, $order_data = array() ) {
+		// Get order from database if not provided
+		if ( empty( $order_data ) ) {
+			$order = Tabesh()->order->get_order( $order_id );
+			if ( ! $order ) {
+				return array();
+			}
+		} else {
+			// Use provided data
+			$order = (object) $order_data;
+		}
+
+		// Get user information
+		$user          = get_userdata( $order->user_id );
+		$customer_name = $user ? $user->display_name : __( 'مشتری', 'tabesh' );
+
+		// Format date in Persian (Jalali) if possible, otherwise use Gregorian
+		$date = date_i18n( 'Y/m/d' );
+
+		$all_variables = array(
+			'order_number'  => $order->order_number ?? '',
+			'customer_name' => $customer_name,
+			'book_title'    => $order->book_title ?? '',
+			'quantity'      => $order->quantity ?? 0,
+			'total_price'   => number_format( $order->total_price ?? 0 ),
+			'date'          => $date,
+		);
+
+		return $this->build_variables_array( $all_variables, 'admin_order_created' );
+	}
+
+	/**
+	 * Send SMS notification for user registration by admin
+	 *
+	 * @param int   $user_id   User ID
+	 * @param array $user_data User data
+	 * @return bool|WP_Error True on success, WP_Error on failure, false if disabled
+	 */
+	public function send_user_registration_sms( $user_id, $user_data = array() ) {
+		// Check if SMS is enabled for admin user registration
+		if ( ! Tabesh()->get_setting( 'sms_admin_user_registration_enabled', '0' ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh SMS: Admin user registration SMS disabled' );
+			}
+			return false;
+		}
+
+		// Get pattern code
+		$pattern_code = Tabesh()->get_setting( 'sms_admin_user_registration_pattern', '' );
+		if ( empty( $pattern_code ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh SMS: No pattern code for admin user registration' );
+			}
+			return false;
+		}
+
+		// Get user phone number
+		$user  = get_userdata( $user_id );
+		$phone = $user ? $user->user_login : '';
+
+		// Validate phone
+		if ( empty( $phone ) || ! $this->validate_phone( $phone ) ) {
+			$error_message = __( 'شماره موبایل کاربر یافت نشد یا نامعتبر است', 'tabesh' );
+			$this->log_error(
+				'no_phone',
+				$error_message,
+				array( 'user_id' => $user_id )
+			);
+			return new WP_Error( 'no_phone', $error_message );
+		}
+
+		// Get variables for template
+		$variables = $this->get_user_registration_variables( $user_id, $user_data );
+
+		// Send SMS
+		$result = $this->send_template_sms( $phone, $pattern_code, $variables );
+
+		// Log the action
+		if ( ! is_wp_error( $result ) && $result === true ) {
+			$this->log_action(
+				0, // No order_id for user registration
+				'sms_sent',
+				sprintf(
+					__( 'پیامک ثبت‌نام کاربر به شماره %s ارسال شد', 'tabesh' ),
+					substr( $phone, 0, 4 ) . '****' . substr( $phone, -2 )
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Send SMS notification when admin creates order
+	 *
+	 * @param int   $order_id   Order ID
+	 * @param array $order_data Order data
+	 * @return bool|WP_Error True on success, WP_Error on failure, false if disabled
+	 */
+	public function send_admin_order_created_sms( $order_id, $order_data = array() ) {
+		// Check if SMS is enabled for admin order created
+		if ( ! Tabesh()->get_setting( 'sms_admin_order_created_enabled', '0' ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh SMS: Admin order created SMS disabled' );
+			}
+			return false;
+		}
+
+		// Get pattern code
+		$pattern_code = Tabesh()->get_setting( 'sms_admin_order_created_pattern', '' );
+		if ( empty( $pattern_code ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh SMS: No pattern code for admin order created' );
+			}
+			return false;
+		}
+
+		// Get order details if not provided
+		if ( empty( $order_data ) ) {
+			$order = Tabesh()->order->get_order( $order_id );
+			if ( ! $order ) {
+				return new WP_Error( 'order_not_found', __( 'سفارش یافت نشد', 'tabesh' ) );
+			}
+			$order_data = (array) $order;
+		}
+
+		// Get customer phone number
+		$user_id = isset( $order_data['user_id'] ) ? $order_data['user_id'] : 0;
+		$user    = get_userdata( $user_id );
+		$phone   = $user ? $user->user_login : '';
+
+		// Validate phone from user_login
+		if ( empty( $phone ) || ! $this->validate_phone( $phone ) ) {
+			// Fallback to billing_phone from user meta if user_login is not a valid phone
+			$phone = get_user_meta( $user_id, 'billing_phone', true );
+		}
+
+		// Final validation
+		if ( empty( $phone ) || ! $this->validate_phone( $phone ) ) {
+			$error_message = __( 'شماره موبایل مشتری یافت نشد یا نامعتبر است', 'tabesh' );
+			$this->log_error(
+				'no_phone',
+				$error_message,
+				array(
+					'order_id' => $order_id,
+					'user_id'  => $user_id,
+				)
+			);
+			return new WP_Error( 'no_phone', $error_message );
+		}
+
+		// Get variables for template
+		$variables = $this->get_admin_order_variables( $order_id, $order_data );
+
+		// Send SMS
+		$result = $this->send_template_sms( $phone, $pattern_code, $variables );
+
+		// Log the action
+		if ( ! is_wp_error( $result ) && $result === true ) {
+			$this->log_action(
+				$order_id,
+				'sms_sent',
+				sprintf(
+					__( 'پیامک ثبت سفارش به شماره %s ارسال شد', 'tabesh' ),
+					substr( $phone, 0, 4 ) . '****' . substr( $phone, -2 )
+				)
+			);
+		}
+
+		return $result;
+	}
 }

@@ -31,6 +31,7 @@
 
         initCustomerSelection();
         initFormFields();
+        initSMSOptions();
         initPriceCalculation();
         initFormSubmission();
         initKeyboardShortcuts();
@@ -108,6 +109,38 @@
             $('#aof-selected-user-id').val('');
             $('#aof-selected-user-display').empty();
         });
+    }
+
+    /**
+     * Initialize SMS options
+     * راه‌اندازی گزینه‌های پیامک
+     */
+    function initSMSOptions() {
+        // Show/hide registration SMS checkbox based on customer type
+        // نمایش/پنهان کردن چک‌باکس پیامک ثبت‌نام بر اساس نوع مشتری
+        $('input[name="customer_type"]').on('change', function() {
+            const type = $(this).val();
+            const $registrationLabel = $('#aof-registration-sms-label');
+            
+            if (type === 'new') {
+                // Show registration SMS option for new users
+                // نمایش گزینه پیامک ثبت‌نام برای کاربران جدید
+                $registrationLabel.show();
+                $('#aof-send-registration-sms').prop('checked', true);
+            } else {
+                // Hide registration SMS option for existing users
+                // پنهان کردن گزینه پیامک ثبت‌نام برای کاربران موجود
+                $registrationLabel.hide();
+                $('#aof-send-registration-sms').prop('checked', false);
+            }
+        });
+        
+        // Initialize on page load
+        // راه‌اندازی اولیه هنگام بارگذاری صفحه
+        const initialType = $('input[name="customer_type"]:checked').val();
+        if (initialType === 'new') {
+            $('#aof-registration-sms-label').show();
+        }
     }
 
     /**
@@ -560,6 +593,10 @@
                 formData.override_unit_price = overrideUnitTomans; // بدون تبدیل!
             }
         }
+
+        // Include SMS options / افزودن گزینه‌های پیامک
+        formData.send_registration_sms = $('#aof-send-registration-sms').is(':checked');
+        formData.send_order_sms = $('#aof-send-order-sms').is(':checked');
 
         const $btn = $('#aof-submit-btn');
         $btn.prop('disabled', true).html(
