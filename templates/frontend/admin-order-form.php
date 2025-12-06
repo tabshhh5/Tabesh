@@ -325,35 +325,53 @@ $form_title = isset($atts['title']) ? $atts['title'] : __('ثبت سفارش ج�
     -->
     <footer class="tabesh-aof-footer">
         <div class="tabesh-aof-price-bar">
-            <!-- Calculated Price / قیمت محاسبه شده -->
-            <div class="tabesh-aof-price-item">
-                <span class="price-label"><?php echo esc_html__('محاسبه:', 'tabesh'); ?></span>
+            <!-- Unit Price / قیمت تک جلد -->
+            <div class="tabesh-aof-price-item tabesh-aof-price-unit">
+                <span class="price-label"><?php echo esc_html__('تک جلد:', 'tabesh'); ?></span>
+                <span class="price-value" id="aof-unit-price">---</span>
+                <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+            </div>
+
+            <!-- Calculated Total Price / قیمت کل محاسبه شده -->
+            <div class="tabesh-aof-price-item tabesh-aof-price-calculated">
+                <span class="price-label"><?php echo esc_html__('کل محاسبه:', 'tabesh'); ?></span>
                 <span class="price-value" id="aof-calculated-price">---</span>
-                <span class="price-unit"><?php echo esc_html__('ریال', 'tabesh'); ?></span>
+                <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
             </div>
 
             <!-- Final Price / قیمت نهایی -->
             <div class="tabesh-aof-price-item tabesh-aof-price-final">
                 <span class="price-label"><?php echo esc_html__('نهایی:', 'tabesh'); ?></span>
-                <span class="price-value" id="aof-final-price">---</span>
-                <span class="price-unit"><?php echo esc_html__('ریال', 'tabesh'); ?></span>
+                <div class="price-breakdown">
+                    <div>
+                        <span class="price-sublabel"><?php echo esc_html__('تک جلد:', 'tabesh'); ?></span>
+                        <span class="price-value" id="aof-unit-price-final">---</span>
+                        <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+                    </div>
+                    <div>
+                        <span class="price-sublabel"><?php echo esc_html__('کل:', 'tabesh'); ?></span>
+                        <span class="price-value" id="aof-final-price">---</span>
+                        <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Override Price / قیمت دلخواه -->
+            <!-- Override Unit Price / قیمت دستی تک جلد -->
             <div class="tabesh-aof-override">
                 <label class="tabesh-aof-override-toggle">
                     <input type="checkbox" id="aof-override-price-check">
                     <span class="toggle-slider"></span>
-                    <span class="toggle-label"><?php echo esc_html__('قیمت دلخواه', 'tabesh'); ?></span>
+                    <span class="toggle-label"><?php echo esc_html__('قیمت تک جلد دلخواه', 'tabesh'); ?></span>
                 </label>
                 <input type="number" 
-                       id="aof-override-price" 
-                       name="override_price" 
+                       id="aof-override-unit-price" 
+                       name="override_unit_price" 
                        class="tabesh-aof-input tabesh-aof-input-sm" 
-                       placeholder="<?php echo esc_attr__('ریال', 'tabesh'); ?>" 
+                       placeholder="<?php echo esc_attr__('تومان', 'tabesh'); ?>" 
                        min="0" 
-                       step="1000" 
+                       step="100" 
                        disabled>
+                <small class="price-helper"><?php echo esc_html__('قیمت کل = تک جلد × تیراژ', 'tabesh'); ?></small>
             </div>
         </div>
 

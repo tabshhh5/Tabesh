@@ -659,6 +659,20 @@
     color: var(--aof-text-muted);
 }
 
+.tabesh-aof-price-unit {
+    background: #e8f4fd;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius);
+    border-right: 3px solid #2196F3;
+}
+
+.tabesh-aof-price-calculated {
+    background: #fff9e6;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius);
+    border-right: 3px solid #f59e0b;
+}
+
 .tabesh-aof-price-final {
     padding-right: var(--aof-space-md);
     border-right: 2px solid var(--aof-success);
@@ -666,6 +680,24 @@
 
 .tabesh-aof-price-final .price-value {
     color: var(--aof-success);
+}
+
+.tabesh-aof-price-final .price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aof-space-xs);
+}
+
+.tabesh-aof-price-final .price-breakdown > div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aof-space-xs);
+}
+
+.price-sublabel {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-muted);
+    min-width: 50px;
 }
 
 /* Override price / قیمت دلخواه */
@@ -719,6 +751,15 @@
 
 .tabesh-aof-override-toggle input:checked + .toggle-slider::after {
     right: 16px;
+}
+
+.tabesh-aof-override .price-helper {
+    display: block;
+    margin-top: var(--aof-space-xs);
+    color: var(--aof-text-muted);
+    font-size: var(--aof-font-xs);
+    font-style: italic;
+    margin-right: auto;
 }
 
 /* Actions / عملیات */

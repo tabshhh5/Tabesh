@@ -255,23 +255,26 @@ class Tabesh_Admin_Order_Creator {
             ), 400);
         }
 
-        // Check if price override is provided
-        $override_price = isset($params['override_price']) && !empty($params['override_price']) 
-            ? floatval($params['override_price']) 
+        // Check if price override is provided (now as UNIT PRICE, not TOTAL)
+        $override_unit_price = isset($params['override_unit_price']) && !empty($params['override_unit_price']) 
+            ? floatval($params['override_unit_price']) 
             : null;
+
+        // Get quantity for calculation
+        $quantity = intval($params['quantity'] ?? 0);
 
         // Generate order number
         $order_number = 'TB-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
         // Calculate price using existing method (unless overridden)
-        if ($override_price === null) {
+        if ($override_unit_price === null) {
             $order_handler = Tabesh()->order;
             $price_data = $order_handler->calculate_price($params);
             $total_price = $price_data['total_price'];
             $page_count_total = $price_data['page_count_total'];
         } else {
-            // Use override price
-            $total_price = $override_price;
+            // Calculate total from UNIT price × quantity
+            $total_price = $override_unit_price * $quantity;
             $page_count_total = intval($params['page_count_color'] ?? 0) + intval($params['page_count_bw'] ?? 0);
             if ($page_count_total % 2 !== 0) {
                 $page_count_total++;

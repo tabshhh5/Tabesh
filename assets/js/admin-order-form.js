@@ -288,16 +288,16 @@
         // Override price checkbox / چک‌باکس قیمت دلخواه
         $('#aof-override-price-check').on('change', function() {
             if ($(this).is(':checked')) {
-                $('#aof-override-price').prop('disabled', false);
+                $('#aof-override-unit-price').prop('disabled', false);
             } else {
-                $('#aof-override-price').prop('disabled', true).val('');
+                $('#aof-override-unit-price').prop('disabled', true).val('');
             }
             updateFinalPrice();
         });
 
-        // Update final price when override changes
-        // به‌روزرسانی قیمت نهایی هنگام تغییر قیمت دلخواه
-        $('#aof-override-price').on('input', function() {
+        // Update final price when override unit price or quantity changes
+        // به‌روزرسانی قیمت نهایی هنگام تغییر قیمت تک جلد دلخواه یا تیراژ
+        $('#aof-override-unit-price, #aof-quantity').on('input', function() {
             updateFinalPrice();
         });
     }
@@ -460,8 +460,27 @@
      * @param {Object} data Price data / داده‌های قیمت
      */
     function displayCalculatedPrice(data) {
-        const formatted = formatPrice(data.total_price);
-        $('#aof-calculated-price').text(formatted);
+        // محاسبه قیمت تک جلد و کل به تومان
+        const unitPriceRials = data.price_per_book || 0;
+        const totalPriceRials = data.total_price || 0;
+        
+        const unitPriceTomans = rialsToTomans(unitPriceRials);
+        const totalPriceTomans = rialsToTomans(totalPriceRials);
+        
+        // نمایش قیمت تک جلد
+        $('#aof-unit-price').text(formatPrice(unitPriceTomans));
+        
+        // نمایش قیمت کل محاسبه شده
+        $('#aof-calculated-price').text(formatPrice(totalPriceTomans));
+        
+        // ذخیره قیمت تک جلد به تومان برای محاسبات بعدی
+        window.calculatedUnitPriceTomans = unitPriceTomans;
+        
+        // Store calculated price in Rials for compatibility
+        calculatedPrice = totalPriceRials;
+        
+        // Update final price display
+        updateFinalPrice();
     }
 
     /**
@@ -469,19 +488,30 @@
      * به‌روزرسانی نمایش قیمت نهایی
      */
     function updateFinalPrice() {
-        let finalPrice = calculatedPrice;
+        let finalPriceTomans = rialsToTomans(calculatedPrice || 0);
+        let unitPriceTomans = window.calculatedUnitPriceTomans || 0;
         
+        const quantity = parseInt($('#aof-quantity').val()) || 1;
+        
+        // اگر قیمت دستی فعال باشد
         if ($('#aof-override-price-check').is(':checked')) {
-            const override = parseFloat($('#aof-override-price').val());
-            if (!isNaN(override) && override > 0) {
-                finalPrice = override;
+            const overrideUnitPrice = parseFloat($('#aof-override-unit-price').val());
+            if (!isNaN(overrideUnitPrice) && overrideUnitPrice > 0) {
+                unitPriceTomans = overrideUnitPrice;
+                finalPriceTomans = unitPriceTomans * quantity; // محاسبه قیمت کل
             }
         }
         
-        if (finalPrice) {
-            const formatted = formatPrice(finalPrice);
-            $('#aof-final-price').text(formatted);
+        // نمایش قیمت تک جلد نهایی
+        if (unitPriceTomans) {
+            $('#aof-unit-price-final').text(formatPrice(unitPriceTomans));
+        }
+        
+        // نمایش قیمت کل نهایی
+        if (finalPriceTomans) {
+            $('#aof-final-price').text(formatPrice(finalPriceTomans));
         } else {
+            $('#aof-unit-price-final').text('---');
             $('#aof-final-price').text('---');
         }
     }
@@ -526,11 +556,12 @@
         const formData = getFormData();
         formData.user_id = parseInt(userId);
 
-        // Add override price if set / افزودن قیمت دلخواه در صورت تنظیم
+        // Add override UNIT price if set (convert back to Rials for backend)
+        // افزودن قیمت تک جلد دلخواه در صورت تنظیم (تبدیل به ریال برای بکند)
         if ($('#aof-override-price-check').is(':checked')) {
-            const override = parseFloat($('#aof-override-price').val());
-            if (!isNaN(override) && override > 0) {
-                formData.override_price = override;
+            const overrideUnitTomans = parseFloat($('#aof-override-unit-price').val());
+            if (!isNaN(overrideUnitTomans) && overrideUnitTomans > 0) {
+                formData.override_unit_price = tomansToRials(overrideUnitTomans); // تبدیل به ریال
             }
         }
 
@@ -707,9 +738,12 @@
         $('#aof-selected-user-display').empty();
         $('#aof-selected-user-id').val('');
         $('#aof-calculated-price').text('---');
+        $('#aof-unit-price').text('---');
         $('#aof-final-price').text('---');
+        $('#aof-unit-price-final').text('---');
         calculatedPrice = null;
         selectedUserId = null;
+        window.calculatedUnitPriceTomans = null;
         
         // Reset customer selection / بازنشانی انتخاب مشتری
         $('input[name="customer_type"][value="existing"]').prop('checked', true).trigger('change');
@@ -721,6 +755,28 @@
         
         // Reset paper weight / بازنشانی گرماژ کاغذ
         $('#aof-paper-weight').empty().append('<option value="">' + tabeshAdminOrderForm.strings.selectPaperFirst + '</option>');
+    }
+
+    /**
+     * Convert Rials to Tomans
+     * تبدیل ریال به تومان
+     * 
+     * @param {number} rials قیمت به ریال
+     * @returns {number} قیمت به تومان
+     */
+    function rialsToTomans(rials) {
+        return Math.round(rials / 10);
+    }
+
+    /**
+     * Convert Tomans to Rials
+     * تبدیل تومان به ریال
+     * 
+     * @param {number} tomans قیمت به تومان
+     * @returns {number} قیمت به ریال
+     */
+    function tomansToRials(tomans) {
+        return Math.round(tomans * 10);
     }
 
     /**
