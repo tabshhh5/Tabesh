@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Serial Number Column (v1.5.0):**
+  - Added `serial_number` column to `wp_tabesh_orders` table for official record keeping
+  - Serial numbers are unique, sequential (1, 2, 3...), and immutable
+  - Automatically assigned to new orders upon creation
+  - Existing orders receive serial numbers in order of creation (by ID)
+  - Displayed in Admin Dashboard `[tabesh_admin_dashboard]` shortcode
+  - New "سریال" column appears after "ردیف" and before "یوزر" columns
+  - Suitable for paper book registration and official documentation
+
 ### Fixed
 - **File download and SMS configuration issues:**
   - Fixed admin dashboard file download blocked by CDN/Firewall - changed from `window.open()` to `fetch()` with Blob approach

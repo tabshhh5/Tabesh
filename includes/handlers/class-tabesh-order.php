@@ -530,8 +530,30 @@ class Tabesh_Order {
             return $this->create_order_as_post($data);
         }
         
+        // Get next serial number if serial_number column exists
+        if (Tabesh_Install::column_exists($table_orders, 'serial_number')) {
+            // Get the maximum serial number
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $max_serial = $wpdb->get_var("SELECT MAX(serial_number) FROM `{$table_orders}`");
+            $next_serial = $max_serial ? ($max_serial + 1) : 1;
+            $data['serial_number'] = $next_serial;
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Assigning serial number: ' . $next_serial);
+            }
+        }
+        
         // Use prepared statement with proper format specification
-        $formats = array(
+        // Build formats array dynamically based on what's in $data
+        $formats = array();
+        
+        // Add format for serial_number if present
+        if (isset($data['serial_number'])) {
+            $formats[] = '%d'; // serial_number
+        }
+        
+        // Add formats for standard fields
+        $formats = array_merge($formats, array(
             '%d', // user_id
             '%s', // order_number
             '%s', // book_title
@@ -553,7 +575,7 @@ class Tabesh_Order {
             '%f', // total_price
             '%s', // status
             '%s'  // notes
-        );
+        ));
         
         // Debug: Log before insert
         if (defined('WP_DEBUG') && WP_DEBUG) {

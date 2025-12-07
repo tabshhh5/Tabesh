@@ -3,7 +3,7 @@
  * Plugin Name: Tabesh - سامانه جامع ثبت سفارش چاپ کتاب
  * Plugin URI: https://chapco.ir
  * Description: A comprehensive system for managing, calculating, and processing book printing orders with full WooCommerce integration.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Chapco
  * Author URI: https://chapco.ir
  * Text Domain: tabesh
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('TABESH_VERSION', '1.0.2');
+define('TABESH_VERSION', '1.0.3');
 define('TABESH_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TABESH_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TABESH_PLUGIN_FILE', __FILE__);
@@ -346,6 +346,7 @@ final class Tabesh {
         $table_orders = $wpdb->prefix . 'tabesh_orders';
         $sql_orders = "CREATE TABLE IF NOT EXISTS $table_orders (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            serial_number bigint(20) UNSIGNED NOT NULL DEFAULT 0,
             user_id bigint(20) UNSIGNED NOT NULL,
             order_number varchar(50) NOT NULL,
             book_title varchar(255) DEFAULT NULL,
@@ -372,6 +373,7 @@ final class Tabesh {
             archived tinyint(1) DEFAULT 0,
             archived_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
+            UNIQUE KEY serial_number (serial_number),
             KEY user_id (user_id),
             KEY order_number (order_number),
             KEY status (status),

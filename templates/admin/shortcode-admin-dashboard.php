@@ -229,6 +229,7 @@ if ($is_admin) {
                         <thead>
                             <tr>
                                 <th><?php esc_html_e('ردیف', 'tabesh'); ?></th>
+                                <th><?php esc_html_e('سریال', 'tabesh'); ?></th>
                                 <th><?php esc_html_e('یوزر', 'tabesh'); ?></th>
                                 <th><?php esc_html_e('مشتری', 'tabesh'); ?></th>
                                 <th><?php esc_html_e('استان', 'tabesh'); ?></th>
@@ -284,6 +285,7 @@ if ($is_admin) {
                                     data-user-id="<?php echo esc_attr($order->user_id); ?>"
                                     data-status="<?php echo esc_attr($order->status); ?>">
                                     <td class="row-number"><?php echo esc_html($row_number); ?></td>
+                                    <td class="serial-number"><strong><?php echo esc_html($order->serial_number ?? '—'); ?></strong></td>
                                     <td><span class="user-id"><?php echo esc_html(sprintf('%02d', $order->user_id)); ?></span></td>
                                     <td class="customer-name"><?php echo esc_html($customer_name); ?></td>
                                     <td class="province-cell"><?php echo esc_html($province ?: '—'); ?></td>
@@ -306,7 +308,7 @@ if ($is_admin) {
                                 </tr>
                                 <!-- Order Details Row (Hidden by default) -->
                                 <tr class="order-details-row" data-order-id="<?php echo esc_attr($order->id); ?>">
-                                    <td colspan="11" class="order-details-cell">
+                                    <td colspan="12" class="order-details-cell">
                                         <div class="order-details-content">
                                             <?php 
                                             // Include order details template
