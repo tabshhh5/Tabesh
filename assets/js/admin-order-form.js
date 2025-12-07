@@ -258,7 +258,8 @@
             data: JSON.stringify({
                 mobile: mobile,
                 first_name: firstName,
-                last_name: lastName
+                last_name: lastName,
+                send_registration_sms: $('#aof-send-registration-sms').is(':checked')
             }),
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderForm.nonce);
