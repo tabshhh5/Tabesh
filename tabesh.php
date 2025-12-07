@@ -205,6 +205,27 @@ final class Tabesh {
     public $admin_order_form;
 
     /**
+     * Import/Export handler
+     *
+     * @var Tabesh_Import_Export
+     */
+    public $import_export;
+
+    /**
+     * Data Cleanup handler
+     *
+     * @var Tabesh_Data_Cleanup
+     */
+    public $data_cleanup;
+
+    /**
+     * Hidden Orders handler
+     *
+     * @var Tabesh_Hidden_Orders
+     */
+    public $hidden_orders;
+
+    /**
      * Cache for settings to avoid redundant database queries
      *
      * @var array
@@ -275,6 +296,12 @@ final class Tabesh {
         $this->admin_order_creator = new Tabesh_Admin_Order_Creator();
         // Initialize admin order form shortcode handler
         $this->admin_order_form = new Tabesh_Admin_Order_Form();
+        // Initialize import/export handler
+        $this->import_export = new Tabesh_Import_Export();
+        // Initialize data cleanup handler
+        $this->data_cleanup = new Tabesh_Data_Cleanup();
+        // Initialize hidden orders handler
+        $this->hidden_orders = new Tabesh_Hidden_Orders();
 
         // Register REST API routes
         add_action('rest_api_init', array($this, 'register_rest_routes'));
@@ -1180,6 +1207,63 @@ final class Tabesh {
             'callback' => array($this->admin_order_creator, 'rest_create_order'),
             'permission_callback' => array($this, 'can_manage_admin')
         ));
+
+        // Import/Export routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/export', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_export_data'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/import', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_import_data'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        // Data Cleanup routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/factory-reset', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_factory_reset'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/selective', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_selective_cleanup'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/user/(?P<user_id>\d+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'rest_delete_user_data'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/order/(?P<order_id>\d+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'rest_delete_order'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        // Hidden Orders routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/hidden-orders', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'rest_get_hidden_orders'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/hidden-orders/(?P<order_id>\d+)/mark', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_mark_order_hidden'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/hidden-orders/(?P<order_id>\d+)/unmark', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_unmark_order_hidden'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
     }
 
     /**
@@ -2013,6 +2097,277 @@ final class Tabesh {
         // Cache the value
         self::$settings_cache[$key] = $value;
         return $value;
+    }
+
+    /**
+     * REST: Export data
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_export_data($request) {
+        $params = $request->get_json_params();
+        
+        $options = array(
+            'include_orders' => isset($params['include_orders']) ? (bool) $params['include_orders'] : true,
+            'include_settings' => isset($params['include_settings']) ? (bool) $params['include_settings'] : true,
+            'include_files_metadata' => isset($params['include_files_metadata']) ? (bool) $params['include_files_metadata'] : true,
+            'include_physical_files' => isset($params['include_physical_files']) ? (bool) $params['include_physical_files'] : false,
+            'include_users' => isset($params['include_users']) ? (bool) $params['include_users'] : false,
+            'include_logs' => isset($params['include_logs']) ? (bool) $params['include_logs'] : false,
+            'date_from' => isset($params['date_from']) ? sanitize_text_field($params['date_from']) : null,
+            'date_to' => isset($params['date_to']) ? sanitize_text_field($params['date_to']) : null,
+            'user_id' => isset($params['user_id']) ? intval($params['user_id']) : null,
+            'format' => isset($params['format']) ? sanitize_text_field($params['format']) : 'json'
+        );
+
+        $result = $this->import_export->export_data($options);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Import data
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_import_data($request) {
+        $files = $request->get_file_params();
+        $params = $request->get_json_params();
+
+        if (empty($files['file'])) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('فایل برای درونریزی ارسال نشده است', 'tabesh')
+            ), 400);
+        }
+
+        $file = $files['file'];
+        
+        // Validate file extension
+        $allowed_extensions = array('json', 'zip');
+        $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        
+        if (!in_array($file_extension, $allowed_extensions)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('فرمت فایل پشتیبانی نمی‌شود. فقط JSON و ZIP مجاز است', 'tabesh')
+            ), 400);
+        }
+
+        $options = array(
+            'include_orders' => isset($params['include_orders']) ? (bool) $params['include_orders'] : true,
+            'include_settings' => isset($params['include_settings']) ? (bool) $params['include_settings'] : true,
+            'include_files_metadata' => isset($params['include_files_metadata']) ? (bool) $params['include_files_metadata'] : true,
+            'include_physical_files' => isset($params['include_physical_files']) ? (bool) $params['include_physical_files'] : false,
+            'include_users' => isset($params['include_users']) ? (bool) $params['include_users'] : false,
+            'include_logs' => isset($params['include_logs']) ? (bool) $params['include_logs'] : false,
+            'skip_existing' => isset($params['skip_existing']) ? (bool) $params['skip_existing'] : true,
+            'update_existing' => isset($params['update_existing']) ? (bool) $params['update_existing'] : false
+        );
+
+        $result = $this->import_export->import_data($file['tmp_name'], $options);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Factory reset
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_factory_reset($request) {
+        $params = $request->get_json_params();
+        $keep_settings = isset($params['keep_settings']) ? (bool) $params['keep_settings'] : false;
+
+        $result = $this->data_cleanup->factory_reset($keep_settings);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Selective cleanup
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_selective_cleanup($request) {
+        $params = $request->get_json_params();
+        
+        $options = array(
+            'cleanup_orders' => isset($params['cleanup_orders']) ? (bool) $params['cleanup_orders'] : false,
+            'cleanup_files' => isset($params['cleanup_files']) ? (bool) $params['cleanup_files'] : false,
+            'cleanup_logs' => isset($params['cleanup_logs']) ? (bool) $params['cleanup_logs'] : false,
+            'cleanup_settings' => isset($params['cleanup_settings']) ? (bool) $params['cleanup_settings'] : false,
+            'date_from' => isset($params['date_from']) ? sanitize_text_field($params['date_from']) : null,
+            'date_to' => isset($params['date_to']) ? sanitize_text_field($params['date_to']) : null,
+            'user_id' => isset($params['user_id']) ? intval($params['user_id']) : null,
+            'status' => isset($params['status']) ? sanitize_text_field($params['status']) : null,
+            'setting_keys' => isset($params['setting_keys']) && is_array($params['setting_keys']) ? $params['setting_keys'] : array()
+        );
+
+        $result = $this->data_cleanup->selective_cleanup($options);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Delete user data
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_delete_user_data($request) {
+        $user_id = intval($request->get_param('user_id'));
+        $params = $request->get_json_params();
+        $delete_account = isset($params['delete_account']) ? (bool) $params['delete_account'] : false;
+
+        if ($user_id <= 0) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شناسه کاربر نامعتبر است', 'tabesh')
+            ), 400);
+        }
+
+        $result = $this->data_cleanup->delete_user_data($user_id, $delete_account);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Delete order completely
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_delete_order($request) {
+        $order_id = intval($request->get_param('order_id'));
+
+        if ($order_id <= 0) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شناسه سفارش نامعتبر است', 'tabesh')
+            ), 400);
+        }
+
+        $result = $this->data_cleanup->delete_order_completely($order_id);
+
+        if ($result['success']) {
+            return new WP_REST_Response($result, 200);
+        } else {
+            return new WP_REST_Response($result, 400);
+        }
+    }
+
+    /**
+     * REST: Get hidden orders
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_get_hidden_orders($request) {
+        $args = array(
+            'limit' => min(100, max(1, intval($request->get_param('limit') ?? 50))),
+            'offset' => max(0, intval($request->get_param('offset') ?? 0)),
+            'user_id' => !empty($request->get_param('user_id')) ? intval($request->get_param('user_id')) : null,
+            'status' => !empty($request->get_param('status')) ? sanitize_text_field($request->get_param('status')) : null,
+            'order_by' => sanitize_text_field($request->get_param('order_by') ?? 'created_at'),
+            'order' => sanitize_text_field($request->get_param('order') ?? 'DESC')
+        );
+
+        $orders = $this->hidden_orders->get_hidden_orders($args);
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'orders' => $orders,
+            'count' => count($orders)
+        ), 200);
+    }
+
+    /**
+     * REST: Mark order as hidden
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_mark_order_hidden($request) {
+        $order_id = intval($request->get_param('order_id'));
+        $params = $request->get_json_params();
+        $note = isset($params['note']) ? sanitize_textarea_field($params['note']) : '';
+
+        if ($order_id <= 0) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شناسه سفارش نامعتبر است', 'tabesh')
+            ), 400);
+        }
+
+        $result = $this->hidden_orders->mark_order_hidden($order_id, $note);
+
+        if ($result) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => __('سفارش به عنوان مخفی علامت‌گذاری شد', 'tabesh')
+            ), 200);
+        } else {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('خطا در علامت‌گذاری سفارش', 'tabesh')
+            ), 400);
+        }
+    }
+
+    /**
+     * REST: Unmark order as hidden
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response Response object
+     */
+    public function rest_unmark_order_hidden($request) {
+        $order_id = intval($request->get_param('order_id'));
+
+        if ($order_id <= 0) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('شناسه سفارش نامعتبر است', 'tabesh')
+            ), 400);
+        }
+
+        $result = $this->hidden_orders->unmark_order_hidden($order_id);
+
+        if ($result) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => __('علامت مخفی از سفارش حذف شد', 'tabesh')
+            ), 200);
+        } else {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('خطا در حذف علامت مخفی', 'tabesh')
+            ), 400);
+        }
     }
 
     /**
