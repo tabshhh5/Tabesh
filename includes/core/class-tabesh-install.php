@@ -18,7 +18,7 @@ class Tabesh_Install {
      * Current database version
      * Update this when schema changes are made
      */
-    const DB_VERSION = '1.4.0';
+    const DB_VERSION = '1.5.0';
 
     /**
      * Database version option name
@@ -156,6 +156,9 @@ class Tabesh_Install {
         // Add archived_at column to orders table (v1.4.0)
         self::add_archived_at_column();
         
+        // Add serial_number column to orders table (v1.5.0)
+        self::add_serial_number_column();
+        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -269,6 +272,107 @@ class Tabesh_Install {
         
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Tabesh: SUCCESS - Added archived_at column to orders table');
+        }
+        
+        return true;
+    }
+
+    /**
+     * Add serial_number column to orders table
+     * 
+     * Creates the serial_number column for official record keeping.
+     * Part of the serial number tracking feature (v1.5.0).
+     * Assigns sequential serial numbers to existing orders.
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function add_serial_number_column() {
+        global $wpdb;
+        $table_orders = $wpdb->prefix . 'tabesh_orders';
+        
+        // Check if table exists
+        if (!self::table_exists($table_orders)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Orders table does not exist, skipping serial_number migration');
+            }
+            return false;
+        }
+        
+        // Check if column already exists
+        if (self::column_exists($table_orders, 'serial_number')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: serial_number column already exists');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Adding serial_number column to orders table');
+        }
+        
+        // Step 1: Add serial_number column WITHOUT unique constraint initially
+        // Note: ALTER TABLE cannot use wpdb::prepare as it doesn't support DDL statements
+        // The table name comes from $wpdb->prefix which is a WordPress constant, not user input
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $result = $wpdb->query(
+            "ALTER TABLE `{$table_orders}` 
+            ADD COLUMN `serial_number` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 AFTER `id`"
+        );
+        
+        if ($result === false) {
+            error_log('Tabesh: ERROR - Failed to add serial_number column: ' . $wpdb->last_error);
+            return false;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: SUCCESS - Added serial_number column to orders table');
+        }
+        
+        // Step 2: Assign sequential serial numbers to existing orders (ordered by id)
+        // This must be done before adding UNIQUE constraint to avoid duplicate value errors
+        // Get all order IDs ordered by id (creation order)
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $order_ids = $wpdb->get_col("SELECT id FROM `{$table_orders}` ORDER BY id ASC");
+        
+        if (!empty($order_ids)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Assigning serial numbers to ' . count($order_ids) . ' existing orders');
+            }
+            
+            // Assign serial numbers sequentially starting from 1
+            $serial = 1;
+            foreach ($order_ids as $order_id) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $wpdb->update(
+                    $table_orders,
+                    array('serial_number' => $serial),
+                    array('id' => $order_id),
+                    array('%d'),
+                    array('%d')
+                );
+                $serial++;
+            }
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Assigned serial numbers to existing orders');
+            }
+        }
+        
+        // Step 3: Add UNIQUE constraint after all serial numbers are assigned
+        // This ensures no duplicate values exist when constraint is created
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $result = $wpdb->query(
+            "ALTER TABLE `{$table_orders}` 
+            ADD UNIQUE KEY `serial_number` (`serial_number`)"
+        );
+        
+        if ($result === false) {
+            error_log('Tabesh: ERROR - Failed to add UNIQUE constraint on serial_number: ' . $wpdb->last_error);
+            // Continue anyway - column is created and populated
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Added UNIQUE constraint on serial_number');
+            }
         }
         
         return true;
