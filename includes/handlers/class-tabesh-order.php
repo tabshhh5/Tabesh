@@ -554,6 +554,8 @@ class Tabesh_Order {
 			}
 
 			// Rebuild $data array with serial_number as first field to match formats array order.
+			// Remove serial_number if it exists to avoid duplication.
+			unset( $data['serial_number'] );
 			$data = array_merge( array( 'serial_number' => $next_serial ), $data );
 		}
 
