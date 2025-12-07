@@ -310,14 +310,13 @@ class Tabesh_Install {
             error_log('Tabesh: Adding serial_number column to orders table');
         }
         
-        // Add serial_number column as BIGINT with default 0 and UNIQUE key
+        // Step 1: Add serial_number column WITHOUT unique constraint initially
         // Note: ALTER TABLE cannot use wpdb::prepare as it doesn't support DDL statements
-        // The table name comes from $wpdb->prefix which is safe and not user input
+        // The table name comes from $wpdb->prefix which is a WordPress constant, not user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $result = $wpdb->query(
             "ALTER TABLE `{$table_orders}` 
-            ADD COLUMN `serial_number` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 AFTER `id`,
-            ADD UNIQUE KEY `serial_number` (`serial_number`)"
+            ADD COLUMN `serial_number` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 AFTER `id`"
         );
         
         if ($result === false) {
@@ -329,8 +328,9 @@ class Tabesh_Install {
             error_log('Tabesh: SUCCESS - Added serial_number column to orders table');
         }
         
-        // Assign sequential serial numbers to existing orders (ordered by id)
-        // First, get all order IDs ordered by id (creation order)
+        // Step 2: Assign sequential serial numbers to existing orders (ordered by id)
+        // This must be done before adding UNIQUE constraint to avoid duplicate value errors
+        // Get all order IDs ordered by id (creation order)
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $order_ids = $wpdb->get_col("SELECT id FROM `{$table_orders}` ORDER BY id ASC");
         
@@ -355,6 +355,23 @@ class Tabesh_Install {
             
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('Tabesh: SUCCESS - Assigned serial numbers to existing orders');
+            }
+        }
+        
+        // Step 3: Add UNIQUE constraint after all serial numbers are assigned
+        // This ensures no duplicate values exist when constraint is created
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $result = $wpdb->query(
+            "ALTER TABLE `{$table_orders}` 
+            ADD UNIQUE KEY `serial_number` (`serial_number`)"
+        );
+        
+        if ($result === false) {
+            error_log('Tabesh: ERROR - Failed to add UNIQUE constraint on serial_number: ' . $wpdb->last_error);
+            // Continue anyway - column is created and populated
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: SUCCESS - Added UNIQUE constraint on serial_number');
             }
         }
         
