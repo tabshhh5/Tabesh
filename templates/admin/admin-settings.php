@@ -1266,6 +1266,140 @@ $admin = $tabesh->admin;
                         <span id="import-status" style="margin-right: 10px;"></span>
                     </div>
                 </div>
+
+                <!-- Cleanup Section -->
+                <div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                    <h3>🗑️ حذف و پاکسازی</h3>
+                    
+                    <div class="notice notice-warning" style="margin: 15px 0;">
+                        <p><strong>⚠️ هشدار:</strong> عملیات‌های این بخش قابل بازگشت نیستند. قبل از انجام هر عملیات، حتماً از داده‌های خود پشتیبان تهیه کنید.</p>
+                    </div>
+
+                    <!-- Preview Statistics -->
+                    <div id="cleanup-preview" style="margin: 15px 0; padding: 15px; background: #f5f5f5; border-radius: 4px; display: none;">
+                        <strong>آمار فعلی:</strong>
+                        <div id="cleanup-preview-content" style="margin-top: 10px;"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <button type="button" id="show-cleanup-preview" class="button">
+                            📊 نمایش آمار
+                        </button>
+                    </div>
+
+                    <!-- Orders Cleanup -->
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                        <h4>حذف سفارشات</h4>
+                        <div style="margin: 10px 0;">
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" id="cleanup_orders_all" style="margin-left: 5px;">
+                                حذف همه سفارشات
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" id="cleanup_orders_archived" style="margin-left: 5px;">
+                                حذف فقط سفارشات بایگانی شده
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                حذف سفارشات قدیمی‌تر از 
+                                <input type="number" id="cleanup_orders_days" min="0" placeholder="روز" style="width: 80px; margin: 0 5px;">
+                                روز
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                حذف سفارشات کاربر با شناسه:
+                                <input type="number" id="cleanup_orders_user_id" min="0" placeholder="User ID" style="width: 100px; margin-right: 5px;">
+                            </label>
+                        </div>
+                        <button type="button" id="cleanup-orders-btn" class="button">
+                            🗑️ حذف سفارشات
+                        </button>
+                        <span id="cleanup-orders-status" style="margin-right: 10px;"></span>
+                    </div>
+
+                    <!-- Files Cleanup -->
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                        <h4>حذف فایل‌ها</h4>
+                        <div style="margin: 10px 0;">
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" id="cleanup_files_database" style="margin-left: 5px;">
+                                حذف رکوردهای فایل از دیتابیس
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" id="cleanup_files_physical" style="margin-left: 5px;">
+                                حذف فایل‌های فیزیکی از سرور
+                            </label>
+                        </div>
+                        <button type="button" id="cleanup-files-btn" class="button">
+                            🗑️ حذف فایل‌ها
+                        </button>
+                        <button type="button" id="cleanup-orphan-files-btn" class="button">
+                            🧹 حذف فایل‌های یتیم
+                        </button>
+                        <span id="cleanup-files-status" style="margin-right: 10px;"></span>
+                    </div>
+
+                    <!-- Logs Cleanup -->
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                        <h4>حذف لاگ‌ها</h4>
+                        <div style="margin: 10px 0;">
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="radio" name="cleanup_logs_type" value="all" checked style="margin-left: 5px;">
+                                همه لاگ‌ها (عادی و امنیتی)
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="radio" name="cleanup_logs_type" value="regular" style="margin-left: 5px;">
+                                فقط لاگ‌های عادی
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="radio" name="cleanup_logs_type" value="security" style="margin-left: 5px;">
+                                فقط لاگ‌های امنیتی
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                حذف لاگ‌های قدیمی‌تر از 
+                                <input type="number" id="cleanup_logs_days" min="0" placeholder="روز" style="width: 80px; margin: 0 5px;">
+                                روز
+                            </label>
+                        </div>
+                        <button type="button" id="cleanup-logs-btn" class="button">
+                            🗑️ حذف لاگ‌ها
+                        </button>
+                        <span id="cleanup-logs-status" style="margin-right: 10px;"></span>
+                    </div>
+
+                    <!-- Settings Reset -->
+                    <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                        <h4>بازگردانی تنظیمات</h4>
+                        <p>تنظیمات افزونه را به حالت پیش‌فرض بازگردانی می‌کند (سفارشات و فایل‌ها حفظ می‌شوند).</p>
+                        <button type="button" id="reset-settings-btn" class="button">
+                            🔄 بازگردانی تنظیمات
+                        </button>
+                        <span id="reset-settings-status" style="margin-right: 10px;"></span>
+                    </div>
+
+                    <!-- Factory Reset -->
+                    <div style="padding: 15px; border: 2px solid #dc3232; border-radius: 4px; margin-bottom: 15px; background: #fff8f8;">
+                        <h4 style="color: #dc3232;">💀 ریست کامل (Factory Reset)</h4>
+                        <div class="notice notice-error" style="margin: 10px 0;">
+                            <p><strong>⛔ خطر:</strong> این عملیات تمام داده‌های افزونه را حذف می‌کند:</p>
+                            <ul style="margin-right: 20px;">
+                                <li>✖ تمام سفارشات</li>
+                                <li>✖ تمام فایل‌ها (دیتابیس و فیزیکی)</li>
+                                <li>✖ تمام لاگ‌ها</li>
+                                <li>✖ تمام تنظیمات</li>
+                            </ul>
+                            <p><strong>این عملیات قابل بازگشت نیست!</strong></p>
+                        </div>
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; margin-bottom: 10px;">
+                                <strong>برای تأیید، کلمه <code style="background: #dc3232; color: white; padding: 2px 6px;">RESET</code> را تایپ کنید:</strong>
+                            </label>
+                            <input type="text" id="factory-reset-confirm" placeholder="RESET" style="width: 150px; margin-left: 10px;">
+                        </div>
+                        <button type="button" id="factory-reset-btn" class="button button-danger" style="background: #dc3232; border-color: #dc3232; color: white;">
+                            💀 ریست کامل
+                        </button>
+                        <span id="factory-reset-status" style="margin-right: 10px;"></span>
+                    </div>
+                </div>
             </div>
 
         <p class="submit">

@@ -516,6 +516,9 @@
 
         // Export/Import functionality
         initExportImport();
+
+        // Cleanup functionality
+        initCleanup();
     });
 
     /**
@@ -1174,6 +1177,372 @@
                 },
                 error: function(xhr) {
                     let msg = 'خطا در درونریزی';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+    }
+
+    /**
+     * Initialize Cleanup functionality
+     */
+    function initCleanup() {
+        // Show cleanup preview
+        $('#show-cleanup-preview').on('click', function() {
+            const $preview = $('#cleanup-preview');
+            const $content = $('#cleanup-preview-content');
+            
+            $content.html('<p>در حال بارگذاری...</p>');
+            $preview.show();
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/preview'),
+                method: 'GET',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success && response.preview) {
+                        const p = response.preview;
+                        let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">';
+                        html += '<div><strong>سفارشات:</strong><ul style="list-style: none; padding-right: 20px;">';
+                        html += '<li>کل: ' + p.orders.total + '</li>';
+                        html += '<li>بایگانی: ' + p.orders.archived + '</li>';
+                        html += '</ul></div>';
+                        html += '<div><strong>فایل‌ها:</strong><ul style="list-style: none; padding-right: 20px;">';
+                        html += '<li>رکوردها: ' + p.files.records + '</li>';
+                        html += '<li>نسخه‌ها: ' + p.file_versions + '</li>';
+                        html += '<li>فیزیکی: ' + p.physical_files + '</li>';
+                        html += '</ul></div>';
+                        html += '<div><strong>لاگ‌ها:</strong><ul style="list-style: none; padding-right: 20px;">';
+                        html += '<li>عادی: ' + p.logs + '</li>';
+                        html += '<li>امنیتی: ' + p.security_logs + '</li>';
+                        html += '</ul></div>';
+                        html += '<div><strong>سایر:</strong><ul style="list-style: none; padding-right: 20px;">';
+                        html += '<li>وظایف آپلود: ' + p.upload_tasks + '</li>';
+                        html += '</ul></div>';
+                        html += '</div>';
+                        $content.html(html);
+                    } else {
+                        $content.html('<p style="color: red;">خطا در دریافت آمار</p>');
+                    }
+                },
+                error: function() {
+                    $content.html('<p style="color: red;">خطا در ارتباط با سرور</p>');
+                }
+            });
+        });
+
+        // Cleanup orders
+        $('#cleanup-orders-btn').on('click', function() {
+            const all = $('#cleanup_orders_all').is(':checked');
+            const archived = $('#cleanup_orders_archived').is(':checked');
+            const days = parseInt($('#cleanup_orders_days').val()) || 0;
+            const userId = parseInt($('#cleanup_orders_user_id').val()) || 0;
+
+            if (!all && !archived && !days && !userId) {
+                alert('لطفاً حداقل یک گزینه را انتخاب کنید');
+                return;
+            }
+
+            let confirmMsg = 'آیا مطمئن هستید که می‌خواهید سفارشات را حذف کنید؟\n';
+            if (all) confirmMsg += '- همه سفارشات حذف خواهند شد\n';
+            if (archived) confirmMsg += '- سفارشات بایگانی شده حذف خواهند شد\n';
+            if (days) confirmMsg += '- سفارشات قدیمی‌تر از ' + days + ' روز حذف خواهند شد\n';
+            if (userId) confirmMsg += '- سفارشات کاربر ' + userId + ' حذف خواهند شد\n';
+            confirmMsg += '\nاین عملیات قابل بازگشت نیست!';
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#cleanup-orders-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #0073aa;">⏳ در حال حذف...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/orders'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    all: all,
+                    archived: archived,
+                    older_than: days,
+                    user_id: userId
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                        // Reset form
+                        $('#cleanup_orders_all, #cleanup_orders_archived').prop('checked', false);
+                        $('#cleanup_orders_days, #cleanup_orders_user_id').val('');
+                        // Refresh preview
+                        $('#show-cleanup-preview').trigger('click');
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در حذف سفارشات';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Cleanup files
+        $('#cleanup-files-btn').on('click', function() {
+            const database = $('#cleanup_files_database').is(':checked');
+            const physical = $('#cleanup_files_physical').is(':checked');
+
+            if (!database && !physical) {
+                alert('لطفاً حداقل یک گزینه را انتخاب کنید');
+                return;
+            }
+
+            let confirmMsg = 'آیا مطمئن هستید که می‌خواهید فایل‌ها را حذف کنید؟\n';
+            if (database) confirmMsg += '- رکوردهای فایل از دیتابیس حذف خواهند شد\n';
+            if (physical) confirmMsg += '- فایل‌های فیزیکی از سرور حذف خواهند شد\n';
+            confirmMsg += '\nاین عملیات قابل بازگشت نیست!';
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#cleanup-files-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #0073aa;">⏳ در حال حذف...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/files'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    database: database,
+                    physical: physical
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                        $('#cleanup_files_database, #cleanup_files_physical').prop('checked', false);
+                        $('#show-cleanup-preview').trigger('click');
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در حذف فایل‌ها';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Cleanup orphan files
+        $('#cleanup-orphan-files-btn').on('click', function() {
+            if (!confirm('آیا مطمئن هستید که می‌خواهید فایل‌های یتیم را حذف کنید؟\n\nفایل‌های یتیم شامل:\n- رکوردهای دیتابیس بدون فایل فیزیکی\n- فایل‌های فیزیکی بدون رکورد دیتابیس\n\nاین عملیات قابل بازگشت نیست!')) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#cleanup-files-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #0073aa;">⏳ در حال بررسی و حذف...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/files'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    orphans: true
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                        $('#show-cleanup-preview').trigger('click');
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در حذف فایل‌های یتیم';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Cleanup logs
+        $('#cleanup-logs-btn').on('click', function() {
+            const type = $('input[name="cleanup_logs_type"]:checked').val();
+            const days = parseInt($('#cleanup_logs_days').val()) || 0;
+
+            let confirmMsg = 'آیا مطمئن هستید که می‌خواهید لاگ‌ها را حذف کنید؟\n';
+            if (type === 'all') confirmMsg += '- همه لاگ‌ها (عادی و امنیتی) حذف خواهند شد\n';
+            else if (type === 'regular') confirmMsg += '- لاگ‌های عادی حذف خواهند شد\n';
+            else if (type === 'security') confirmMsg += '- لاگ‌های امنیتی حذف خواهند شد\n';
+            if (days > 0) confirmMsg += '- فقط لاگ‌های قدیمی‌تر از ' + days + ' روز\n';
+            confirmMsg += '\nاین عملیات قابل بازگشت نیست!';
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#cleanup-logs-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #0073aa;">⏳ در حال حذف...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/logs'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    type: type,
+                    older_than: days
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                        $('#cleanup_logs_days').val('');
+                        $('#show-cleanup-preview').trigger('click');
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در حذف لاگ‌ها';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Reset settings
+        $('#reset-settings-btn').on('click', function() {
+            if (!confirm('آیا مطمئن هستید که می‌خواهید تنظیمات را به حالت پیش‌فرض بازگردانید؟\n\nسفارشات و فایل‌ها حفظ می‌شوند، فقط تنظیمات ریست می‌شود.\n\nاین عملیات قابل بازگشت نیست!')) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#reset-settings-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #0073aa;">⏳ در حال بازگردانی...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/reset-settings'),
+                method: 'POST',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در بازگردانی تنظیمات';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $status.html('<span style="color: #dc3232;">✗ ' + msg + '</span>');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Factory reset
+        $('#factory-reset-btn').on('click', function() {
+            const confirmKey = $('#factory-reset-confirm').val().trim();
+
+            if (confirmKey !== 'RESET') {
+                alert('برای تأیید ریست کامل، باید کلمه RESET را دقیقاً تایپ کنید.');
+                return;
+            }
+
+            if (!confirm('⛔ هشدار نهایی ⛔\n\nشما در حال انجام ریست کامل هستید!\n\nتمام داده‌های زیر برای همیشه حذف خواهند شد:\n- همه سفارشات\n- همه فایل‌ها\n- همه لاگ‌ها\n- همه تنظیمات\n\nآیا کاملاً مطمئن هستید؟')) {
+                return;
+            }
+
+            // Second confirmation
+            if (!confirm('آخرین فرصت!\n\nآیا واقعاً می‌خواهید ادامه دهید؟\nاین عملیات قابل بازگشت نیست و تمام داده‌ها از بین خواهند رفت.')) {
+                return;
+            }
+
+            const $btn = $(this);
+            const $status = $('#factory-reset-status');
+            
+            $btn.prop('disabled', true);
+            $status.html('<span style="color: #dc3232;">⏳ در حال حذف همه چیز...</span>');
+
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/factory-reset'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    confirm_key: confirmKey
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
+                        $('#factory-reset-confirm').val('');
+                        $('#show-cleanup-preview').trigger('click');
+                        // Reload page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        $status.html('<span style="color: #dc3232;">✗ ' + response.message + '</span>');
+                    }
+                    $btn.prop('disabled', false);
+                },
+                error: function(xhr) {
+                    let msg = 'خطا در ریست کامل';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }
