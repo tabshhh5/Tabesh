@@ -581,7 +581,6 @@ class Tabesh_Order {
 
 			// Add serial_number to the END of $data to match format position
 			$data['serial_number'] = $next_serial;
-			
 			// Add format for serial_number at the END
 			$formats[] = '%d'; // serial_number
 		}
