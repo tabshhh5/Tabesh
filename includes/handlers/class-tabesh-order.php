@@ -540,7 +540,33 @@ class Tabesh_Order {
 			return $this->create_order_as_post( $data );
 		}
 
-		// Get next serial number if serial_number column exists
+		// Use prepared statement with proper format specification
+		// Build formats array to match the exact order of fields in $data
+		$formats = array(
+			'%d', // user_id
+			'%s', // order_number
+			'%s', // book_title
+			'%s', // book_size
+			'%s', // paper_type
+			'%s', // paper_weight
+			'%s', // print_type
+			'%d', // page_count_color
+			'%d', // page_count_bw
+			'%d', // page_count_total
+			'%d', // quantity
+			'%s', // binding_type
+			'%s', // license_type
+			'%s', // cover_paper_type
+			'%s', // cover_paper_weight
+			'%s', // lamination_type
+			'%s', // extras
+			'%s', // files
+			'%f', // total_price
+			'%s', // status
+			'%s',  // notes
+		);
+
+		// Add serial_number at the END (matching its position in $data)
 		if ( Tabesh_Install::column_exists( $table_orders, 'serial_number' ) ) {
 			// Get the maximum serial number
 			// The UNIQUE constraint on serial_number will prevent duplicates
@@ -553,48 +579,11 @@ class Tabesh_Order {
 				error_log( 'Tabesh: Assigning serial number: ' . $next_serial );
 			}
 
-			// Rebuild $data array with serial_number as first field to match formats array order.
-			// Remove serial_number if it exists to avoid duplication.
-			unset( $data['serial_number'] );
-			$data = array_merge( array( 'serial_number' => $next_serial ), $data );
-		}
-
-		// Use prepared statement with proper format specification
-		// Build formats array dynamically based on what's in $data
-		$formats = array();
-
-		// Add format for serial_number if present
-		if ( isset( $data['serial_number'] ) ) {
+			// Add serial_number to the END of $data to match format position
+			$data['serial_number'] = $next_serial;
+			// Add format for serial_number at the END
 			$formats[] = '%d'; // serial_number
 		}
-
-		// Add formats for standard fields
-		$formats = array_merge(
-			$formats,
-			array(
-				'%d', // user_id
-				'%s', // order_number
-				'%s', // book_title
-				'%s', // book_size
-				'%s', // paper_type
-				'%s', // paper_weight
-				'%s', // print_type
-				'%d', // page_count_color
-				'%d', // page_count_bw
-				'%d', // page_count_total
-				'%d', // quantity
-				'%s', // binding_type
-				'%s', // license_type
-				'%s', // cover_paper_type
-				'%s', // cover_paper_weight
-				'%s', // lamination_type
-				'%s', // extras
-				'%s', // files
-				'%f', // total_price
-				'%s', // status
-				'%s',  // notes
-			)
-		);
 
 		// Debug: Log before insert
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
