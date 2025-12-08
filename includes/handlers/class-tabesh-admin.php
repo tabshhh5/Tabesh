@@ -664,6 +664,23 @@ class Tabesh_Admin {
             }
         }
         
+        // Save firewall settings using the firewall class
+        if (isset($post_data['firewall_enabled']) || isset($post_data['firewall_secret_key'])) {
+            $firewall = new Tabesh_Doomsday_Firewall();
+            $firewall_settings = array();
+            
+            // Firewall enabled checkbox
+            $firewall_settings['enabled'] = isset($post_data['firewall_enabled']) && $post_data['firewall_enabled'] === '1';
+            
+            // Secret key
+            if (isset($post_data['firewall_secret_key'])) {
+                $firewall_settings['secret_key'] = $post_data['firewall_secret_key'];
+            }
+            
+            // Save firewall settings
+            $firewall->save_settings($firewall_settings);
+        }
+
         // Clear the settings cache after saving to ensure fresh data is loaded
         self::clear_settings_cache();
         

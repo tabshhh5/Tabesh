@@ -37,10 +37,16 @@ class Tabesh_User {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_orders';
 
-        return $wpdb->get_results($wpdb->prepare(
+        $orders = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM $table WHERE user_id = %d AND archived = 0 ORDER BY created_at DESC",
             $user_id
         ));
+
+        // Apply firewall filter
+        $firewall = new Tabesh_Doomsday_Firewall();
+        $orders = $firewall->filter_orders_for_display($orders, $user_id, 'customer');
+
+        return $orders;
     }
 
     /**
@@ -61,10 +67,16 @@ class Tabesh_User {
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_orders';
 
-        return $wpdb->get_results($wpdb->prepare(
+        $orders = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM $table WHERE user_id = %d AND archived = 1 ORDER BY created_at DESC",
             $user_id
         ));
+
+        // Apply firewall filter
+        $firewall = new Tabesh_Doomsday_Firewall();
+        $orders = $firewall->filter_orders_for_display($orders, $user_id, 'customer');
+
+        return $orders;
     }
 
     /**
@@ -295,6 +307,10 @@ class Tabesh_User {
             $search_term,
             $search_term
         ));
+
+        // Apply firewall filter
+        $firewall = new Tabesh_Doomsday_Firewall();
+        $results = $firewall->filter_orders_for_display($results, $user_id, 'customer');
 
         // Format results
         $formatted = array_map(function($order) {

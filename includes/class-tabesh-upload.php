@@ -1089,19 +1089,34 @@ class Tabesh_Upload {
      * @return bool
      */
     private function verify_order_access($order_id, $user_id) {
-        // Admins have access to all orders
-        if (current_user_can('manage_woocommerce')) {
-            return true;
-        }
-
         global $wpdb;
         $table = $wpdb->prefix . 'tabesh_orders';
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $order = $wpdb->get_row($wpdb->prepare(
-            "SELECT user_id FROM $table WHERE id = %d",
+            "SELECT * FROM $table WHERE id = %d",
             $order_id
         ));
+
+        if (!$order) {
+            return false;
+        }
+
+        // Check firewall - WAR orders are never accessible to customers
+        $firewall = new Tabesh_Doomsday_Firewall();
+        if ($firewall->is_war_order($order)) {
+            // Only admins can access WAR orders, and only if not in lockdown
+            if (current_user_can('manage_woocommerce') && !$firewall->is_lockdown_mode()) {
+                return true;
+            }
+            // All other users (including order owner) are denied access
+            return false;
+        }
+
+        // Admins have access to all orders
+        if (current_user_can('manage_woocommerce')) {
+            return true;
+        }
 
         return $order && intval($order->user_id) === $user_id;
     }

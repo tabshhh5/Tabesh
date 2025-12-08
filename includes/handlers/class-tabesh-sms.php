@@ -403,6 +403,15 @@ class Tabesh_SMS {
 	 * @return bool|WP_Error True on success, WP_Error on failure, false if disabled
 	 */
 	public function send_order_status_sms( $order_id, $new_status ) {
+		// Check firewall - don't send notifications for WAR orders
+		$firewall = new Tabesh_Doomsday_Firewall();
+		if ( ! $firewall->should_send_notification( $order_id ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( "Tabesh SMS: Notification blocked by firewall for order $order_id" );
+			}
+			return false;
+		}
+
 		// Check if SMS is enabled for this status
 		if ( ! $this->is_status_enabled( $new_status ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

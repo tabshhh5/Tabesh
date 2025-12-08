@@ -40,6 +40,7 @@ $admin = $tabesh->admin;
                 <a href="#tab-product" class="nav-tab">پارامترهای محصول</a>
                 <a href="#tab-pricing" class="nav-tab">قیمت‌گذاری</a>
                 <a href="#tab-sms" class="nav-tab">پیامک</a>
+                <a href="#tab-firewall" class="nav-tab">فایروال روز رستاخیز</a>
                 <a href="#tab-staff-access" class="nav-tab">دسترسی کارمندان</a>
                 <a href="#tab-export-import" class="nav-tab">برونبری و درونریزی</a>
             </nav>
@@ -898,6 +899,210 @@ $admin = $tabesh->admin;
                     <p><strong>نمونه الگوی تغییر وضعیت:</strong> <code>سفارش شماره %order_number% برای %customer_name% به وضعیت %status% تغییر کرد. تاریخ: %date%</code></p>
                     <p><strong>نمونه الگوی ثبت‌نام:</strong> <code>%user_name% عزیز، ثبت‌نام شما با موفقیت انجام شد. شماره موبایل: %mobile%</code></p>
                     <p><strong>نمونه الگوی ثبت سفارش:</strong> <code>سفارش شماره %order_number% برای کتاب "%book_title%" با تیراژ %quantity% ثبت شد. قیمت: %total_price% ریال</code></p>
+                </div>
+            </div>
+
+            <!-- Firewall Settings -->
+            <div id="tab-firewall" class="tabesh-tab-content">
+                <?php
+                $firewall = new Tabesh_Doomsday_Firewall();
+                $firewall_settings = $firewall->get_settings();
+                $is_enabled = $firewall_settings['enabled'];
+                $is_lockdown = $firewall_settings['lockdown'];
+                $secret_key = $firewall_settings['secret_key'];
+                ?>
+
+                <h2>🔒 فایروال روز رستاخیز</h2>
+
+                <div class="notice notice-warning">
+                    <p><strong>⚠️ هشدار امنیتی:</strong> این سیستم برای مدیریت سفارشات محرمانه طراحی شده است. فعالسازی آن باعث پنهان شدن سفارشات دارای برچسب <code>@WAR#</code> از دید مشتری می‌شود.</p>
+                </div>
+
+                <table class="form-table">
+                    <!-- Enable Firewall -->
+                    <tr>
+                        <th><label for="firewall_enabled">فعالسازی فایروال</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="firewall_enabled" name="firewall_enabled" value="1" <?php checked($is_enabled); ?>>
+                                فعال کردن سیستم فایروال روز رستاخیز
+                            </label>
+                            <p class="description">
+                                با فعالسازی، سفارشاتی که در فیلد توضیحات دارای برچسب <code>@WAR#</code> هستند از دید مشتری پنهان می‌شوند.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Current Status -->
+                    <tr>
+                        <th>وضعیت فعلی</th>
+                        <td>
+                            <div style="padding: 15px; border: 2px solid <?php echo $is_lockdown ? '#dc3232' : '#46b450'; ?>; border-radius: 4px; background: <?php echo $is_lockdown ? '#fff8f8' : '#f0f9f4'; ?>;">
+                                <?php if ($is_enabled): ?>
+                                    <p style="margin: 0;">
+                                        <span style="font-size: 20px;">🟢</span>
+                                        <strong>فایروال فعال است</strong>
+                                    </p>
+                                    <?php if ($is_lockdown): ?>
+                                        <p style="margin: 10px 0 0 0; color: #dc3232;">
+                                            <span style="font-size: 20px;">🔴</span>
+                                            <strong>حالت اضطراری (Lockdown) فعال است</strong>
+                                        </p>
+                                        <p class="description" style="color: #dc3232;">
+                                            در این حالت، حتی مدیران نیز نمی‌توانند سفارشات @WAR# را مشاهده کنند.
+                                        </p>
+                                    <?php else: ?>
+                                        <p style="margin: 10px 0 0 0;">
+                                            <span style="font-size: 16px;">🔵</span>
+                                            حالت عادی - مدیران می‌توانند سفارشات @WAR# را مشاهده کنند
+                                        </p>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <p style="margin: 0;">
+                                        <span style="font-size: 20px;">⚪</span>
+                                        <strong>فایروال غیرفعال است</strong>
+                                    </p>
+                                    <p class="description">همه سفارشات به صورت عادی نمایش داده می‌شوند.</p>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Secret Key -->
+                    <tr>
+                        <th><label for="firewall_secret_key">کلید امنیتی اضطراری</label></th>
+                        <td>
+                            <input type="text" id="firewall_secret_key" name="firewall_secret_key" 
+                                   value="<?php echo esc_attr($secret_key); ?>" 
+                                   class="large-text code" 
+                                   placeholder="حداقل 32 کاراکتر"
+                                   style="direction: ltr; text-align: left;">
+                            <br>
+                            <button type="button" id="generate-secret-key" class="button button-secondary" style="margin-top: 10px;">
+                                <span class="dashicons dashicons-admin-network" style="vertical-align: middle;"></span>
+                                تولید کلید تصادفی
+                            </button>
+                            <p class="description">
+                                این کلید برای فعالسازی حالت اضطراری از طریق API یا کرون جاب استفاده می‌شود. 
+                                باید حداقل 32 کاراکتر باشد.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Lockdown Controls -->
+                    <tr>
+                        <th>کنترل حالت اضطراری</th>
+                        <td>
+                            <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
+                                <p><strong>مدیریت دستی حالت Lockdown:</strong></p>
+                                <?php if ($is_lockdown): ?>
+                                    <button type="button" id="deactivate-lockdown" class="button button-primary" 
+                                            <?php disabled(empty($secret_key)); ?>>
+                                        <span class="dashicons dashicons-unlock" style="vertical-align: middle;"></span>
+                                        غیرفعال کردن حالت اضطراری
+                                    </button>
+                                <?php else: ?>
+                                    <button type="button" id="activate-lockdown" class="button" 
+                                            <?php disabled(empty($secret_key)); ?>>
+                                        <span class="dashicons dashicons-lock" style="vertical-align: middle;"></span>
+                                        فعال کردن حالت اضطراری
+                                    </button>
+                                <?php endif; ?>
+                                <p class="description">
+                                    برای استفاده از این دکمه، ابتدا کلید امنیتی را تنظیم و ذخیره کنید.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- API Endpoints -->
+                    <tr>
+                        <th>دستورات API</th>
+                        <td>
+                            <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+                                <p><strong>اندپوینت‌های REST API:</strong></p>
+                                <code style="display: block; margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; direction: ltr; text-align: left;">
+                                    POST <?php echo esc_html(rest_url(TABESH_REST_NAMESPACE . '/firewall/lockdown/activate')); ?><br>
+                                    Headers: X-Firewall-Secret: YOUR_SECRET_KEY
+                                </code>
+                                <code style="display: block; margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; direction: ltr; text-align: left;">
+                                    POST <?php echo esc_html(rest_url(TABESH_REST_NAMESPACE . '/firewall/lockdown/deactivate')); ?><br>
+                                    Headers: X-Firewall-Secret: YOUR_SECRET_KEY
+                                </code>
+                                <code style="display: block; margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; direction: ltr; text-align: left;">
+                                    GET <?php echo esc_html(rest_url(TABESH_REST_NAMESPACE . '/firewall/status')); ?>?key=YOUR_SECRET_KEY
+                                </code>
+
+                                <p style="margin-top: 15px;"><strong>لینک‌های مستقیم (برای کرون جاب):</strong></p>
+                                <code style="display: block; margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; direction: ltr; text-align: left;">
+                                    <?php echo esc_html(home_url('?tabesh_firewall_action=lockdown&key=YOUR_SECRET_KEY')); ?>
+                                </code>
+                                <code style="display: block; margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #ddd; direction: ltr; text-align: left;">
+                                    <?php echo esc_html(home_url('?tabesh_firewall_action=unlock&key=YOUR_SECRET_KEY')); ?>
+                                </code>
+                                <p class="description">
+                                    <strong>YOUR_SECRET_KEY</strong> را با کلید امنیتی خود جایگزین کنید.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Activity Log -->
+                    <tr>
+                        <th>لاگ فعالیت‌ها</th>
+                        <td>
+                            <div style="padding: 15px; border: 1px solid #ddd; border-radius: 4px; background: #fff; max-height: 400px; overflow-y: auto;">
+                                <p><strong>آخرین فعالیت‌های فایروال:</strong></p>
+                                <?php
+                                $logs = $firewall->get_recent_logs(20);
+                                if (!empty($logs)):
+                                ?>
+                                    <table class="widefat striped" style="margin-top: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>زمان</th>
+                                                <th>عملیات</th>
+                                                <th>جزئیات</th>
+                                                <th>کاربر</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($logs as $log): ?>
+                                                <tr>
+                                                    <td><?php echo esc_html(date_i18n('Y/m/d H:i', strtotime($log->created_at))); ?></td>
+                                                    <td><?php echo esc_html(str_replace('firewall_', '', $log->action)); ?></td>
+                                                    <td><?php echo esc_html($log->details); ?></td>
+                                                    <td>
+                                                        <?php
+                                                        if ($log->user_id) {
+                                                            $user = get_userdata($log->user_id);
+                                                            echo esc_html($user ? $user->display_name : 'N/A');
+                                                        } else {
+                                                            echo 'سیستم';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                <?php else: ?>
+                                    <p class="description">هیچ فعالیتی ثبت نشده است.</p>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="notice notice-info" style="margin-top: 20px;">
+                    <p><strong>📚 نحوه استفاده:</strong></p>
+                    <ol style="margin-right: 20px;">
+                        <li>هنگام ثبت سفارش از پنل مدیریت، در فیلد "توضیحات" عبارت <code>@WAR#</code> را قرار دهید.</li>
+                        <li>این سفارش از دید مشتری کاملاً مخفی خواهد ماند.</li>
+                        <li>مدیران و کارمندان می‌توانند این سفارشات را مشاهده و مدیریت کنند.</li>
+                        <li>در صورت نیاز به پنهان کردن کامل، حالت اضطراری را فعال کنید.</li>
+                        <li>اعلان‌های SMS و ایمیل برای این سفارشات ارسال نمی‌شود.</li>
+                    </ol>
                 </div>
             </div>
 
@@ -1857,5 +2062,83 @@ jQuery(document).ready(function($) {
         
         $table.find('tbody').append(rowHtml);
     }
+
+    // Firewall tab functionality
+    $('#generate-secret-key').on('click', function(e) {
+        e.preventDefault();
+        // Generate a random 32-character hex string
+        const array = new Uint8Array(16);
+        crypto.getRandomValues(array);
+        const secretKey = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        $('#firewall_secret_key').val(secretKey);
+    });
+
+    // Activate lockdown
+    $('#activate-lockdown').on('click', function(e) {
+        e.preventDefault();
+        const secretKey = $('#firewall_secret_key').val();
+        
+        if (!secretKey) {
+            alert('لطفاً ابتدا کلید امنیتی را تنظیم و ذخیره کنید.');
+            return;
+        }
+
+        if (!confirm('آیا مطمئن هستید که می‌خواهید حالت اضطراری را فعال کنید؟\n\nدر این حالت حتی مدیران نیز نمی‌توانند سفارشات @WAR# را مشاهده کنند.')) {
+            return;
+        }
+
+        const button = $(this);
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: '<?php echo esc_url(rest_url(TABESH_REST_NAMESPACE . '/firewall/lockdown/activate')); ?>',
+            method: 'POST',
+            headers: {
+                'X-Firewall-Secret': secretKey
+            },
+            success: function(response) {
+                alert('حالت اضطراری فعال شد.');
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('خطا: ' + (xhr.responseJSON?.message || 'کلید امنیتی نامعتبر است'));
+                button.prop('disabled', false);
+            }
+        });
+    });
+
+    // Deactivate lockdown
+    $('#deactivate-lockdown').on('click', function(e) {
+        e.preventDefault();
+        const secretKey = $('#firewall_secret_key').val();
+        
+        if (!secretKey) {
+            alert('لطفاً ابتدا کلید امنیتی را تنظیم و ذخیره کنید.');
+            return;
+        }
+
+        if (!confirm('آیا مطمئن هستید که می‌خواهید حالت اضطراری را غیرفعال کنید؟')) {
+            return;
+        }
+
+        const button = $(this);
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: '<?php echo esc_url(rest_url(TABESH_REST_NAMESPACE . '/firewall/lockdown/deactivate')); ?>',
+            method: 'POST',
+            headers: {
+                'X-Firewall-Secret': secretKey
+            },
+            success: function(response) {
+                alert('حالت اضطراری غیرفعال شد.');
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('خطا: ' + (xhr.responseJSON?.message || 'کلید امنیتی نامعتبر است'));
+                button.prop('disabled', false);
+            }
+        });
+    });
 });
 </script>
