@@ -712,16 +712,7 @@ class Tabesh_Upload {
 
         $where_sql = implode(' AND ', $where_clauses);
 
-        // Count total
-        $count_query = "SELECT COUNT(*) FROM $table_orders o WHERE $where_sql";
-        if (!empty($where_values)) {
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $count_query = $wpdb->prepare($count_query, $where_values);
-        }
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-        $total = $wpdb->get_var($count_query);
-
-        // Get orders with file counts
+        // Get all matching orders with file counts (without pagination initially)
         $query = "SELECT o.*, 
                     (SELECT COUNT(*) FROM $table_files f WHERE f.order_id = o.id AND f.deleted_at IS NULL) as file_count,
                     (SELECT COUNT(*) FROM $table_files f WHERE f.order_id = o.id AND f.deleted_at IS NULL AND f.file_category = 'text') as text_count,
@@ -729,20 +720,26 @@ class Tabesh_Upload {
                     (SELECT COUNT(*) FROM $table_files f WHERE f.order_id = o.id AND f.deleted_at IS NULL AND f.file_category = 'documents') as documents_count
                   FROM $table_orders o 
                   WHERE $where_sql 
-                  ORDER BY o.created_at DESC 
-                  LIMIT %d OFFSET %d";
+                  ORDER BY o.created_at DESC";
 
-        $query_values = array_merge($where_values, array($per_page, $offset));
+        if (!empty($where_values)) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $query = $wpdb->prepare($query, $where_values);
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-        $orders = $wpdb->get_results($wpdb->prepare($query, $query_values));
+        $orders = $wpdb->get_results($query);
 
         // Apply firewall filter to hide confidential orders from customers
         $firewall = new Tabesh_Doomsday_Firewall();
         $context = current_user_can('manage_woocommerce') ? 'admin' : 'customer';
         $orders = $firewall->filter_orders_for_display($orders, $user_id, $context);
 
-        // Update total count after filtering
+        // Calculate total from filtered results
         $filtered_total = count($orders);
+
+        // Apply pagination to filtered results
+        $offset = ($page - 1) * $per_page;
+        $orders = array_slice($orders, $offset, $per_page);
 
         // Format response
         $formatted_orders = array();
