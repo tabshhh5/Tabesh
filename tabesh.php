@@ -68,8 +68,8 @@ spl_autoload_register(function ($class) {
     // Convert full class name to filename (e.g., Tabesh_Order -> class-tabesh-order.php)
     $filename = 'class-' . str_replace('_', '-', strtolower($class)) . '.php';
     
-    // Search in subdirectories: core, handlers, utils, api, and root
-    $subdirs = array('core/', 'handlers/', 'utils/', 'api/', '');
+    // Search in subdirectories: core, handlers, utils, api, security, and root
+    $subdirs = array('core/', 'handlers/', 'utils/', 'api/', 'security/', '');
     
     foreach ($subdirs as $subdir) {
         $file = $base_dir . $subdir . $filename;
@@ -1251,6 +1251,25 @@ final class Tabesh {
             'callback' => array($this->admin_order_creator, 'rest_create_order'),
             'permission_callback' => array($this, 'can_manage_admin')
         ));
+
+        // Firewall routes
+        register_rest_route(TABESH_REST_NAMESPACE, '/firewall/lockdown/activate', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_firewall_lockdown_activate'),
+            'permission_callback' => '__return_true' // Authentication via secret key in request
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/firewall/lockdown/deactivate', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_firewall_lockdown_deactivate'),
+            'permission_callback' => '__return_true' // Authentication via secret key in request
+        ));
+
+        register_rest_route(TABESH_REST_NAMESPACE, '/firewall/status', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'rest_firewall_status'),
+            'permission_callback' => '__return_true' // Authentication via secret key in request
+        ));
     }
 
     /**
@@ -2373,6 +2392,111 @@ final class Tabesh {
                 'message' => $e->getMessage()
             ), 500);
         }
+    }
+
+    /**
+     * REST API: Activate firewall lockdown mode
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function rest_firewall_lockdown_activate($request) {
+        // Get secret key from header or body
+        $secret_key = $request->get_header('X-Firewall-Secret');
+        if (empty($secret_key)) {
+            $secret_key = sanitize_text_field($request->get_param('secret_key'));
+        }
+
+        if (empty($secret_key)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کلید امنیتی ارسال نشده است', 'tabesh')
+            ), 401);
+        }
+
+        $firewall = new Tabesh_Doomsday_Firewall();
+        $result = $firewall->activate_lockdown($secret_key);
+
+        if ($result) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => __('حالت اضطراری فعال شد', 'tabesh')
+            ), 200);
+        } else {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کلید امنیتی نامعتبر است', 'tabesh')
+            ), 401);
+        }
+    }
+
+    /**
+     * REST API: Deactivate firewall lockdown mode
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function rest_firewall_lockdown_deactivate($request) {
+        // Get secret key from header or body
+        $secret_key = $request->get_header('X-Firewall-Secret');
+        if (empty($secret_key)) {
+            $secret_key = sanitize_text_field($request->get_param('secret_key'));
+        }
+
+        if (empty($secret_key)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کلید امنیتی ارسال نشده است', 'tabesh')
+            ), 401);
+        }
+
+        $firewall = new Tabesh_Doomsday_Firewall();
+        $result = $firewall->deactivate_lockdown($secret_key);
+
+        if ($result) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => __('حالت اضطراری غیرفعال شد', 'tabesh')
+            ), 200);
+        } else {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کلید امنیتی نامعتبر است', 'tabesh')
+            ), 401);
+        }
+    }
+
+    /**
+     * REST API: Get firewall status
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function rest_firewall_status($request) {
+        // Get secret key from header or query parameter
+        $secret_key = $request->get_header('X-Firewall-Secret');
+        if (empty($secret_key)) {
+            $secret_key = sanitize_text_field($request->get_param('key'));
+        }
+
+        $firewall = new Tabesh_Doomsday_Firewall();
+        
+        // Verify secret key
+        $stored_key = get_option(Tabesh_Doomsday_Firewall::SECRET_KEY_OPTION, '');
+        if (empty($stored_key) || !hash_equals($stored_key, $secret_key)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('کلید امنیتی نامعتبر است', 'tabesh')
+            ), 401);
+        }
+
+        $settings = $firewall->get_settings();
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'enabled' => $settings['enabled'],
+            'lockdown' => $settings['lockdown']
+        ), 200);
     }
 }
 
