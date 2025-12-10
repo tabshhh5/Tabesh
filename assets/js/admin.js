@@ -1300,7 +1300,8 @@
                     return;
                 }
                 confirmMsg += '- سفارش با کد ' + orderNumber + ' حذف خواهد شد\n';
-                const previewText = $previewDetails.text().replace(/\s+/g, ' ');
+                // Normalize whitespace in preview text for cleaner confirmation message
+                const previewText = $previewDetails.text().replace(/\s+/g, ' ').trim();
                 confirmMsg += '  (' + previewText + ')\n';
             } else {
                 if (all) confirmMsg += '- همه سفارشات حذف خواهند شد\n';
