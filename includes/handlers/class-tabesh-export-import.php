@@ -860,6 +860,44 @@ class Tabesh_Export_Import {
 	}
 
 	/**
+	 * Get order details by order number
+	 *
+	 * @param string $order_number Order number (e.g., TB-20251210-0411).
+	 * @return array|null Order details or null if not found
+	 */
+	public function get_order_by_number( $order_number ) {
+		global $wpdb;
+
+		$order_number  = sanitize_text_field( $order_number );
+		$orders_table  = $wpdb->prefix . 'tabesh_orders';
+		$users_table   = $wpdb->users;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$order = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT o.id, o.order_number, o.book_title, o.user_id, o.quantity, o.total_price, u.display_name as customer_name 
+				FROM {$orders_table} o
+				LEFT JOIN {$users_table} u ON o.user_id = u.ID
+				WHERE o.order_number = %s",
+				$order_number
+			)
+		);
+
+		if ( ! $order ) {
+			return null;
+		}
+
+		return array(
+			'id'            => $order->id,
+			'order_number'  => $order->order_number,
+			'book_title'    => $order->book_title ? $order->book_title : 'بدون عنوان',
+			'customer_name' => $order->customer_name ? $order->customer_name : 'نامشخص',
+			'quantity'      => $order->quantity,
+			'total_price'   => $order->total_price,
+		);
+	}
+
+	/**
 	 * Delete orders based on options
 	 *
 	 * @param array $options Deletion options.
@@ -869,20 +907,47 @@ class Tabesh_Export_Import {
 		global $wpdb;
 
 		$defaults = array(
-			'all'         => false,
-			'archived'    => false,
-			'user_id'     => 0,
-			'older_than'  => 0, // Days.
-			'order_id'    => 0, // Specific order ID.
+			'all'          => false,
+			'archived'     => false,
+			'user_id'      => 0,
+			'older_than'   => 0, // Days.
+			'order_id'     => 0, // Specific order ID (deprecated, use order_number).
+			'order_number' => '', // Specific order number (e.g., TB-20251210-0411).
 		);
 
 		$options      = wp_parse_args( $options, $defaults );
 		$orders_table = $wpdb->prefix . 'tabesh_orders';
+		$users_table  = $wpdb->users;
 		$where_parts  = array();
 		$where_values = array();
 
-		// If specific order_id is provided, verify it exists first
-		if ( $options['order_id'] > 0 ) {
+		// Priority 1: If specific order_number is provided, verify it exists first
+		if ( ! empty( $options['order_number'] ) ) {
+			$order_number = sanitize_text_field( $options['order_number'] );
+			
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$order = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT o.id, o.order_number, o.book_title, o.user_id, u.display_name as customer_name 
+					FROM {$orders_table} o
+					LEFT JOIN {$users_table} u ON o.user_id = u.ID
+					WHERE o.order_number = %s",
+					$order_number
+				)
+			);
+
+			if ( ! $order ) {
+				return array(
+					'success' => false,
+					'deleted' => 0,
+					'message' => sprintf( 'سفارش با شناسه %s یافت نشد', $order_number ),
+				);
+			}
+
+			$where_parts[]  = 'order_number = %s';
+			$where_values[] = $order_number;
+		} elseif ( $options['order_id'] > 0 ) {
+			// Priority 2: Legacy support for numeric order_id (deprecated)
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$order_exists = $wpdb->get_var(
 				$wpdb->prepare(

@@ -1515,11 +1515,15 @@ $admin = $tabesh->admin;
                             </label>
                             <hr style="margin: 15px 0; border-top: 1px dashed #ddd;">
                             <label style="display: block; margin-bottom: 8px;">
-                                <strong>حذف سفارش خاص با شناسه سفارش:</strong>
-                                <input type="number" id="cleanup_orders_order_id" min="1" placeholder="Order ID" style="width: 120px; margin-right: 5px;">
+                                <strong>حذف سفارش خاص با کد سفارش:</strong>
+                                <input type="text" id="cleanup_orders_order_number" placeholder="TB-20251210-0411" style="width: 180px; margin-right: 5px;">
                             </label>
+                            <div id="order_preview" style="margin: 10px 0; padding: 10px; background: #f0f0f1; border-radius: 4px; display: none;">
+                                <strong>اطلاعات سفارش:</strong><br>
+                                <span id="order_preview_details"></span>
+                            </div>
                             <p class="description" style="margin: 5px 0 0 0; color: #666;">
-                                💡 با وارد کردن شناسه سفارش (Order ID)، فقط همان سفارش خاص حذف می‌شود. این گزینه بر سایر گزینه‌ها اولویت دارد.
+                                💡 با وارد کردن کد سفارش (مثال: TB-20251210-0411)، فقط همان سفارش خاص حذف می‌شود. این گزینه بر سایر گزینه‌ها اولویت دارد.
                             </p>
                         </div>
                         <button type="button" id="cleanup-orders-btn" class="button">

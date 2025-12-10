@@ -1203,6 +1203,12 @@ final class Tabesh {
             'permission_callback' => array($this, 'can_manage_admin')
         ));
 
+        register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/order-preview', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_order_preview'),
+            'permission_callback' => array($this, 'can_manage_admin')
+        ));
+
         register_rest_route(TABESH_REST_NAMESPACE, '/cleanup/orders', array(
             'methods' => 'POST',
             'callback' => array($this, 'rest_cleanup_orders'),
@@ -2282,12 +2288,52 @@ final class Tabesh {
             'user_id' => intval($request->get_param('user_id') ?: 0),
             'older_than' => intval($request->get_param('older_than') ?: 0),
             'order_id' => intval($request->get_param('order_id') ?: 0),
+            'order_number' => sanitize_text_field($request->get_param('order_number') ?: ''),
         );
 
         try {
             $result = $this->export_import->delete_orders($options);
             
             return new WP_REST_Response($result, 200);
+
+        } catch (Exception $e) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => $e->getMessage()
+            ), 500);
+        }
+    }
+
+    /**
+     * REST API: Get order preview by order number
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function rest_order_preview($request) {
+        $order_number = sanitize_text_field($request->get_param('order_number') ?: '');
+        
+        if (empty($order_number)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'شناسه سفارش الزامی است'
+            ), 400);
+        }
+
+        try {
+            $order = $this->export_import->get_order_by_number($order_number);
+            
+            if (!$order) {
+                return new WP_REST_Response(array(
+                    'success' => false,
+                    'message' => sprintf('سفارش با شناسه %s یافت نشد', $order_number)
+                ), 404);
+            }
+
+            return new WP_REST_Response(array(
+                'success' => true,
+                'order' => $order
+            ), 200);
 
         } catch (Exception $e) {
             return new WP_REST_Response(array(

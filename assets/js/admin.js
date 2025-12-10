@@ -1238,21 +1238,70 @@
         });
 
         // Cleanup orders
+        // Order preview by order number
+        $('#cleanup_orders_order_number').on('blur', function() {
+            const orderNumber = $(this).val().trim();
+            const $preview = $('#order_preview');
+            const $previewDetails = $('#order_preview_details');
+            
+            if (!orderNumber) {
+                $preview.hide();
+                return;
+            }
+
+            // Fetch order details
+            $.ajax({
+                url: buildRestUrl(tabeshAdminData.restUrl, 'cleanup/order-preview'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ order_number: orderNumber }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
+                },
+                success: function(response) {
+                    if (response.success && response.order) {
+                        const order = response.order;
+                        $previewDetails.html(
+                            '📦 کد سفارش: <strong>' + order.order_number + '</strong><br>' +
+                            '👤 مشتری: <strong>' + order.customer_name + '</strong><br>' +
+                            '📚 نام کتاب: <strong>' + order.book_title + '</strong>'
+                        );
+                        $preview.slideDown();
+                    } else {
+                        $previewDetails.html('<span style="color: #dc3232;">❌ سفارشی با این کد یافت نشد</span>');
+                        $preview.slideDown();
+                    }
+                },
+                error: function() {
+                    $previewDetails.html('<span style="color: #dc3232;">❌ خطا در دریافت اطلاعات سفارش</span>');
+                    $preview.slideDown();
+                }
+            });
+        });
+
+        // Cleanup orders
         $('#cleanup-orders-btn').on('click', function() {
             const all = $('#cleanup_orders_all').is(':checked');
             const archived = $('#cleanup_orders_archived').is(':checked');
             const days = parseInt($('#cleanup_orders_days').val()) || 0;
             const userId = parseInt($('#cleanup_orders_user_id').val()) || 0;
-            const orderId = parseInt($('#cleanup_orders_order_id').val()) || 0;
+            const orderNumber = $('#cleanup_orders_order_number').val().trim();
 
-            if (!all && !archived && !days && !userId && !orderId) {
+            if (!all && !archived && !days && !userId && !orderNumber) {
                 alert('لطفاً حداقل یک گزینه را انتخاب کنید');
                 return;
             }
 
             let confirmMsg = 'آیا مطمئن هستید که می‌خواهید سفارشات را حذف کنید؟\n';
-            if (orderId) {
-                confirmMsg += '- سفارش با شناسه ' + orderId + ' حذف خواهد شد\n';
+            if (orderNumber) {
+                const $previewDetails = $('#order_preview_details');
+                if ($previewDetails.text().includes('یافت نشد') || $previewDetails.text().includes('خطا')) {
+                    alert('لطفاً ابتدا یک کد سفارش معتبر وارد کنید');
+                    return;
+                }
+                confirmMsg += '- سفارش با کد ' + orderNumber + ' حذف خواهد شد\n';
+                const previewText = $previewDetails.text().replace(/\s+/g, ' ');
+                confirmMsg += '  (' + previewText + ')\n';
             } else {
                 if (all) confirmMsg += '- همه سفارشات حذف خواهند شد\n';
                 if (archived) confirmMsg += '- سفارشات بایگانی شده حذف خواهند شد\n';
@@ -1280,7 +1329,7 @@
                     archived: archived,
                     older_than: days,
                     user_id: userId,
-                    order_id: orderId
+                    order_number: orderNumber
                 }),
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', tabeshAdminData.nonce);
@@ -1290,7 +1339,8 @@
                         $status.html('<span style="color: #46b450;">✓ ' + response.message + '</span>');
                         // Reset form
                         $('#cleanup_orders_all, #cleanup_orders_archived').prop('checked', false);
-                        $('#cleanup_orders_days, #cleanup_orders_user_id, #cleanup_orders_order_id').val('');
+                        $('#cleanup_orders_days, #cleanup_orders_user_id, #cleanup_orders_order_number').val('');
+                        $('#order_preview').hide();
                         // Refresh preview
                         $('#show-cleanup-preview').trigger('click');
                     } else {
