@@ -159,6 +159,9 @@ class Tabesh_Install {
         // Add serial_number column to orders table (v1.5.0)
         self::add_serial_number_column();
         
+        // Add details column to logs table (v1.5.0)
+        self::add_details_column_to_logs();
+        
         // Re-enable error reporting
         $wpdb->suppress_errors(false);
         
@@ -373,6 +376,59 @@ class Tabesh_Install {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('Tabesh: SUCCESS - Added UNIQUE constraint on serial_number');
             }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Add details column to logs table
+     * 
+     * Creates the details column in wp_tabesh_logs for storing additional
+     * information about log entries, particularly used by the firewall system.
+     * Part of the firewall logging improvement (v1.5.0).
+     * 
+     * @return bool True on success, false on failure
+     */
+    public static function add_details_column_to_logs() {
+        global $wpdb;
+        $table_logs = $wpdb->prefix . 'tabesh_logs';
+        
+        // Check if table exists
+        if (!self::table_exists($table_logs)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: Logs table does not exist, skipping details column migration');
+            }
+            return false;
+        }
+        
+        // Check if column already exists
+        if (self::column_exists($table_logs, 'details')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Tabesh: details column already exists in logs table');
+            }
+            return true;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: Adding details column to logs table');
+        }
+        
+        // Note: ALTER TABLE cannot use wpdb::prepare as it doesn't support DDL statements
+        // The table name comes from $wpdb->prefix which is safe and not user input
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $result = $wpdb->query(
+            "ALTER TABLE `{$table_logs}` 
+            ADD COLUMN `details` TEXT DEFAULT NULL AFTER `description`"
+        );
+        
+        if ($result === false) {
+            error_log('Tabesh: ERROR - Failed to add details column to logs table: ' . $wpdb->last_error);
+            return false;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Tabesh: SUCCESS - Added details column to logs table');
         }
         
         return true;

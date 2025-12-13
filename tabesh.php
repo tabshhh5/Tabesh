@@ -410,6 +410,7 @@ final class Tabesh {
             user_id bigint(20) UNSIGNED NOT NULL,
             action varchar(255) NOT NULL,
             description longtext DEFAULT NULL,
+            details text DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY order_id (order_id),
@@ -892,6 +893,37 @@ final class Tabesh {
             // Admin Order Form Shortcode Access Control
             'admin_order_form_allowed_roles' => json_encode(array('administrator')),
             'admin_order_form_allowed_users' => json_encode(array()),
+            // SMS Settings
+            'sms_enabled' => '0',
+            'sms_username' => '',
+            'sms_password' => '',
+            'sms_sender' => '',
+            // Admin SMS notifications
+            'sms_admin_user_registration_enabled' => '0',
+            'sms_admin_user_registration_pattern' => '',
+            'sms_admin_order_created_enabled' => '0',
+            'sms_admin_order_created_pattern' => '',
+            // Order status SMS notifications - pending
+            'sms_status_pending_enabled' => '0',
+            'sms_status_pending_pattern' => '',
+            // Order status SMS notifications - confirmed
+            'sms_status_confirmed_enabled' => '0',
+            'sms_status_confirmed_pattern' => '',
+            // Order status SMS notifications - processing
+            'sms_status_processing_enabled' => '0',
+            'sms_status_processing_pattern' => '',
+            // Order status SMS notifications - ready
+            'sms_status_ready_enabled' => '0',
+            'sms_status_ready_pattern' => '',
+            // Order status SMS notifications - completed
+            'sms_status_completed_enabled' => '0',
+            'sms_status_completed_pattern' => '',
+            // Order status SMS notifications - cancelled
+            'sms_status_cancelled_enabled' => '0',
+            'sms_status_cancelled_pattern' => '',
+            // Order status SMS notifications - archived
+            'sms_status_archived_enabled' => '0',
+            'sms_status_archived_pattern' => '',
         );
 
         global $wpdb;
