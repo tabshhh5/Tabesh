@@ -962,11 +962,11 @@ final class Tabesh {
 			// Admin SMS notifications
 			'sms_admin_user_registration_enabled'      => '0',
 			'sms_admin_user_registration_pattern'      => '',
-			'sms_pattern_vars_admin_user_registration' => wp_json_encode( array() ),  // Pattern variable configuration for user registration SMS.
+			'sms_pattern_vars_admin_user_registration' => json_encode( array() ),  // Pattern variable configuration for user registration SMS.
 			'sms_admin_order_created_enabled'          => '0',
 			'sms_admin_order_created_pattern'          => '',
-			'sms_pattern_vars_admin_order_created'     => wp_json_encode( array() ),  // Pattern variable configuration for admin order creation SMS.
-			'sms_pattern_vars_status_change'           => wp_json_encode( array() ),   // Pattern variable configuration for order status change SMS.
+			'sms_pattern_vars_admin_order_created'     => json_encode( array() ),  // Pattern variable configuration for admin order creation SMS.
+			'sms_pattern_vars_status_change'           => json_encode( array() ),   // Pattern variable configuration for order status change SMS.
 			// SMS Settings for Staff Panel.
 			'sms_disable_global_for_staff'             => '0',  // Enable SMS notifications for staff panel by default.
 			// General File Upload Settings.
