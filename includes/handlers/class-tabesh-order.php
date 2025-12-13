@@ -121,9 +121,31 @@ class Tabesh_Order {
 		// Determines paper usage factor and print cost multiplier
 		$size_multiplier = $pricing_config['book_sizes'][ $book_size ] ?? 1.0;
 
-		// Step 2: Paper Type Base Cost (نوع کاغذ)
-		// Each paper type has a base cost per page
-		$paper_base_cost = $pricing_config['paper_types'][ $paper_type ] ?? 250;
+		// Step 2: Paper Type Base Cost (نوع کاغذ و گرماژ)
+		// Each paper type + weight combination has a specific cost per page
+		// New dynamic pricing: pricing_paper_weights[paper_type][weight]
+		$paper_base_cost = 0;
+		if ( isset( $pricing_config['paper_weights'][ $paper_type ][ $paper_weight ] ) ) {
+			$paper_base_cost = $pricing_config['paper_weights'][ $paper_type ][ $paper_weight ];
+		} else {
+			// Fallback: check old pricing_paper_types structure (backward compatibility)
+			$paper_base_cost = $pricing_config['paper_types'][ $paper_type ] ?? 250;
+			
+			// Only log once per unique combination to avoid log spam
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				static $logged_missing = array();
+				$lookup_key = $paper_type . '_' . $paper_weight;
+				if ( ! isset( $logged_missing[ $lookup_key ] ) ) {
+					error_log( sprintf( 
+						'Tabesh WARNING: Weight-based pricing not found for paper "%s" weight "%s", using fallback cost: %s', 
+						$paper_type, 
+						$paper_weight, 
+						$paper_base_cost 
+					) );
+					$logged_missing[ $lookup_key ] = true;
+				}
+			}
+		}
 
 		// Step 3: Print Cost per Page (هزینه چاپ هر صفحه)
 		// Different costs for B&W vs Color printing
@@ -151,29 +173,54 @@ class Tabesh_Order {
 		$cover_cost = $cover_base + $lamination_cost;
 
 		// Step 7: Binding Cost (صحافی)
-		// Cost depends on binding type (perfect binding, spiral, etc.)
-		$binding_cost = $pricing_config['binding_costs'][ $binding_type ] ?? 0;
+		// Cost depends on binding type AND book size (matrix-based pricing)
+		// New matrix format: pricing_binding_matrix[binding_type][book_size]
+		$binding_cost = 0;
+		if ( isset( $pricing_config['binding_matrix'][ $binding_type ][ $book_size ] ) ) {
+			$binding_cost = $pricing_config['binding_matrix'][ $binding_type ][ $book_size ];
+		} else {
+			// Fallback: check old pricing_binding_costs structure (backward compatibility)
+			$binding_cost = $pricing_config['binding_costs'][ $binding_type ] ?? 0;
+			
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				static $logged_binding_missing = array();
+				$binding_lookup_key = $binding_type . '_' . $book_size;
+				if ( ! isset( $logged_binding_missing[ $binding_lookup_key ] ) ) {
+					error_log( sprintf( 
+						'Tabesh WARNING: Matrix-based binding pricing not found for binding "%s" size "%s", using fallback cost: %s', 
+						$binding_type, 
+						$book_size, 
+						$binding_cost 
+					) );
+					$logged_binding_missing[ $binding_lookup_key ] = true;
+				}
+			}
+		}
 
-		// Step 8: Additional Options Cost (آپشنها)
-		// UV coating, embossing, foil, special packaging, etc.
+		// Step 8: Additional Options Cost (آپشنها - با منطق سه‌گانه)
+		// Three calculation types: Fixed, Per Unit, Page-Based
 		$options_cost      = 0;
 		$options_breakdown = array(); // Track individual option costs for transparency
 
 		if ( is_array( $extras ) && ! empty( $extras ) ) {
-			// Validate that pricing_config has options_costs and it's an array
-			if ( ! isset( $pricing_config['options_costs'] ) || ! is_array( $pricing_config['options_costs'] ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'Tabesh ERROR: pricing_config[options_costs] is not set or not an array!' );
-					error_log( 'Tabesh: pricing_config keys: ' . print_r( array_keys( $pricing_config ), true ) );
+			// Ensure options_config exists
+			if ( ! isset( $pricing_config['options_config'] ) || ! is_array( $pricing_config['options_config'] ) ) {
+				// Fallback to old options_costs if new config doesn't exist
+				$pricing_config['options_config'] = array();
+				if ( isset( $pricing_config['options_costs'] ) && is_array( $pricing_config['options_costs'] ) ) {
+					// Convert old format to new format (all as 'fixed' type)
+					foreach ( $pricing_config['options_costs'] as $opt_name => $opt_price ) {
+						$pricing_config['options_config'][ $opt_name ] = array(
+							'price' => $opt_price,
+							'type'  => 'fixed',
+							'step'  => 0,
+						);
+					}
 				}
-				// Set empty array to prevent errors
-				$pricing_config['options_costs'] = array();
 			}
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'Tabesh: Processing ' . count( $extras ) . ' extras' );
-				error_log( 'Tabesh: Available options_costs keys: ' . print_r( array_keys( $pricing_config['options_costs'] ), true ) );
-				error_log( 'Tabesh: Extras values: ' . print_r( $extras, true ) );
+				error_log( 'Tabesh: Processing ' . count( $extras ) . ' extras with three-tier logic' );
 			}
 
 			foreach ( $extras as $extra ) {
@@ -185,20 +232,81 @@ class Tabesh_Order {
 					continue;
 				}
 
-				$extra_cost = $pricing_config['options_costs'][ $extra ] ?? 0;
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					if ( $extra_cost === 0 && isset( $pricing_config['options_costs'][ $extra ] ) ) {
-						error_log( sprintf( 'Tabesh: Extra "%s" has explicit cost of 0', $extra ) );
-					} elseif ( $extra_cost === 0 ) {
-						error_log( sprintf( 'Tabesh WARNING: Extra "%s" not found in pricing_config, defaulting to 0', $extra ) );
+				// Get option configuration
+				$option_config = $pricing_config['options_config'][ $extra ] ?? null;
+				
+				if ( ! $option_config ) {
+					// Try fallback to old format
+					if ( isset( $pricing_config['options_costs'][ $extra ] ) ) {
+						$option_config = array(
+							'price' => $pricing_config['options_costs'][ $extra ],
+							'type'  => 'fixed',
+							'step'  => 0,
+						);
 					} else {
-						error_log( sprintf( 'Tabesh: Extra "%s" cost: %s', $extra, $extra_cost ) );
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( sprintf( 'Tabesh WARNING: Option "%s" not found in pricing config', $extra ) );
+						}
+						continue;
 					}
 				}
 
+				$option_price = floatval( $option_config['price'] ?? 0 );
+				$option_type  = $option_config['type'] ?? 'fixed';
+				$option_step  = intval( $option_config['step'] ?? 16000 );
+				$extra_cost   = 0;
+
+				// Calculate based on option type
+				switch ( $option_type ) {
+					case 'fixed':
+						// Fixed cost - add once to total
+						$extra_cost = $option_price;
+						break;
+
+					case 'per_unit':
+						// Per unit cost - multiply by quantity
+						$extra_cost = $option_price * $quantity;
+						break;
+
+					case 'page_based':
+						// Page-based cost - calculate based on total pages and step
+						if ( $option_step > 0 ) {
+							$total_pages = $page_count_total * $quantity;
+							$units       = ceil( $total_pages / $option_step );
+							$extra_cost  = $option_price * $units;
+						} else {
+							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+								error_log( sprintf( 'Tabesh WARNING: Page-based option "%s" has invalid step: %d', $extra, $option_step ) );
+							}
+							$extra_cost = $option_price; // Fallback to fixed
+						}
+						break;
+
+					default:
+						// Unknown type, treat as fixed
+						$extra_cost = $option_price;
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( sprintf( 'Tabesh WARNING: Unknown option type "%s" for "%s", treating as fixed', $option_type, $extra ) );
+						}
+						break;
+				}
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( sprintf( 
+						'Tabesh: Option "%s" - Type: %s, Base Price: %s, Calculated Cost: %s', 
+						$extra, 
+						$option_type, 
+						$option_price, 
+						$extra_cost 
+					) );
+				}
+
 				$options_cost               += $extra_cost;
-				$options_breakdown[ $extra ] = $extra_cost;
+				$options_breakdown[ $extra ] = array(
+					'type'  => $option_type,
+					'price' => $option_price,
+					'cost'  => $extra_cost,
+				);
 			}
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -312,12 +420,15 @@ class Tabesh_Order {
 		// Fetch all pricing settings in a single query for performance
 		$pricing_keys = array(
 			'pricing_book_sizes',
-			'pricing_paper_types',
+			'pricing_paper_types',      // Old format (backward compatibility)
+			'pricing_paper_weights',    // New weight-based format
 			'pricing_print_costs',
 			'pricing_cover_types',
 			'pricing_lamination_costs',
-			'pricing_binding_costs',
-			'pricing_options_costs',
+			'pricing_binding_costs',    // Old format (backward compatibility)
+			'pricing_binding_matrix',   // New matrix format (binding_type + book_size)
+			'pricing_options_costs',    // Old format (backward compatibility)
+			'pricing_options_config',   // New three-tier format
 			'pricing_profit_margin',
 			'pricing_quantity_discounts',
 		);
@@ -355,6 +466,20 @@ class Tabesh_Order {
 				'تحریر'  => 200,
 				'بالک'   => 250,
 			),
+			'paper_weights'      => array(
+				// New weight-based pricing structure (paper_type => [weight => price])
+				'تحریر' => array(
+					'60'  => 150,
+					'70'  => 180,
+					'80'  => 200,
+				),
+				'بالک' => array(
+					'60'  => 200,
+					'70'  => 230,
+					'80'  => 250,
+					'100' => 300,
+				),
+			),
 			'print_costs'        => array(
 				'bw'    => 200,
 				'color' => 800,
@@ -374,6 +499,21 @@ class Tabesh_Order {
 				'گالینگور' => 6000,
 				'سیمی'     => 2000,
 			),
+			'binding_matrix'     => array(
+				// New matrix format: binding_type => [book_size => price]
+				'شومیز' => array(
+					'A5'    => 3000,
+					'A4'    => 4500,
+					'رقعی'  => 3500,
+					'وزیری' => 4000,
+				),
+				'جلد سخت' => array(
+					'A5'    => 8000,
+					'A4'    => 12000,
+					'رقعی'  => 9000,
+					'وزیری' => 10000,
+				),
+			),
 			'options_costs'      => array(
 				'لب گرد'            => 1000,
 				'خط تا'             => 500,
@@ -383,6 +523,15 @@ class Tabesh_Order {
 				'uv_coating'        => 3000,
 				'embossing'         => 5000,
 				'special_packaging' => 2000,
+			),
+			'options_config'     => array(
+				// New three-tier format: option_name => [price, type, step]
+				'لب گرد'       => array( 'price' => 1000, 'type' => 'per_unit', 'step' => 0 ),
+				'خط تا'        => array( 'price' => 500, 'type' => 'per_unit', 'step' => 0 ),
+				'شیرینک'       => array( 'price' => 1500, 'type' => 'per_unit', 'step' => 0 ),
+				'سوراخ'        => array( 'price' => 300, 'type' => 'per_unit', 'step' => 0 ),
+				'شماره گذاری'  => array( 'price' => 800, 'type' => 'per_unit', 'step' => 0 ),
+				'بسته‌بندی کارتن' => array( 'price' => 50000, 'type' => 'page_based', 'step' => 16000 ),
 			),
 			'profit_margin'      => 0.0,
 			'quantity_discounts' => array(
@@ -396,11 +545,14 @@ class Tabesh_Order {
 		$config = array(
 			'book_sizes'         => $settings['pricing_book_sizes'] ?? $defaults['book_sizes'],
 			'paper_types'        => $settings['pricing_paper_types'] ?? $defaults['paper_types'],
+			'paper_weights'      => $settings['pricing_paper_weights'] ?? $defaults['paper_weights'],
 			'print_costs'        => $settings['pricing_print_costs'] ?? $defaults['print_costs'],
 			'cover_types'        => $settings['pricing_cover_types'] ?? $defaults['cover_types'],
 			'lamination_costs'   => $settings['pricing_lamination_costs'] ?? $defaults['lamination_costs'],
 			'binding_costs'      => $settings['pricing_binding_costs'] ?? $defaults['binding_costs'],
+			'binding_matrix'     => $settings['pricing_binding_matrix'] ?? $defaults['binding_matrix'],
 			'options_costs'      => $settings['pricing_options_costs'] ?? $defaults['options_costs'],
+			'options_config'     => $settings['pricing_options_config'] ?? $defaults['options_config'],
 			'profit_margin'      => floatval( $settings['pricing_profit_margin'] ?? $defaults['profit_margin'] ),
 			'quantity_discounts' => $settings['pricing_quantity_discounts'] ?? $defaults['quantity_discounts'],
 		);

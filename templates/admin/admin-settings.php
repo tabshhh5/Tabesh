@@ -345,54 +345,118 @@ $admin = $tabesh->admin;
                 </div>
 
                 <h3>ضریب قطع کتاب (Book Size Multipliers)</h3>
-                <p class="description">ضریب هر قطع بر هزینه کاغذ و چاپ تأثیر می‌گذارد. فرمت: نام=ضریب (مثال: A5=1, A4=1.5)</p>
+                <p class="description">ضریب هر قطع بر هزینه کاغذ و چاپ تأثیر می‌گذارد.</p>
+                
+                <?php
+                // Get product parameters
+                $product_book_sizes = $admin->get_setting('book_sizes', array());
+                $pricing_book_sizes = $admin->get_setting('pricing_book_sizes', array());
+                
+                if (is_array($product_book_sizes) && !empty($product_book_sizes)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 قیمت‌گذاری هوشمند:</strong> فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                        برای اضافه یا حذف قطع، به تب "پارامترهای محصول" مراجعه کنید.
+                    </p>
+                </div>
+                
                 <table class="form-table">
+                    <?php foreach ($product_book_sizes as $size): ?>
                     <tr>
-                        <th><label for="pricing_book_sizes">ضرایب قطع کتاب</label></th>
+                        <th><label for="pricing_book_size_<?php echo esc_attr($size); ?>">
+                            <?php echo esc_html($size); ?>
+                        </label></th>
                         <td>
-                            <textarea id="pricing_book_sizes" name="pricing_book_sizes" rows="4" class="large-text" dir="ltr" placeholder="A5=1&#10;A4=1.5&#10;رقعی=1.1"><?php 
-                                $book_sizes = $admin->get_setting('pricing_book_sizes', array());
-                                if (is_array($book_sizes) && !empty($book_sizes)) {
-                                    foreach ($book_sizes as $size => $multiplier) {
-                                        echo esc_attr($size) . '=' . esc_attr($multiplier) . "\n";
-                                    }
-                                } else {
-                                    echo "A5=1\nA4=1.5\nرقعی=1.1\nوزیری=1.3\nخشتی=1.4";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک قطع (مثال: <code>A5=1</code> یا <code>وزیری=1.3</code>)<br>
-                                ✓ مقادیر می‌توانند اعشار داشته باشند (مثال: <code>1.5</code>)<br>
-                                ✓ تعداد فیلدها: <span id="pricing_book_sizes_count"><?php echo is_array($book_sizes) ? count($book_sizes) : 0; ?></span>
-                            </p>
+                            <input type="number" 
+                                   id="pricing_book_size_<?php echo esc_attr($size); ?>" 
+                                   name="pricing_book_sizes[<?php echo esc_attr($size); ?>]" 
+                                   value="<?php echo esc_attr($pricing_book_sizes[$size] ?? '1'); ?>" 
+                                   step="0.01" 
+                                   min="0" 
+                                   class="small-text" 
+                                   placeholder="1.0">
+                            <span class="description">ضریب (مثال: 1 یا 1.5)</span>
                         </td>
                     </tr>
+                    <?php endforeach; ?>
                 </table>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ قطع کتابی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا قطع‌های کتاب را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
                 <h3>قیمت پایه کاغذ (Paper Type Base Costs)</h3>
-                <p class="description">هزینه پایه هر صفحه برای هر نوع کاغذ (به تومان)</p>
+                <p class="description">هزینه پایه هر صفحه برای هر نوع کاغذ و گرماژ (به تومان)</p>
+                
+                <?php
+                // Get product parameters for paper types (includes weights)
+                $product_paper_types = $admin->get_setting('paper_types', array());
+                $pricing_paper_weights = $admin->get_setting('pricing_paper_weights', array());
+                
+                if (is_array($product_paper_types) && !empty($product_paper_types)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 قیمت‌گذاری هوشمند بر اساس گرماژ:</strong> فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                        برای هر نوع کاغذ، باید قیمت تمام گرماژهای مجاز را وارد کنید.
+                    </p>
+                    <p>
+                        <strong>💡 نکته:</strong> برای اضافه یا حذف نوع کاغذ یا گرماژ، به تب "پارامترهای محصول" مراجعه کنید.
+                    </p>
+                    <p>
+                        <strong>⚠️ هشدار:</strong> قیمت پیش‌فرض برای گرماژهای جدید صفر است. حتماً قیمت مناسب را وارد کنید تا محاسبات صحیح انجام شود.
+                    </p>
+                </div>
+                
                 <table class="form-table">
-                    <tr>
-                        <th><label for="pricing_paper_types">قیمت انواع کاغذ</label></th>
-                        <td>
-                            <textarea id="pricing_paper_types" name="pricing_paper_types" rows="5" class="large-text" dir="ltr" placeholder="تحریر=200&#10;بالک=250"><?php 
-                                $paper_types = $admin->get_setting('pricing_paper_types', array());
-                                if (is_array($paper_types) && !empty($paper_types)) {
-                                    foreach ($paper_types as $type => $cost) {
-                                        echo esc_attr($type) . '=' . esc_attr($cost) . "\n";
-                                    }
-                                } else {
-                                    echo "تحریر=200\nبالک=250\nglossy=250\nmatte=200";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک نوع کاغذ (مثال: <code>glossy=250</code> یا <code>تحریر=200</code>)<br>
-                                ✓ قیمت به تومان برای هر صفحه<br>
-                                ✓ تعداد فیلدها: <span id="pricing_paper_types_count"><?php echo is_array($paper_types) ? count($paper_types) : 0; ?></span>
-                            </p>
-                        </td>
-                    </tr>
+                    <?php foreach ($product_paper_types as $paper_type => $weights): ?>
+                        <?php if (is_array($weights) && !empty($weights)): ?>
+                            <tr>
+                                <th colspan="2" style="background-color: #f0f0f0; padding: 10px;">
+                                    <strong><?php echo esc_html($paper_type); ?></strong>
+                                    <span class="description" style="font-weight: normal; margin-right: 10px;">
+                                        (<?php echo count($weights); ?> گرماژ)
+                                    </span>
+                                </th>
+                            </tr>
+                            <?php foreach ($weights as $weight): ?>
+                            <tr>
+                                <th style="padding-right: 30px;">
+                                    <label for="pricing_paper_<?php echo esc_attr(md5($paper_type . '__' . $weight)); ?>">
+                                        گرماژ <?php echo esc_html($weight); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <input type="number" 
+                                           id="pricing_paper_<?php echo esc_attr(md5($paper_type . '__' . $weight)); ?>" 
+                                           name="pricing_paper_weights[<?php echo esc_attr($paper_type); ?>][<?php echo esc_attr($weight); ?>]" 
+                                           value="<?php echo esc_attr($pricing_paper_weights[$paper_type][$weight] ?? '0'); ?>" 
+                                           step="1" 
+                                           min="0" 
+                                           class="regular-text" 
+                                           placeholder="200"> تومان / صفحه
+                                    <span class="description">برای کاغذ <?php echo esc_html($paper_type); ?> با گرماژ <?php echo esc_html($weight); ?></span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
                 </table>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ نوع کاغذی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا انواع کاغذ و گرماژهای آن را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
                 <h3>هزینه چاپ (Print Costs per Page)</h3>
                 <table class="form-table">
@@ -441,73 +505,204 @@ $admin = $tabesh->admin;
                 </table>
 
                 <h3>هزینه سلفون کاری (Lamination Costs)</h3>
+                
+                <?php
+                // Get product parameters for lamination types
+                $product_lamination_types = $admin->get_setting('lamination_types', array());
+                $pricing_lamination_costs = $admin->get_setting('pricing_lamination_costs', array());
+                
+                if (is_array($product_lamination_types) && !empty($product_lamination_types)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 قیمت‌گذاری هوشمند:</strong> فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                        برای اضافه یا حذف نوع سلفون، به تب "پارامترهای محصول" مراجعه کنید.
+                    </p>
+                </div>
+                
                 <table class="form-table">
+                    <?php foreach ($product_lamination_types as $lamination_type): ?>
                     <tr>
-                        <th><label for="pricing_lamination_costs">قیمت انواع سلفون</label></th>
+                        <th><label for="pricing_lamination_<?php echo esc_attr($lamination_type); ?>">
+                            <?php echo esc_html($lamination_type); ?>
+                        </label></th>
                         <td>
-                            <textarea id="pricing_lamination_costs" name="pricing_lamination_costs" rows="3" class="large-text" dir="ltr" placeholder="براق=2000&#10;مات=2500"><?php 
-                                $lamination = $admin->get_setting('pricing_lamination_costs', array());
-                                if (is_array($lamination) && !empty($lamination)) {
-                                    foreach ($lamination as $type => $cost) {
-                                        echo esc_attr($type) . '=' . esc_attr($cost) . "\n";
-                                    }
-                                } else {
-                                    echo "براق=2000\nمات=2500\nبدون سلفون=0";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک نوع سلفون (مثال: <code>براق=2000</code> یا <code>مات=2500</code>)<br>
-                                ✓ تعداد فیلدها: <span id="pricing_lamination_costs_count"><?php echo is_array($lamination) ? count($lamination) : 0; ?></span>
-                            </p>
+                            <input type="number" 
+                                   id="pricing_lamination_<?php echo esc_attr($lamination_type); ?>" 
+                                   name="pricing_lamination_costs[<?php echo esc_attr($lamination_type); ?>]" 
+                                   value="<?php echo esc_attr($pricing_lamination_costs[$lamination_type] ?? '0'); ?>" 
+                                   step="1" 
+                                   min="0" 
+                                   class="regular-text" 
+                                   placeholder="2000"> تومان
                         </td>
                     </tr>
+                    <?php endforeach; ?>
                 </table>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ نوع سلفونی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا انواع سلفون را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
-                <h3>هزینه صحافی (Binding Costs)</h3>
+                <h3>هزینه صحافی (Binding Costs Matrix)</h3>
+                
+                <?php
+                // Get product parameters for binding types and book sizes
+                $product_binding_types = $admin->get_setting('binding_types', array());
+                $product_book_sizes = $admin->get_setting('book_sizes', array());
+                $pricing_binding_matrix = $admin->get_setting('pricing_binding_matrix', array());
+                
+                if (is_array($product_binding_types) && !empty($product_binding_types) && 
+                    is_array($product_book_sizes) && !empty($product_book_sizes)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 ماتریس قیمتگذاری هوشمند:</strong> هزینه صحافی بر اساس ترکیب نوع صحافی و قطع کتاب محاسبه می‌شود.
+                        فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                    </p>
+                    <p>
+                        <strong>💡 نکته:</strong> برای هر ترکیب نوع صحافی و قطع کتاب، قیمت مجزا تعیین کنید.
+                    </p>
+                </div>
+                
                 <table class="form-table">
-                    <tr>
-                        <th><label for="pricing_binding_costs">قیمت انواع صحافی</label></th>
-                        <td>
-                            <textarea id="pricing_binding_costs" name="pricing_binding_costs" rows="4" class="large-text" dir="ltr" placeholder="شومیز=3000&#10;جلد سخت=8000"><?php 
-                                $binding = $admin->get_setting('pricing_binding_costs', array());
-                                if (is_array($binding) && !empty($binding)) {
-                                    foreach ($binding as $type => $cost) {
-                                        echo esc_attr($type) . '=' . esc_attr($cost) . "\n";
-                                    }
-                                } else {
-                                    echo "شومیز=3000\nجلد سخت=8000\nگالینگور=6000\nسیمی=2000";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک نوع صحافی (مثال: <code>شومیز=3000</code> یا <code>جلد سخت=8000</code>)<br>
-                                ✓ تعداد فیلدها: <span id="pricing_binding_costs_count"><?php echo is_array($binding) ? count($binding) : 0; ?></span>
-                            </p>
-                        </td>
-                    </tr>
+                    <?php foreach ($product_binding_types as $binding_type): ?>
+                        <tr>
+                            <th colspan="2" style="background-color: #f0f0f0; padding: 10px;">
+                                <strong><?php echo esc_html($binding_type); ?></strong>
+                                <span class="description" style="font-weight: normal; margin-right: 10px;">
+                                    (<?php echo count($product_book_sizes); ?> قطع)
+                                </span>
+                            </th>
+                        </tr>
+                        <?php foreach ($product_book_sizes as $book_size): ?>
+                        <tr>
+                            <th style="padding-right: 30px;">
+                                <label for="pricing_binding_<?php echo esc_attr(md5($binding_type . '__' . $book_size)); ?>">
+                                    قطع <?php echo esc_html($book_size); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       id="pricing_binding_<?php echo esc_attr(md5($binding_type . '__' . $book_size)); ?>" 
+                                       name="pricing_binding_matrix[<?php echo esc_attr($binding_type); ?>][<?php echo esc_attr($book_size); ?>]" 
+                                       value="<?php echo esc_attr($pricing_binding_matrix[$binding_type][$book_size] ?? '0'); ?>" 
+                                       step="1" 
+                                       min="0" 
+                                       class="regular-text" 
+                                       placeholder="3000"> تومان
+                                <span class="description">برای صحافی <?php echo esc_html($binding_type); ?> در قطع <?php echo esc_html($book_size); ?></span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
                 </table>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ نوع صحافی یا قطع کتابی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا انواع صحافی و قطع‌های کتاب را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
-                <h3>هزینه آپشن‌های اضافی (Additional Options)</h3>
+                <h3>هزینه آپشن‌های اضافی (Additional Options - سه نوع محاسبه)</h3>
+                
+                <?php
+                // Get product parameters for extras/options
+                $product_extras = $admin->get_setting('extras', array());
+                $pricing_options_config = $admin->get_setting('pricing_options_config', array());
+                
+                if (is_array($product_extras) && !empty($product_extras)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 قیمت‌گذاری هوشمند با سه نوع محاسبه:</strong> فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                    </p>
+                    <p>
+                        <strong>📋 انواع محاسبه:</strong>
+                    </p>
+                    <ul style="margin-right: 20px;">
+                        <li><strong>ثابت (Fixed):</strong> قیمت یکبار به کل فاکتور اضافه می‌شود</li>
+                        <li><strong>به ازای هر جلد (Per Unit):</strong> قیمت در تعداد جلدها ضرب می‌شود</li>
+                        <li><strong>بر اساس صفحه (Page-Based):</strong> قیمت بر اساس تعداد صفحات و گام محاسبه می‌شود (مثل بسته‌بندی کارتن)</li>
+                    </ul>
+                </div>
+                
                 <table class="form-table">
+                    <?php foreach ($product_extras as $extra): 
+                        $option_config = $pricing_options_config[$extra] ?? array('price' => 0, 'type' => 'fixed', 'step' => 16000);
+                    ?>
                     <tr>
-                        <th><label for="pricing_options_costs">قیمت آپشن‌ها</label></th>
+                        <th><label for="pricing_option_<?php echo esc_attr($extra); ?>">
+                            <?php echo esc_html($extra); ?>
+                        </label></th>
                         <td>
-                            <textarea id="pricing_options_costs" name="pricing_options_costs" rows="6" class="large-text" dir="ltr" placeholder="لب گرد=1000&#10;خط تا=500"><?php 
-                                $options = $admin->get_setting('pricing_options_costs', array());
-                                if (is_array($options) && !empty($options)) {
-                                    foreach ($options as $option => $cost) {
-                                        echo esc_attr($option) . '=' . esc_attr($cost) . "\n";
-                                    }
-                                } else {
-                                    echo "لب گرد=1000\nخط تا=500\nشیرینک=1500\nسوراخ=300\nشماره گذاری=800";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک آپشن (مثال: <code>لب گرد=1000</code> یا <code>uv_coating=3000</code>)<br>
-                                ✓ تعداد فیلدها: <span id="pricing_options_costs_count"><?php echo is_array($options) ? count($options) : 0; ?></span>
-                            </p>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                <div>
+                                    <label style="font-weight: normal;">قیمت:</label>
+                                    <input type="number" 
+                                           id="pricing_option_<?php echo esc_attr($extra); ?>" 
+                                           name="pricing_options_config[<?php echo esc_attr($extra); ?>][price]" 
+                                           value="<?php echo esc_attr($option_config['price'] ?? '0'); ?>" 
+                                           step="1" 
+                                           min="0" 
+                                           class="regular-text" 
+                                           placeholder="1000"> تومان
+                                </div>
+                                <div>
+                                    <label style="font-weight: normal;">نوع محاسبه:</label>
+                                    <select name="pricing_options_config[<?php echo esc_attr($extra); ?>][type]" class="regular-text pricing-option-type">
+                                        <option value="fixed" <?php selected($option_config['type'] ?? 'fixed', 'fixed'); ?>>ثابت (Fixed)</option>
+                                        <option value="per_unit" <?php selected($option_config['type'] ?? 'fixed', 'per_unit'); ?>>به ازای هر جلد (Per Unit)</option>
+                                        <option value="page_based" <?php selected($option_config['type'] ?? 'fixed', 'page_based'); ?>>بر اساس صفحه (Page-Based)</option>
+                                    </select>
+                                </div>
+                                <div class="pricing-option-step" style="<?php echo ($option_config['type'] ?? 'fixed') !== 'page_based' ? 'display:none;' : ''; ?>">
+                                    <label style="font-weight: normal;">گام (Step):</label>
+                                    <input type="number" 
+                                           name="pricing_options_config[<?php echo esc_attr($extra); ?>][step]" 
+                                           value="<?php echo esc_attr($option_config['step'] ?? '16000'); ?>" 
+                                           step="1" 
+                                           min="1" 
+                                           class="small-text" 
+                                           placeholder="16000"> صفحه
+                                    <span class="description">تعداد صفحات در هر واحد (مثلاً 16000 برای کارتن)</span>
+                                </div>
+                            </div>
                         </td>
                     </tr>
+                    <?php endforeach; ?>
                 </table>
+                
+                <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    $('.pricing-option-type').on('change', function() {
+                        var $row = $(this).closest('tr');
+                        var $stepDiv = $row.find('.pricing-option-step');
+                        if ($(this).val() === 'page_based') {
+                            $stepDiv.show();
+                        } else {
+                            $stepDiv.hide();
+                        }
+                    });
+                });
+                </script>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ خدمت اضافی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا خدمات اضافی را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
                 <h3>حاشیه سود (Profit Margin)</h3>
                 <table class="form-table">

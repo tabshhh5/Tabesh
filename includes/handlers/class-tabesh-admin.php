@@ -220,9 +220,10 @@ class Tabesh_Admin {
         $simple_array_fields = array('book_sizes', 'print_types', 'binding_types', 
                                      'license_types', 'cover_paper_weights', 'lamination_types', 'extras');
         
-        $json_object_fields = array('pricing_book_sizes', 'pricing_paper_types', 
-                                    'pricing_lamination_costs', 'pricing_binding_costs', 
-                                    'pricing_options_costs', 'paper_types', 'pricing_quantity_discounts');
+        // Note: pricing_book_sizes, pricing_binding_costs, pricing_lamination_costs, pricing_options_costs
+        // are now handled separately as array inputs from dynamic fields (see below)
+        // pricing_paper_types is replaced by pricing_paper_weights for weight-based pricing
+        $json_object_fields = array('paper_types', 'pricing_quantity_discounts');
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               // New SMS settings
@@ -414,6 +415,157 @@ class Tabesh_Admin {
             
             if ($result === false) {
                 error_log("Failed to save setting: pricing_cover_types - Error: " . $wpdb->last_error);
+            }
+        }
+        
+        // Handle dynamic pricing fields that come as arrays (new format)
+        // These are the fields that are auto-generated from product parameters
+        $array_pricing_fields = array(
+            'pricing_book_sizes',
+            'pricing_binding_costs',
+            'pricing_lamination_costs',
+            'pricing_options_costs'
+        );
+        
+        foreach ($array_pricing_fields as $field) {
+            if (isset($post_data[$field]) && is_array($post_data[$field])) {
+                $sanitized_data = array();
+                foreach ($post_data[$field] as $key => $value) {
+                    $sanitized_key = sanitize_text_field($key);
+                    $sanitized_value = is_numeric($value) ? floatval($value) : sanitize_text_field($value);
+                    $sanitized_data[$sanitized_key] = $sanitized_value;
+                }
+                
+                if (!empty($sanitized_data)) {
+                    $result = $wpdb->replace(
+                        $table,
+                        array(
+                            'setting_key' => $field,
+                            'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                            'setting_type' => 'string'
+                        )
+                    );
+                    
+                    if ($result === false) {
+                        error_log("Tabesh: Failed to save setting: $field - Error: " . $wpdb->last_error);
+                    } else {
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log("Tabesh: Successfully saved dynamic pricing field: $field with " . count($sanitized_data) . " entries");
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Handle nested pricing_paper_weights structure (paper_type => [weight => price])
+        if (isset($post_data['pricing_paper_weights']) && is_array($post_data['pricing_paper_weights'])) {
+            $sanitized_data = array();
+            foreach ($post_data['pricing_paper_weights'] as $paper_type => $weights) {
+                $sanitized_type = sanitize_text_field($paper_type);
+                $sanitized_data[$sanitized_type] = array();
+                
+                if (is_array($weights)) {
+                    foreach ($weights as $weight => $price) {
+                        $sanitized_weight = sanitize_text_field($weight);
+                        $sanitized_price = is_numeric($price) ? floatval($price) : 0;
+                        $sanitized_data[$sanitized_type][$sanitized_weight] = $sanitized_price;
+                    }
+                }
+            }
+            
+            if (!empty($sanitized_data)) {
+                $result = $wpdb->replace(
+                    $table,
+                    array(
+                        'setting_key' => 'pricing_paper_weights',
+                        'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                        'setting_type' => 'string'
+                    )
+                );
+                
+                if ($result === false) {
+                    error_log("Tabesh: Failed to save setting: pricing_paper_weights - Error: " . $wpdb->last_error);
+                } else {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        $total_entries = 0;
+                        foreach ($sanitized_data as $type => $weights) {
+                            $total_entries += count($weights);
+                        }
+                        error_log("Tabesh: Successfully saved pricing_paper_weights with $total_entries weight entries across " . count($sanitized_data) . " paper types");
+                    }
+                }
+            }
+        }
+        
+        // Handle nested pricing_binding_matrix structure (binding_type => [book_size => price])
+        if (isset($post_data['pricing_binding_matrix']) && is_array($post_data['pricing_binding_matrix'])) {
+            $sanitized_data = array();
+            foreach ($post_data['pricing_binding_matrix'] as $binding_type => $sizes) {
+                $sanitized_type = sanitize_text_field($binding_type);
+                $sanitized_data[$sanitized_type] = array();
+                
+                if (is_array($sizes)) {
+                    foreach ($sizes as $book_size => $price) {
+                        $sanitized_size = sanitize_text_field($book_size);
+                        $sanitized_price = is_numeric($price) ? floatval($price) : 0;
+                        $sanitized_data[$sanitized_type][$sanitized_size] = $sanitized_price;
+                    }
+                }
+            }
+            
+            if (!empty($sanitized_data)) {
+                $result = $wpdb->replace(
+                    $table,
+                    array(
+                        'setting_key' => 'pricing_binding_matrix',
+                        'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                        'setting_type' => 'string'
+                    )
+                );
+                
+                if ($result === false) {
+                    error_log("Tabesh: Failed to save setting: pricing_binding_matrix - Error: " . $wpdb->last_error);
+                } else {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        $total_entries = 0;
+                        foreach ($sanitized_data as $type => $sizes) {
+                            $total_entries += count($sizes);
+                        }
+                        error_log("Tabesh: Successfully saved pricing_binding_matrix with $total_entries size entries across " . count($sanitized_data) . " binding types");
+                    }
+                }
+            }
+        }
+        
+        // Handle nested pricing_options_config structure (option_name => [price, type, step])
+        if (isset($post_data['pricing_options_config']) && is_array($post_data['pricing_options_config'])) {
+            $sanitized_data = array();
+            foreach ($post_data['pricing_options_config'] as $option_name => $config) {
+                $sanitized_name = sanitize_text_field($option_name);
+                $sanitized_data[$sanitized_name] = array(
+                    'price' => isset($config['price']) && is_numeric($config['price']) ? floatval($config['price']) : 0,
+                    'type' => isset($config['type']) ? sanitize_text_field($config['type']) : 'fixed',
+                    'step' => isset($config['step']) && is_numeric($config['step']) ? intval($config['step']) : 16000,
+                );
+            }
+            
+            if (!empty($sanitized_data)) {
+                $result = $wpdb->replace(
+                    $table,
+                    array(
+                        'setting_key' => 'pricing_options_config',
+                        'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                        'setting_type' => 'string'
+                    )
+                );
+                
+                if ($result === false) {
+                    error_log("Tabesh: Failed to save setting: pricing_options_config - Error: " . $wpdb->last_error);
+                } else {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log("Tabesh: Successfully saved pricing_options_config with " . count($sanitized_data) . " options");
+                    }
+                }
             }
         }
         
