@@ -392,29 +392,68 @@ $admin = $tabesh->admin;
                 <?php endif; ?>
 
                 <h3>قیمت پایه کاغذ (Paper Type Base Costs)</h3>
-                <p class="description">هزینه پایه هر صفحه برای هر نوع کاغذ (به تومان)</p>
+                <p class="description">هزینه پایه هر صفحه برای هر نوع کاغذ و گرماژ (به تومان)</p>
+                
+                <?php
+                // Get product parameters for paper types (includes weights)
+                $product_paper_types = $admin->get_setting('paper_types', array());
+                $pricing_paper_weights = $admin->get_setting('pricing_paper_weights', array());
+                
+                if (is_array($product_paper_types) && !empty($product_paper_types)):
+                ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        <strong>🎯 قیمت‌گذاری هوشمند بر اساس گرماژ:</strong> فیلدهای زیر به صورت خودکار از پارامترهای محصول تولید شده‌اند.
+                        برای هر نوع کاغذ، باید قیمت تمام گرماژهای مجاز را وارد کنید.
+                    </p>
+                    <p>
+                        <strong>💡 نکته:</strong> برای اضافه یا حذف نوع کاغذ یا گرماژ، به تب "پارامترهای محصول" مراجعه کنید.
+                    </p>
+                </div>
+                
                 <table class="form-table">
-                    <tr>
-                        <th><label for="pricing_paper_types">قیمت انواع کاغذ</label></th>
-                        <td>
-                            <textarea id="pricing_paper_types" name="pricing_paper_types" rows="5" class="large-text" dir="ltr" placeholder="تحریر=200&#10;بالک=250"><?php 
-                                $paper_types = $admin->get_setting('pricing_paper_types', array());
-                                if (is_array($paper_types) && !empty($paper_types)) {
-                                    foreach ($paper_types as $type => $cost) {
-                                        echo esc_attr($type) . '=' . esc_attr($cost) . "\n";
-                                    }
-                                } else {
-                                    echo "تحریر=200\nبالک=250\nglossy=250\nmatte=200";
-                                }
-                            ?></textarea>
-                            <p class="description">
-                                ✓ هر خط یک نوع کاغذ (مثال: <code>glossy=250</code> یا <code>تحریر=200</code>)<br>
-                                ✓ قیمت به تومان برای هر صفحه<br>
-                                ✓ تعداد فیلدها: <span id="pricing_paper_types_count"><?php echo is_array($paper_types) ? count($paper_types) : 0; ?></span>
-                            </p>
-                        </td>
-                    </tr>
+                    <?php foreach ($product_paper_types as $paper_type => $weights): ?>
+                        <?php if (is_array($weights) && !empty($weights)): ?>
+                            <tr>
+                                <th colspan="2" style="background-color: #f0f0f0; padding: 10px;">
+                                    <strong><?php echo esc_html($paper_type); ?></strong>
+                                    <span class="description" style="font-weight: normal; margin-right: 10px;">
+                                        (<?php echo count($weights); ?> گرماژ)
+                                    </span>
+                                </th>
+                            </tr>
+                            <?php foreach ($weights as $weight): ?>
+                            <tr>
+                                <th style="padding-right: 30px;">
+                                    <label for="pricing_paper_<?php echo esc_attr($paper_type . '_' . $weight); ?>">
+                                        گرماژ <?php echo esc_html($weight); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <input type="number" 
+                                           id="pricing_paper_<?php echo esc_attr($paper_type . '_' . $weight); ?>" 
+                                           name="pricing_paper_weights[<?php echo esc_attr($paper_type); ?>][<?php echo esc_attr($weight); ?>]" 
+                                           value="<?php echo esc_attr($pricing_paper_weights[$paper_type][$weight] ?? '0'); ?>" 
+                                           step="1" 
+                                           min="0" 
+                                           class="regular-text" 
+                                           placeholder="200"> تومان / صفحه
+                                    <span class="description">برای کاغذ <?php echo esc_html($paper_type); ?> با گرماژ <?php echo esc_html($weight); ?></span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
                 </table>
+                
+                <?php else: ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong>⚠️ توجه:</strong> هیچ نوع کاغذی در تب "پارامترهای محصول" تعریف نشده است.
+                        لطفاً ابتدا انواع کاغذ و گرماژهای آن را در آن بخش تعریف کنید.
+                    </p>
+                </div>
+                <?php endif; ?>
 
                 <h3>هزینه چاپ (Print Costs per Page)</h3>
                 <table class="form-table">

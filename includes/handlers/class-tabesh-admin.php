@@ -222,7 +222,8 @@ class Tabesh_Admin {
         
         // Note: pricing_book_sizes, pricing_binding_costs, pricing_lamination_costs, pricing_options_costs
         // are now handled separately as array inputs from dynamic fields (see below)
-        $json_object_fields = array('pricing_paper_types', 'paper_types', 'pricing_quantity_discounts');
+        // pricing_paper_types is replaced by pricing_paper_weights for weight-based pricing
+        $json_object_fields = array('paper_types', 'pricing_quantity_discounts');
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               // New SMS settings
@@ -450,6 +451,44 @@ class Tabesh_Admin {
                     } else {
                         error_log("Tabesh: Successfully saved dynamic pricing field: $field with " . count($sanitized_data) . " entries");
                     }
+                }
+            }
+        }
+        
+        // Handle nested pricing_paper_weights structure (paper_type => [weight => price])
+        if (isset($post_data['pricing_paper_weights']) && is_array($post_data['pricing_paper_weights'])) {
+            $sanitized_data = array();
+            foreach ($post_data['pricing_paper_weights'] as $paper_type => $weights) {
+                $sanitized_type = sanitize_text_field($paper_type);
+                $sanitized_data[$sanitized_type] = array();
+                
+                if (is_array($weights)) {
+                    foreach ($weights as $weight => $price) {
+                        $sanitized_weight = sanitize_text_field($weight);
+                        $sanitized_price = is_numeric($price) ? floatval($price) : 0;
+                        $sanitized_data[$sanitized_type][$sanitized_weight] = $sanitized_price;
+                    }
+                }
+            }
+            
+            if (!empty($sanitized_data)) {
+                $result = $wpdb->replace(
+                    $table,
+                    array(
+                        'setting_key' => 'pricing_paper_weights',
+                        'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                        'setting_type' => 'string'
+                    )
+                );
+                
+                if ($result === false) {
+                    error_log("Tabesh: Failed to save setting: pricing_paper_weights - Error: " . $wpdb->last_error);
+                } else {
+                    $total_entries = 0;
+                    foreach ($sanitized_data as $type => $weights) {
+                        $total_entries += count($weights);
+                    }
+                    error_log("Tabesh: Successfully saved pricing_paper_weights with $total_entries weight entries across " . count($sanitized_data) . " paper types");
                 }
             }
         }
