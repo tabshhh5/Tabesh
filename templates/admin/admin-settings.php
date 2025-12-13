@@ -409,6 +409,9 @@ $admin = $tabesh->admin;
                     <p>
                         <strong>💡 نکته:</strong> برای اضافه یا حذف نوع کاغذ یا گرماژ، به تب "پارامترهای محصول" مراجعه کنید.
                     </p>
+                    <p>
+                        <strong>⚠️ هشدار:</strong> قیمت پیش‌فرض برای گرماژهای جدید صفر است. حتماً قیمت مناسب را وارد کنید تا محاسبات صحیح انجام شود.
+                    </p>
                 </div>
                 
                 <table class="form-table">
@@ -425,13 +428,13 @@ $admin = $tabesh->admin;
                             <?php foreach ($weights as $weight): ?>
                             <tr>
                                 <th style="padding-right: 30px;">
-                                    <label for="pricing_paper_<?php echo esc_attr($paper_type . '_' . $weight); ?>">
+                                    <label for="pricing_paper_<?php echo esc_attr(md5($paper_type . '__' . $weight)); ?>">
                                         گرماژ <?php echo esc_html($weight); ?>
                                     </label>
                                 </th>
                                 <td>
                                     <input type="number" 
-                                           id="pricing_paper_<?php echo esc_attr($paper_type . '_' . $weight); ?>" 
+                                           id="pricing_paper_<?php echo esc_attr(md5($paper_type . '__' . $weight)); ?>" 
                                            name="pricing_paper_weights[<?php echo esc_attr($paper_type); ?>][<?php echo esc_attr($weight); ?>]" 
                                            value="<?php echo esc_attr($pricing_paper_weights[$paper_type][$weight] ?? '0'); ?>" 
                                            step="1" 

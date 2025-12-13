@@ -131,13 +131,19 @@ class Tabesh_Order {
 			// Fallback: check old pricing_paper_types structure (backward compatibility)
 			$paper_base_cost = $pricing_config['paper_types'][ $paper_type ] ?? 250;
 			
+			// Only log once per unique combination to avoid log spam
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 
-					'Tabesh WARNING: Weight-based pricing not found for paper "%s" weight "%s", using fallback cost: %s', 
-					$paper_type, 
-					$paper_weight, 
-					$paper_base_cost 
-				) );
+				static $logged_missing = array();
+				$lookup_key = $paper_type . '_' . $paper_weight;
+				if ( ! isset( $logged_missing[ $lookup_key ] ) ) {
+					error_log( sprintf( 
+						'Tabesh WARNING: Weight-based pricing not found for paper "%s" weight "%s", using fallback cost: %s', 
+						$paper_type, 
+						$paper_weight, 
+						$paper_base_cost 
+					) );
+					$logged_missing[ $lookup_key ] = true;
+				}
 			}
 		}
 

@@ -449,7 +449,9 @@ class Tabesh_Admin {
                     if ($result === false) {
                         error_log("Tabesh: Failed to save setting: $field - Error: " . $wpdb->last_error);
                     } else {
-                        error_log("Tabesh: Successfully saved dynamic pricing field: $field with " . count($sanitized_data) . " entries");
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log("Tabesh: Successfully saved dynamic pricing field: $field with " . count($sanitized_data) . " entries");
+                        }
                     }
                 }
             }
@@ -484,11 +486,13 @@ class Tabesh_Admin {
                 if ($result === false) {
                     error_log("Tabesh: Failed to save setting: pricing_paper_weights - Error: " . $wpdb->last_error);
                 } else {
-                    $total_entries = 0;
-                    foreach ($sanitized_data as $type => $weights) {
-                        $total_entries += count($weights);
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        $total_entries = 0;
+                        foreach ($sanitized_data as $type => $weights) {
+                            $total_entries += count($weights);
+                        }
+                        error_log("Tabesh: Successfully saved pricing_paper_weights with $total_entries weight entries across " . count($sanitized_data) . " paper types");
                     }
-                    error_log("Tabesh: Successfully saved pricing_paper_weights with $total_entries weight entries across " . count($sanitized_data) . " paper types");
                 }
             }
         }
