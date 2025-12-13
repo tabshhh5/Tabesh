@@ -220,9 +220,9 @@ class Tabesh_Admin {
         $simple_array_fields = array('book_sizes', 'print_types', 'binding_types', 
                                      'license_types', 'cover_paper_weights', 'lamination_types', 'extras');
         
-        $json_object_fields = array('pricing_book_sizes', 'pricing_paper_types', 
-                                    'pricing_lamination_costs', 'pricing_binding_costs', 
-                                    'pricing_options_costs', 'paper_types', 'pricing_quantity_discounts');
+        // Note: pricing_book_sizes, pricing_binding_costs, pricing_lamination_costs, pricing_options_costs
+        // are now handled separately as array inputs from dynamic fields (see below)
+        $json_object_fields = array('pricing_paper_types', 'paper_types', 'pricing_quantity_discounts');
         
         $scalar_fields = array('min_quantity', 'max_quantity', 'quantity_step',
                               // New SMS settings
@@ -414,6 +414,43 @@ class Tabesh_Admin {
             
             if ($result === false) {
                 error_log("Failed to save setting: pricing_cover_types - Error: " . $wpdb->last_error);
+            }
+        }
+        
+        // Handle dynamic pricing fields that come as arrays (new format)
+        // These are the fields that are auto-generated from product parameters
+        $array_pricing_fields = array(
+            'pricing_book_sizes',
+            'pricing_binding_costs',
+            'pricing_lamination_costs',
+            'pricing_options_costs'
+        );
+        
+        foreach ($array_pricing_fields as $field) {
+            if (isset($post_data[$field]) && is_array($post_data[$field])) {
+                $sanitized_data = array();
+                foreach ($post_data[$field] as $key => $value) {
+                    $sanitized_key = sanitize_text_field($key);
+                    $sanitized_value = is_numeric($value) ? floatval($value) : sanitize_text_field($value);
+                    $sanitized_data[$sanitized_key] = $sanitized_value;
+                }
+                
+                if (!empty($sanitized_data)) {
+                    $result = $wpdb->replace(
+                        $table,
+                        array(
+                            'setting_key' => $field,
+                            'setting_value' => wp_json_encode($sanitized_data, JSON_UNESCAPED_UNICODE),
+                            'setting_type' => 'string'
+                        )
+                    );
+                    
+                    if ($result === false) {
+                        error_log("Tabesh: Failed to save setting: $field - Error: " . $wpdb->last_error);
+                    } else {
+                        error_log("Tabesh: Successfully saved dynamic pricing field: $field with " . count($sanitized_data) . " entries");
+                    }
+                }
             }
         }
         
