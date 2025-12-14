@@ -818,24 +818,24 @@ final class Tabesh {
 	 */
 	private function set_default_options() {
 		$defaults = array(
-			'book_sizes'                          => json_encode( array( 'A5', 'A4', 'رقعی', 'وزیری', 'خشتی' ) ),
-			'paper_types'                         => json_encode(
+			'book_sizes'                               => json_encode( array( 'A5', 'A4', 'رقعی', 'وزیری', 'خشتی' ) ),
+			'paper_types'                              => json_encode(
 				array(
 					'تحریر' => array( 60, 70, 80 ),
 					'بالک'  => array( 60, 70, 80, 100 ),
 				)
 			),
-			'print_types'                         => json_encode( array( 'سیاه و سفید', 'رنگی', 'ترکیبی' ) ),
-			'binding_types'                       => json_encode( array( 'شومیز', 'جلد سخت', 'گالینگور', 'سیمی' ) ),
-			'license_types'                       => json_encode( array( 'دارم', 'انتشارات چاپکو', 'سفیر سلامت' ) ),
-			'cover_paper_weights'                 => json_encode( array( '250', '300' ) ),
-			'lamination_types'                    => json_encode( array( 'براق', 'مات', 'بدون سلفون' ) ),
-			'extras'                              => json_encode( array( 'لب گرد', 'خط تا', 'شیرینک', 'سوراخ', 'شماره گذاری' ) ),
-			'min_quantity'                        => '10',
-			'max_quantity'                        => '10000',
-			'quantity_step'                       => '10',
+			'print_types'                              => json_encode( array( 'سیاه و سفید', 'رنگی', 'ترکیبی' ) ),
+			'binding_types'                            => json_encode( array( 'شومیز', 'جلد سخت', 'گالینگور', 'سیمی' ) ),
+			'license_types'                            => json_encode( array( 'دارم', 'انتشارات چاپکو', 'سفیر سلامت' ) ),
+			'cover_paper_weights'                      => json_encode( array( '250', '300' ) ),
+			'lamination_types'                         => json_encode( array( 'براق', 'مات', 'بدون سلفون' ) ),
+			'extras'                                   => json_encode( array( 'لب گرد', 'خط تا', 'شیرینک', 'سوراخ', 'شماره گذاری' ) ),
+			'min_quantity'                             => '10',
+			'max_quantity'                             => '10000',
+			'quantity_step'                            => '10',
 			// Pricing configuration
-			'pricing_book_sizes'                  => json_encode(
+			'pricing_book_sizes'                       => json_encode(
 				array(
 					'A5'    => 1.0,
 					'A4'    => 1.5,
@@ -845,7 +845,7 @@ final class Tabesh {
 					'خشتی'  => 1.4,
 				)
 			),
-			'pricing_paper_types'                 => json_encode(
+			'pricing_paper_types'                      => json_encode(
 				array(
 					'glossy' => 250,
 					'matte'  => 200,
@@ -854,26 +854,26 @@ final class Tabesh {
 					'بالک'   => 250,
 				)
 			),
-			'pricing_print_costs'                 => json_encode(
+			'pricing_print_costs'                      => json_encode(
 				array(
 					'bw'    => 200,
 					'color' => 800,
 				)
 			),
-			'pricing_cover_types'                 => json_encode(
+			'pricing_cover_types'                      => json_encode(
 				array(
 					'soft' => 8000,
 					'hard' => 15000,
 				)
 			),
-			'pricing_lamination_costs'            => json_encode(
+			'pricing_lamination_costs'                 => json_encode(
 				array(
 					'براق'       => 2000,
 					'مات'        => 2500,
 					'بدون سلفون' => 0,
 				)
 			),
-			'pricing_binding_costs'               => json_encode(
+			'pricing_binding_costs'                    => json_encode(
 				array(
 					'شومیز'    => 3000,
 					'جلد سخت'  => 8000,
@@ -881,7 +881,7 @@ final class Tabesh {
 					'سیمی'     => 2000,
 				)
 			),
-			'pricing_options_costs'               => json_encode(
+			'pricing_options_costs'                    => json_encode(
 				array(
 					'لب گرد'            => 1000,
 					'خط تا'             => 500,
@@ -893,82 +893,85 @@ final class Tabesh {
 					'special_packaging' => 2000,
 				)
 			),
-			'pricing_profit_margin'               => '0',
-			'pricing_quantity_discounts'          => json_encode(
+			'pricing_profit_margin'                    => '0',
+			'pricing_quantity_discounts'               => json_encode(
 				array(
 					100 => 10,  // 10% discount for 100+ quantity
 					50  => 5,    // 5% discount for 50+ quantity
 				)
 			),
 			// File upload settings
-			'file_allowed_types'                  => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'psd', 'doc', 'docx', 'zip', 'rar' ) ),
-			'file_max_size_pdf'                   => '52428800',      // 50 MB in bytes
-			'file_max_size_image'                 => '10485760',    // 10 MB in bytes
-			'file_max_size_document'              => '10485760', // 10 MB in bytes
-			'file_max_size_archive'               => '104857600', // 100 MB in bytes
+			'file_allowed_types'                       => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'psd', 'doc', 'docx', 'zip', 'rar' ) ),
+			'file_max_size_pdf'                        => '52428800',      // 50 MB in bytes
+			'file_max_size_image'                      => '10485760',    // 10 MB in bytes
+			'file_max_size_document'                   => '10485760', // 10 MB in bytes
+			'file_max_size_archive'                    => '104857600', // 100 MB in bytes
 			// File upload settings by category (text, cover, documents)
-			'file_max_size_text'                  => '52428800',      // 50 MB in bytes for text files
-			'file_max_size_cover'                 => '10485760',     // 10 MB in bytes for cover files
-			'file_max_size_documents'             => '10485760', // 10 MB in bytes for document files
-			'file_allowed_types_text'             => json_encode( array( 'pdf', 'doc', 'docx' ) ),
-			'file_allowed_types_cover'            => json_encode( array( 'jpg', 'jpeg', 'png', 'psd', 'pdf' ) ),
-			'file_allowed_types_documents'        => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'zip', 'rar' ) ),
-			'file_min_dpi'                        => '300',
-			'file_retention_days'                 => '5',
-			'file_correction_fee'                 => '50000',       // Fee per corrected page in Rials
-			'ftp_host'                            => '',
-			'ftp_port'                            => '21',
-			'ftp_username'                        => '',
-			'ftp_password'                        => '',
-			'ftp_path'                            => '/uploads/',
-			'ftp_passive'                         => '1',
-			'ftp_ssl'                             => '0',
-			'ftp_delete_after_transfer'           => '0',
-			'ftp_enabled'                         => '1',                       // Enable/disable FTP (fallback to local)
-			'ftp_transfer_delay'                  => '60',               // Minutes to wait before transferring to FTP
-			'ftp_immediate_transfer'              => '0',            // Enable immediate FTP transfer for testing
-			'ftp_local_retention_minutes'         => '120',     // Minutes to keep local copy after FTP transfer
-			'ftp_encrypt_files'                   => '0',                 // Encrypt files before FTP transfer
+			'file_max_size_text'                       => '52428800',      // 50 MB in bytes for text files
+			'file_max_size_cover'                      => '10485760',     // 10 MB in bytes for cover files
+			'file_max_size_documents'                  => '10485760', // 10 MB in bytes for document files
+			'file_allowed_types_text'                  => json_encode( array( 'pdf', 'doc', 'docx' ) ),
+			'file_allowed_types_cover'                 => json_encode( array( 'jpg', 'jpeg', 'png', 'psd', 'pdf' ) ),
+			'file_allowed_types_documents'             => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'zip', 'rar' ) ),
+			'file_min_dpi'                             => '300',
+			'file_retention_days'                      => '5',
+			'file_correction_fee'                      => '50000',       // Fee per corrected page in Rials
+			'ftp_host'                                 => '',
+			'ftp_port'                                 => '21',
+			'ftp_username'                             => '',
+			'ftp_password'                             => '',
+			'ftp_path'                                 => '/uploads/',
+			'ftp_passive'                              => '1',
+			'ftp_ssl'                                  => '0',
+			'ftp_delete_after_transfer'                => '0',
+			'ftp_enabled'                              => '1',                       // Enable/disable FTP (fallback to local)
+			'ftp_transfer_delay'                       => '60',               // Minutes to wait before transferring to FTP
+			'ftp_immediate_transfer'                   => '0',            // Enable immediate FTP transfer for testing
+			'ftp_local_retention_minutes'              => '120',     // Minutes to keep local copy after FTP transfer
+			'ftp_encrypt_files'                        => '0',                 // Encrypt files before FTP transfer
 			// Security & Access
-			'file_encrypt_filenames'              => '0',
-			'file_reupload_hours'                 => '48',              // Hours to allow file re-upload
-			'file_enable_ip_restriction'          => '0',
-			'file_allowed_ips'                    => '',
-			'file_download_link_expiry'           => '24',
-			'file_admin_access_list'              => json_encode( array() ),
+			'file_encrypt_filenames'                   => '0',
+			'file_reupload_hours'                      => '48',              // Hours to allow file re-upload
+			'file_enable_ip_restriction'               => '0',
+			'file_allowed_ips'                         => '',
+			'file_download_link_expiry'                => '24',
+			'file_admin_access_list'                   => json_encode( array() ),
 			// Scheduling & Auto Deletion
-			'file_delete_incomplete_after'        => '30',
-			'file_auto_backup_enabled'            => '1',
-			'file_backup_location'                => '/backups/',
+			'file_delete_incomplete_after'             => '30',
+			'file_auto_backup_enabled'                 => '1',
+			'file_backup_location'                     => '/backups/',
 			// Display & Behavior
-			'file_error_display_type'             => 'modal',
-			'file_show_progress_bar'              => '1',
+			'file_error_display_type'                  => 'modal',
+			'file_show_progress_bar'                   => '1',
 			// Access Control
-			'staff_allowed_users'                 => json_encode( array() ),
-			'admin_dashboard_allowed_users'       => json_encode( array() ),
+			'staff_allowed_users'                      => json_encode( array() ),
+			'admin_dashboard_allowed_users'            => json_encode( array() ),
 			// Admin Order Form Shortcode Access Control
-			'admin_order_form_allowed_roles'      => json_encode( array( 'administrator' ) ),
-			'admin_order_form_allowed_users'      => json_encode( array() ),
+			'admin_order_form_allowed_roles'           => json_encode( array( 'administrator' ) ),
+			'admin_order_form_allowed_users'           => json_encode( array() ),
 			// SMS Settings
-			'sms_enabled'                         => '0',
-			'sms_username'                        => '',
-			'sms_password'                        => '',
-			'sms_sender'                          => '',
+			'sms_enabled'                              => '0',
+			'sms_username'                             => '',
+			'sms_password'                             => '',
+			'sms_sender'                               => '',
 			// SMS event triggers
-			'sms_on_order_submit'                 => '1',           // Send SMS when order is submitted
-			'sms_on_status_change'                => '1',          // Send SMS when order status changes
+			'sms_on_order_submit'                      => '1',           // Send SMS when order is submitted
+			'sms_on_status_change'                     => '1',          // Send SMS when order status changes
 			// Admin contact
-			'admin_phone'                         => '',                     // Admin phone number for notifications
+			'admin_phone'                              => '',                     // Admin phone number for notifications
 			// Admin SMS notifications
-			'sms_admin_user_registration_enabled' => '0',
-			'sms_admin_user_registration_pattern' => '',
-			'sms_admin_order_created_enabled'     => '0',
-			'sms_admin_order_created_pattern'     => '',
+			'sms_admin_user_registration_enabled'      => '0',
+			'sms_admin_user_registration_pattern'      => '',
+			'sms_pattern_vars_admin_user_registration' => json_encode( array() ),  // Pattern variable configuration for user registration SMS.
+			'sms_admin_order_created_enabled'          => '0',
+			'sms_admin_order_created_pattern'          => '',
+			'sms_pattern_vars_admin_order_created'     => json_encode( array() ),  // Pattern variable configuration for admin order creation SMS.
+			'sms_pattern_vars_status_change'           => json_encode( array() ),  // Pattern variable configuration for order status change SMS.
 			// SMS Settings for Staff Panel.
-			'sms_disable_global_for_staff'        => '0',  // Enable SMS notifications for staff panel by default.
+			'sms_disable_global_for_staff'             => '0',  // Enable SMS notifications for staff panel by default.
 			// General File Upload Settings.
-			'file_upload_max_size'                => '52428800',   // 50 MB in bytes (general default).
-			'file_upload_allowed_types'           => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'psd', 'doc', 'docx', 'zip', 'rar' ) ),
+			'file_upload_max_size'                     => '52428800',   // 50 MB in bytes (general default).
+			'file_upload_allowed_types'                => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'psd', 'doc', 'docx', 'zip', 'rar' ) ),
 		);
 
 		// Add SMS status notifications for all order statuses dynamically
