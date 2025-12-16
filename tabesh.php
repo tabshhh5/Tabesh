@@ -227,6 +227,13 @@ final class Tabesh {
 	public $firewall;
 
 	/**
+	 * Product Pricing handler
+	 *
+	 * @var Tabesh_Product_Pricing
+	 */
+	public $product_pricing;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -301,6 +308,8 @@ final class Tabesh {
 		$this->export_import = new Tabesh_Export_Import();
 		// Initialize Doomsday Firewall
 		$this->firewall = new Tabesh_Doomsday_Firewall();
+		// Initialize Product Pricing handler
+		$this->product_pricing = new Tabesh_Product_Pricing();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -1189,6 +1198,24 @@ final class Tabesh {
 
 		register_rest_route(
 			TABESH_REST_NAMESPACE,
+			'/available-options',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'rest_get_available_options' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'book_size' => array(
+						'required'          => true,
+						'validate_callback' => function ( $param ) {
+							return ! empty( $param );
+						},
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			TABESH_REST_NAMESPACE,
 			'/submit-order',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -1790,6 +1817,56 @@ final class Tabesh {
 	}
 
 	/**
+	 * REST: Get available pricing options for a book size
+	 *
+	 * This endpoint returns the allowed paper types, bindings, and print types
+	 * based on the configured restrictions for a specific book size.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function rest_get_available_options( $request ) {
+		$book_size = sanitize_text_field( $request->get_param( 'book_size' ) );
+
+		// Check if V2 engine is enabled.
+		$pricing_engine = new Tabesh_Pricing_Engine();
+
+		if ( ! $pricing_engine->is_enabled() ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'موتور قیمت‌گذاری جدید فعال نیست', 'tabesh' ),
+				),
+				400
+			);
+		}
+
+		// Get available options.
+		$options = $pricing_engine->get_available_options( $book_size );
+
+		if ( isset( $options['error'] ) && $options['error'] ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => $options['message'],
+				),
+				400
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success'            => true,
+				'book_size'          => $options['book_size'],
+				'available_papers'   => $options['available_papers'],
+				'available_bindings' => $options['available_bindings'],
+				'has_restrictions'   => $options['has_restrictions'],
+			),
+			200
+		);
+	}
+
+	/**
 	 * Handle file download requests via template_redirect
 	 *
 	 * Intercepts requests with tabesh_download=1 parameter and serves the file
@@ -1997,6 +2074,7 @@ final class Tabesh {
 		add_shortcode( 'tabesh_file_upload', array( $this, 'render_file_upload' ) );
 		add_shortcode( 'tabesh_upload_manager', array( $this->upload, 'render_upload_manager' ) );
 		add_shortcode( 'tabesh_admin_order_form', array( $this->admin_order_form, 'render' ) );
+		add_shortcode( 'tabesh_product_pricing', array( $this, 'render_product_pricing' ) );
 	}
 
 	/**
@@ -2011,6 +2089,19 @@ final class Tabesh {
 	public function render_file_upload( $atts = array() ) {
 		// Delegate to upload manager
 		return $this->upload->render_upload_manager( $atts );
+	}
+
+	/**
+	 * Render product pricing shortcode
+	 *
+	 * Shortcode: [tabesh_product_pricing]
+	 *
+	 * @param array $atts Shortcode attributes
+	 * @return string HTML output
+	 */
+	public function render_product_pricing( $atts = array() ) {
+		// Delegate to product pricing handler
+		return $this->product_pricing->render();
 	}
 
 	/**

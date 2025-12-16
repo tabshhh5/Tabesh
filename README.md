@@ -85,6 +85,13 @@ Show admin dashboard overview (requires manage_woocommerce capability):
 [tabesh_admin_dashboard]
 ```
 
+#### Product Pricing (New V2)
+Manage pricing parameters with matrix-based engine (requires manage_woocommerce capability):
+```
+[tabesh_product_pricing]
+```
+See [PRICING_ENGINE_V2.md](PRICING_ENGINE_V2.md) for details about the new pricing system.
+
 ### Admin Menu
 After activation, access the plugin via:
 - **Dashboard**: Tabesh → Dashboard
