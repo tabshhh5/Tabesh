@@ -227,6 +227,13 @@ final class Tabesh {
 	public $firewall;
 
 	/**
+	 * Product Pricing handler
+	 *
+	 * @var Tabesh_Product_Pricing
+	 */
+	public $product_pricing;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -301,6 +308,8 @@ final class Tabesh {
 		$this->export_import = new Tabesh_Export_Import();
 		// Initialize Doomsday Firewall
 		$this->firewall = new Tabesh_Doomsday_Firewall();
+		// Initialize Product Pricing handler
+		$this->product_pricing = new Tabesh_Product_Pricing();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -1997,6 +2006,7 @@ final class Tabesh {
 		add_shortcode( 'tabesh_file_upload', array( $this, 'render_file_upload' ) );
 		add_shortcode( 'tabesh_upload_manager', array( $this->upload, 'render_upload_manager' ) );
 		add_shortcode( 'tabesh_admin_order_form', array( $this->admin_order_form, 'render' ) );
+		add_shortcode( 'tabesh_product_pricing', array( $this, 'render_product_pricing' ) );
 	}
 
 	/**
@@ -2011,6 +2021,19 @@ final class Tabesh {
 	public function render_file_upload( $atts = array() ) {
 		// Delegate to upload manager
 		return $this->upload->render_upload_manager( $atts );
+	}
+
+	/**
+	 * Render product pricing shortcode
+	 *
+	 * Shortcode: [tabesh_product_pricing]
+	 *
+	 * @param array $atts Shortcode attributes
+	 * @return string HTML output
+	 */
+	public function render_product_pricing( $atts = array() ) {
+		// Delegate to product pricing handler
+		return $this->product_pricing->render();
 	}
 
 	/**

@@ -63,8 +63,8 @@ class Tabesh_Order {
 	 * Calculate book printing price
 	 *
 	 * Implements a comprehensive pricing algorithm with:
-	 * - Book size multipliers (قطع کتاب)
-	 * - Paper type base costs
+	 * - Book size multipliers (قطع کتاب) [DEPRECATED in V2]
+	 * - Paper type base costs [DEPRECATED in V2]
 	 * - Separate B&W and color page calculations
 	 * - Cover and binding costs
 	 * - Additional options (UV, embossing, etc.)
@@ -77,6 +77,21 @@ class Tabesh_Order {
 	 * @return array Price breakdown
 	 */
 	public function calculate_price( $params ) {
+		// Check if new pricing engine V2 is enabled
+		$pricing_engine_v2 = new Tabesh_Pricing_Engine();
+		if ( $pricing_engine_v2->is_enabled() ) {
+			// Use new matrix-based pricing engine
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh: Using Pricing Engine V2 (Matrix-based)' );
+			}
+			return $pricing_engine_v2->calculate_price( $params );
+		}
+
+		// Fall back to legacy pricing engine (V1)
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Tabesh: Using Legacy Pricing Engine V1' );
+		}
+
 		// Log incoming parameters for debugging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( 'Tabesh: calculate_price called with params: ' . print_r( $params, true ) );
