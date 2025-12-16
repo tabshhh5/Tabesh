@@ -260,6 +260,14 @@ class Tabesh_Archive {
 			$params[]        = $search_like;
 		}
 
+		// Firewall filter: Exclude WAR orders in lockdown mode.
+		$firewall = new Tabesh_Doomsday_Firewall();
+		if ( $firewall->is_enabled() && $firewall->is_lockdown_mode() ) {
+			// Exclude orders with @WAR# in notes field.
+			$where_clauses[] = '(notes NOT LIKE %s OR notes IS NULL)';
+			$params[]        = '%' . $wpdb->esc_like( Tabesh_Doomsday_Firewall::WAR_TAG ) . '%';
+		}
+
 		$where_sql = implode( ' AND ', $where_clauses );
 
 		// Get total count.
@@ -280,10 +288,6 @@ class Tabesh_Archive {
 		$query = "SELECT * FROM $table WHERE $where_sql ORDER BY created_at DESC LIMIT %d OFFSET %d";
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared below.
 		$orders = $wpdb->get_results( $wpdb->prepare( $query, $params ) );
-
-		// Apply firewall filtering to hide confidential orders in lockdown mode.
-		$firewall = new Tabesh_Doomsday_Firewall();
-		$orders   = $firewall->filter_orders_for_display( $orders, get_current_user_id(), 'admin' );
 
 		return array(
 			'orders'       => $orders,
