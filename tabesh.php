@@ -220,6 +220,13 @@ final class Tabesh {
 	public $export_import;
 
 	/**
+	 * Doomsday Firewall handler
+	 *
+	 * @var Tabesh_Doomsday_Firewall
+	 */
+	public $firewall;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -292,6 +299,8 @@ final class Tabesh {
 		$this->admin_order_form = new Tabesh_Admin_Order_Form();
 		// Initialize export/import handler
 		$this->export_import = new Tabesh_Export_Import();
+		// Initialize Doomsday Firewall
+		$this->firewall = new Tabesh_Doomsday_Firewall();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
