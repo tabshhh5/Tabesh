@@ -299,6 +299,14 @@
      * راه‌اندازی فیلدهای فرم
      */
     function initFormFields() {
+        // Book size change - update all parameters if V2 is enabled
+        $('#aof-book-size').on('change', function() {
+            const bookSize = $(this).val();
+            if (tabeshAdminOrderForm.v2Enabled) {
+                updateFormParametersForBookSize(bookSize);
+            }
+        });
+        
         // Update paper weight options when paper type changes
         // به‌روزرسانی گزینه‌های گرماژ کاغذ هنگام تغییر نوع کاغذ
         $('#aof-paper-type').on('change', function() {
@@ -338,6 +346,79 @@
     }
 
     /**
+     * Update form parameters when book size changes (V2 only)
+     * به‌روزرسانی پارامترهای فرم هنگام تغییر قطع کتاب (فقط V2)
+     */
+    function updateFormParametersForBookSize(bookSize) {
+        if (!tabeshAdminOrderForm.v2Enabled || !tabeshAdminOrderForm.v2PricingMatrices || 
+            !tabeshAdminOrderForm.v2PricingMatrices[bookSize]) {
+            console.warn('Tabesh: V2 pricing matrix not found for book size:', bookSize);
+            return;
+        }
+
+        const matrix = tabeshAdminOrderForm.v2PricingMatrices[bookSize];
+        
+        // Update paper types
+        const $paperTypeSelect = $('#aof-paper-type');
+        const currentPaperType = $paperTypeSelect.val();
+        $paperTypeSelect.empty().append('<option value="">' + tabeshAdminOrderForm.strings.selectOption + '</option>');
+        
+        if (matrix.paper_types) {
+            Object.keys(matrix.paper_types).forEach(function(paperType) {
+                $paperTypeSelect.append('<option value="' + paperType + '">' + paperType + '</option>');
+            });
+            
+            if (currentPaperType && matrix.paper_types[currentPaperType]) {
+                $paperTypeSelect.val(currentPaperType);
+                updatePaperWeights();
+            } else {
+                $('#aof-paper-weight').empty().append('<option value="">' + 
+                    tabeshAdminOrderForm.strings.selectPaperFirst + '</option>');
+            }
+        }
+        
+        // Update binding types
+        const $bindingTypeSelect = $('#aof-binding-type');
+        const currentBindingType = $bindingTypeSelect.val();
+        $bindingTypeSelect.empty().append('<option value="">' + tabeshAdminOrderForm.strings.selectOption + '</option>');
+        
+        if (matrix.binding_types && matrix.binding_types.length > 0) {
+            matrix.binding_types.forEach(function(bindingType) {
+                $bindingTypeSelect.append('<option value="' + bindingType + '">' + bindingType + '</option>');
+            });
+            
+            if (currentBindingType && matrix.binding_types.indexOf(currentBindingType) !== -1) {
+                $bindingTypeSelect.val(currentBindingType);
+            }
+        }
+        
+        // Update extras (chips)
+        const $extrasContainer = $('#aof-extras-container');
+        if ($extrasContainer.length && matrix.extras && matrix.extras.length > 0) {
+            const checkedExtras = [];
+            $('input[name="extras[]"]:checked').each(function() {
+                checkedExtras.push($(this).val());
+            });
+            
+            $extrasContainer.empty();
+            matrix.extras.forEach(function(extra) {
+                const isChecked = checkedExtras.indexOf(extra) !== -1 ? 'checked' : '';
+                $extrasContainer.append(
+                    '<label class="tabesh-aof-chip">' +
+                    '<input type="checkbox" name="extras[]" value="' + extra + '" ' + isChecked + '>' +
+                    '<span class="chip-text">' + extra + '</span>' +
+                    '</label>'
+                );
+            });
+            
+            // Re-attach event handlers
+            $('input[name="extras[]"]').on('change', function() {
+                $(this).closest('.tabesh-aof-chip').toggleClass('chip-checked', $(this).is(':checked'));
+            });
+        }
+    }
+
+    /**
      * Update paper weight options based on selected paper type
      * به‌روزرسانی گزینه‌های گرماژ کاغذ بر اساس نوع کاغذ انتخاب شده
      */
@@ -349,6 +430,22 @@
             (paperType ? tabeshAdminOrderForm.strings.selectOption : tabeshAdminOrderForm.strings.selectPaperFirst) + 
         '</option>');
         
+        // For V2, use book-size-specific weights
+        if (tabeshAdminOrderForm.v2Enabled) {
+            const bookSize = $('#aof-book-size').val();
+            if (bookSize && tabeshAdminOrderForm.v2PricingMatrices && 
+                tabeshAdminOrderForm.v2PricingMatrices[bookSize] &&
+                tabeshAdminOrderForm.v2PricingMatrices[bookSize].paper_types &&
+                tabeshAdminOrderForm.v2PricingMatrices[bookSize].paper_types[paperType]) {
+                const weights = tabeshAdminOrderForm.v2PricingMatrices[bookSize].paper_types[paperType];
+                weights.forEach(function(weight) {
+                    $weightSelect.append('<option value="' + weight + '">' + weight + '</option>');
+                });
+                return;
+            }
+        }
+        
+        // Fallback to V1 method
         if (paperType && tabeshAdminOrderForm.settings && 
             tabeshAdminOrderForm.settings.paperTypes && 
             tabeshAdminOrderForm.settings.paperTypes[paperType]) {

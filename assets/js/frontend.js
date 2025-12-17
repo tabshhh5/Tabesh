@@ -79,8 +79,15 @@
             // Paper type change
             this.$form.find('#paper_type').on('change', (e) => this.updatePaperWeights(e.target.value));
             
-            // Book size change - update quantity constraints if V2 is enabled
-            this.$form.find('#book_size').on('change', (e) => this.updateQuantityConstraints(e.target.value));
+            // Book size change - update all parameters if V2 is enabled, otherwise just quantity constraints
+            this.$form.find('#book_size').on('change', (e) => {
+                const bookSize = e.target.value;
+                if (tabeshData.v2Enabled) {
+                    this.updateFormParametersForBookSize(bookSize);
+                } else {
+                    this.updateQuantityConstraints(bookSize);
+                }
+            });
             
             // License type change
             this.$form.find('#license_type').on('change', (e) => this.toggleLicenseUpload(e.target.value));
@@ -89,12 +96,108 @@
             this.$form.find('#quantity').on('change', (e) => this.correctQuantity(e));
         }
 
+        /**
+         * Update form parameters when book size changes (V2 only)
+         * This dynamically loads paper types, binding types, and extras from the selected book size's pricing matrix
+         */
+        updateFormParametersForBookSize(bookSize) {
+            if (!tabeshData.v2Enabled || !tabeshData.v2PricingMatrices || !tabeshData.v2PricingMatrices[bookSize]) {
+                console.warn('Tabesh: V2 pricing matrix not found for book size:', bookSize);
+                return;
+            }
+
+            const matrix = tabeshData.v2PricingMatrices[bookSize];
+            
+            // Update paper types
+            const $paperTypeSelect = this.$form.find('#paper_type');
+            const currentPaperType = $paperTypeSelect.val();
+            $paperTypeSelect.empty().append('<option value="">انتخاب کنید...</option>');
+            
+            if (matrix.paper_types) {
+                Object.keys(matrix.paper_types).forEach(paperType => {
+                    $paperTypeSelect.append(`<option value="${paperType}">${paperType}</option>`);
+                });
+                
+                // Try to restore previous selection if it exists in new matrix
+                if (currentPaperType && matrix.paper_types[currentPaperType]) {
+                    $paperTypeSelect.val(currentPaperType);
+                    // Update weights for this paper type
+                    this.updatePaperWeightsV2(currentPaperType, bookSize);
+                } else {
+                    // Clear paper weight select
+                    this.$form.find('#paper_weight').empty().append('<option value="">ابتدا نوع کاغذ را انتخاب کنید</option>');
+                }
+            }
+            
+            // Update binding types
+            const $bindingTypeSelect = this.$form.find('#binding_type');
+            const currentBindingType = $bindingTypeSelect.val();
+            $bindingTypeSelect.empty().append('<option value="">انتخاب کنید...</option>');
+            
+            if (matrix.binding_types && matrix.binding_types.length > 0) {
+                matrix.binding_types.forEach(bindingType => {
+                    $bindingTypeSelect.append(`<option value="${bindingType}">${bindingType}</option>`);
+                });
+                
+                // Try to restore previous selection
+                if (currentBindingType && matrix.binding_types.includes(currentBindingType)) {
+                    $bindingTypeSelect.val(currentBindingType);
+                }
+            }
+            
+            // Update extras (checkboxes)
+            const $extrasContainer = this.$form.find('#extras_container');
+            if ($extrasContainer.length && matrix.extras && matrix.extras.length > 0) {
+                // Get currently checked extras
+                const checkedExtras = [];
+                this.$form.find('input[name="extras[]"]:checked').each(function() {
+                    checkedExtras.push($(this).val());
+                });
+                
+                // Rebuild extras checkboxes
+                $extrasContainer.empty();
+                matrix.extras.forEach(extra => {
+                    const isChecked = checkedExtras.includes(extra) ? 'checked' : '';
+                    $extrasContainer.append(`
+                        <label>
+                            <input type="checkbox" name="extras[]" value="${extra}" ${isChecked}>
+                            ${extra}
+                        </label>
+                    `);
+                });
+            }
+            
+            // Update quantity constraints
+            this.updateQuantityConstraints(bookSize);
+        }
+
+        /**
+         * Update paper weights for V2 (based on book size and paper type)
+         */
+        updatePaperWeightsV2(paperType, bookSize) {
+            const $weightSelect = this.$form.find('#paper_weight');
+            $weightSelect.empty();
+            
+            if (!tabeshData.v2PricingMatrices || !tabeshData.v2PricingMatrices[bookSize]) {
+                return;
+            }
+            
+            const matrix = tabeshData.v2PricingMatrices[bookSize];
+            
+            if (matrix.paper_types && matrix.paper_types[paperType]) {
+                const weights = matrix.paper_types[paperType];
+                weights.forEach(weight => {
+                    $weightSelect.append(`<option value="${weight}">${weight}g</option>`);
+                });
+            }
+        }
+
         loadPaperTypes() {
             // This should be populated from PHP
             // For now, we'll handle it dynamically
             const paperTypeSelect = this.$form.find('#paper_type');
             paperTypeSelect.on('change', () => {
-                // Paper weights will be updated via updatePaperWeights
+                // Paper weights will be updated via updatePaperWeights or updatePaperWeightsV2
             });
         }
 
@@ -102,7 +205,16 @@
             const $weightSelect = this.$form.find('#paper_weight');
             $weightSelect.empty();
             
-            // Get paper types from localized data
+            // For V2, use book-size-specific weights
+            if (tabeshData.v2Enabled) {
+                const bookSize = this.$form.find('#book_size').val();
+                if (bookSize) {
+                    this.updatePaperWeightsV2(paperType, bookSize);
+                    return;
+                }
+            }
+            
+            // Fallback to V1 method
             const paperTypes = tabeshData.paperTypes || {};
 
             if (paperTypes[paperType]) {

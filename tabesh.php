@@ -2296,10 +2296,11 @@ final class Tabesh {
 			)
 		) : array();
 
-		// Get V2 pricing engine quantity constraints if enabled
+		// Get V2 pricing engine quantity constraints and full matrices if enabled
 		$pricing_engine       = new Tabesh_Pricing_Engine();
 		$v2_enabled           = $pricing_engine->is_enabled();
 		$quantity_constraints = array();
+		$v2_pricing_matrices  = array();
 
 		if ( $v2_enabled ) {
 			// Get all configured book sizes
@@ -2320,8 +2321,49 @@ final class Tabesh {
 
 				if ( $result ) {
 					$matrix = json_decode( $result, true );
-					if ( JSON_ERROR_NONE === json_last_error() && is_array( $matrix ) && isset( $matrix['quantity_constraints'] ) ) {
-						$quantity_constraints[ $book_size ] = $matrix['quantity_constraints'];
+					if ( JSON_ERROR_NONE === json_last_error() && is_array( $matrix ) ) {
+						// Store quantity constraints
+						if ( isset( $matrix['quantity_constraints'] ) ) {
+							$quantity_constraints[ $book_size ] = $matrix['quantity_constraints'];
+						}
+
+						// Store simplified matrix data for frontend - only what's needed for form population
+						$v2_pricing_matrices[ $book_size ] = array(
+							'paper_types'   => array(),
+							'binding_types' => array_keys( $matrix['binding_costs'] ?? array() ),
+							'extras'        => array_keys( $matrix['extras_costs'] ?? array() ),
+						);
+
+						// Extract paper types with their weights
+						if ( isset( $matrix['page_costs'] ) && is_array( $matrix['page_costs'] ) ) {
+							foreach ( $matrix['page_costs'] as $paper_type => $weights_data ) {
+								$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = array_keys( $weights_data );
+							}
+						}
+					}
+				}
+			}
+
+			// Override global settings with V2 data for the first book size (default)
+			if ( ! empty( $v2_pricing_matrices ) && ! empty( $configured_sizes ) ) {
+				$default_size = $configured_sizes[0];
+				if ( isset( $v2_pricing_matrices[ $default_size ] ) ) {
+					// For V2, use the first book size's parameters as defaults
+					$v2_data = $v2_pricing_matrices[ $default_size ];
+
+					// Override book sizes with configured ones
+					$book_sizes = $configured_sizes;
+
+					// Override paper types, binding types, extras with V2 data
+					// Note: We keep the format compatible with V1 (paper_type => [weights])
+					if ( ! empty( $v2_data['paper_types'] ) ) {
+						$paper_types = $v2_data['paper_types'];
+					}
+					if ( ! empty( $v2_data['binding_types'] ) ) {
+						$binding_types = $v2_data['binding_types'];
+					}
+					if ( ! empty( $v2_data['extras'] ) ) {
+						$extras = $v2_data['extras'];
 					}
 				}
 			}
@@ -2352,6 +2394,7 @@ final class Tabesh {
 				'paperTypes'           => $paper_types,
 				// V2 Pricing Engine data
 				'v2Enabled'            => $v2_enabled,
+				'v2PricingMatrices'    => $v2_pricing_matrices, // Full matrices for dynamic form population
 				'quantityConstraints'  => $quantity_constraints,
 				'strings'              => array(
 					'calculating' => __( 'در حال محاسبه...', 'tabesh' ),
