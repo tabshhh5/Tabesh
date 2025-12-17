@@ -76,15 +76,48 @@ class Tabesh_Pricing_Engine {
 			error_log( 'Tabesh Pricing Engine V2: calculate_price called with params: ' . print_r( $params, true ) );
 		}
 
-		// Sanitize and extract input parameters
+		// Sanitize and extract input parameters with strict validation
 		$book_size        = sanitize_text_field( $params['book_size'] ?? '' );
 		$paper_type       = sanitize_text_field( $params['paper_type'] ?? '' );
 		$paper_weight     = sanitize_text_field( $params['paper_weight'] ?? '' );
 		$print_type       = sanitize_text_field( $params['print_type'] ?? '' );
+		
+		// Validate and sanitize numeric inputs - prevent null/NaN
 		$page_count_color = intval( $params['page_count_color'] ?? 0 );
 		$page_count_bw    = intval( $params['page_count_bw'] ?? 0 );
 		$quantity         = intval( $params['quantity'] ?? 0 );
+		
+		// Ensure non-negative values
+		$page_count_color = max( 0, $page_count_color );
+		$page_count_bw    = max( 0, $page_count_bw );
+		$quantity         = max( 0, $quantity );
+		
 		$binding_type     = sanitize_text_field( $params['binding_type'] ?? '' );
+
+		// Validate required fields
+		if ( empty( $book_size ) || empty( $paper_type ) || empty( $binding_type ) ) {
+			return array(
+				'error'   => true,
+				'message' => __( 'اطلاعات ناقص: قطع کتاب، نوع کاغذ و نوع صحافی الزامی است', 'tabesh' ),
+			);
+		}
+
+		// Validate quantity is positive
+		if ( $quantity <= 0 ) {
+			return array(
+				'error'   => true,
+				'message' => __( 'تعداد (تیراژ) باید بیشتر از صفر باشد', 'tabesh' ),
+			);
+		}
+
+		// Validate total page count
+		$page_count_total = $page_count_color + $page_count_bw;
+		if ( $page_count_total <= 0 ) {
+			return array(
+				'error'   => true,
+				'message' => __( 'تعداد صفحات باید بیشتر از صفر باشد', 'tabesh' ),
+			);
+		}
 
 		// Sanitize extras array
 		$extras = array();
@@ -204,6 +237,27 @@ class Tabesh_Pricing_Engine {
 		$profit_margin = floatval( $pricing_matrix['profit_margin'] ?? 0.0 );
 		$profit_amount = $total_after_discount * $profit_margin;
 		$total_price   = $total_after_discount + $profit_amount;
+
+		// Final validation: ensure no NaN or null values
+		$validate_numbers = array(
+			'price_per_book'       => $production_cost_per_book,
+			'quantity'             => $quantity,
+			'subtotal'             => $subtotal,
+			'total_price'          => $total_price,
+			'total_after_discount' => $total_after_discount,
+		);
+
+		foreach ( $validate_numbers as $key => $value ) {
+			if ( ! is_numeric( $value ) || is_nan( $value ) || is_infinite( $value ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( "Tabesh Pricing Engine V2 ERROR: Invalid numeric value for {$key}: " . var_export( $value, true ) );
+				}
+				return array(
+					'error'   => true,
+					'message' => __( 'خطا در محاسبه قیمت. لطفا تنظیمات قیمت‌گذاری را بررسی کنید.', 'tabesh' ),
+				);
+			}
+		}
 
 		// Return comprehensive breakdown
 		return array(

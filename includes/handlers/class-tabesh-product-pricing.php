@@ -40,8 +40,18 @@ class Tabesh_Product_Pricing {
 	 * @return string HTML output
 	 */
 	public function render() {
-		// Check if user has permission to manage pricing
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		// Enqueue the product pricing CSS
+		wp_enqueue_style(
+			'tabesh-product-pricing',
+			TABESH_PLUGIN_URL . 'assets/css/product-pricing.css',
+			array(),
+			TABESH_VERSION
+		);
+
+		// Check access control settings
+		$allowed_capability = $this->get_pricing_access_capability();
+		
+		if ( ! current_user_can( $allowed_capability ) ) {
 			return '<div class="tabesh-error">' . __( 'شما دسترسی به این بخش را ندارید', 'tabesh' ) . '</div>';
 		}
 
@@ -355,6 +365,83 @@ class Tabesh_Product_Pricing {
 				array(
 					'setting_key'   => 'pricing_engine_v2_enabled',
 					'setting_value' => '1',
+				),
+				array( '%s', '%s' )
+			);
+		}
+
+		return false !== $result;
+	}
+
+	/**
+	 * Get the required capability for accessing pricing management
+	 *
+	 * @return string Required capability
+	 */
+	private function get_pricing_access_capability() {
+		global $wpdb;
+		$table_settings = $wpdb->prefix . 'tabesh_settings';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+				'pricing_access_capability'
+			)
+		);
+
+		// Default to manage_woocommerce if not set
+		return ! empty( $result ) ? sanitize_text_field( $result ) : 'manage_woocommerce';
+	}
+
+	/**
+	 * Save the required capability for accessing pricing management
+	 *
+	 * @param string $capability Capability to require
+	 * @return bool Success status
+	 */
+	public function save_pricing_access_capability( $capability ) {
+		global $wpdb;
+		$table_settings = $wpdb->prefix . 'tabesh_settings';
+
+		// Get valid capabilities - filterable for extensibility
+		$valid_capabilities = apply_filters(
+			'tabesh_pricing_access_capabilities',
+			array(
+				'manage_woocommerce',
+				'manage_options',
+				'edit_shop_orders',
+			)
+		);
+
+		if ( ! in_array( $capability, $valid_capabilities, true ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+				'pricing_access_capability'
+			)
+		);
+
+		if ( $existing ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$result = $wpdb->update(
+				$table_settings,
+				array( 'setting_value' => $capability ),
+				array( 'setting_key' => 'pricing_access_capability' ),
+				array( '%s' ),
+				array( '%s' )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$result = $wpdb->insert(
+				$table_settings,
+				array(
+					'setting_key'   => 'pricing_access_capability',
+					'setting_value' => $capability,
 				),
 				array( '%s', '%s' )
 			);

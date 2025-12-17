@@ -1,0 +1,436 @@
+/**
+ * Product Pricing Shortcode Styles
+ * Modern, clean, professional design with RTL support
+ * 
+ * @package Tabesh
+ * @since 1.0.5
+ */
+
+/* Main wrapper - scoped with unique class */
+.tabesh-product-pricing-wrapper {
+	max-width: 1200px;
+	margin: 20px auto;
+	padding: 24px;
+	background: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	direction: rtl;
+	text-align: right;
+}
+
+/* Header section */
+.tabesh-pricing-header {
+	margin-bottom: 32px;
+	padding-bottom: 24px;
+	border-bottom: 2px solid #0073aa;
+}
+
+.tabesh-pricing-header h2 {
+	margin: 0 0 12px 0;
+	font-size: 28px;
+	font-weight: 600;
+	color: #1e293b;
+	line-height: 1.3;
+}
+
+.tabesh-pricing-header .description {
+	margin: 8px 0;
+	font-size: 15px;
+	color: #64748b;
+	line-height: 1.6;
+}
+
+/* Help notice */
+.pricing-help-notice {
+	background: #fef3c7;
+	border-right: 4px solid #f59e0b;
+	padding: 16px 20px;
+	margin-top: 16px;
+	border-radius: 6px;
+}
+
+.pricing-help-notice strong {
+	display: block;
+	margin-bottom: 12px;
+	color: #92400e;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.pricing-help-notice p {
+	margin: 8px 0;
+	color: #78350f;
+	line-height: 1.7;
+	font-size: 14px;
+}
+
+/* Engine status section */
+.tabesh-pricing-engine-status {
+	margin-bottom: 32px;
+}
+
+.engine-status-card {
+	background: #f8fafc;
+	padding: 20px 24px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	border-right: 4px solid #0073aa;
+}
+
+.engine-status-card h3 {
+	margin: 0 0 16px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1e293b;
+}
+
+.status-indicator {
+	margin-bottom: 16px;
+}
+
+.status-indicator p {
+	margin: 8px 0;
+	font-size: 14px;
+	color: #475569;
+	line-height: 1.6;
+}
+
+/* Badge styles */
+.badge {
+	display: inline-block;
+	padding: 6px 16px;
+	border-radius: 6px;
+	font-weight: 600;
+	font-size: 13px;
+	letter-spacing: 0.3px;
+}
+
+.badge-success {
+	background: #10b981;
+	color: #ffffff;
+}
+
+.badge-warning {
+	background: #f59e0b;
+	color: #ffffff;
+}
+
+/* Engine toggle form */
+.engine-toggle-form {
+	margin-top: 16px;
+}
+
+.engine-toggle-form .button {
+	font-size: 14px;
+	padding: 8px 20px;
+	height: auto;
+	line-height: 1.5;
+}
+
+/* Book size selector */
+.tabesh-book-size-selector {
+	margin-bottom: 32px;
+}
+
+.tabesh-book-size-selector h3 {
+	margin: 0 0 16px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1e293b;
+}
+
+.book-size-tabs {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.book-size-tab {
+	padding: 12px 24px;
+	background: #f1f5f9;
+	border: 2px solid #cbd5e1;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #475569;
+	font-weight: 600;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.book-size-tab:hover {
+	background: #e2e8f0;
+	border-color: #0073aa;
+	color: #0073aa;
+	transform: translateY(-1px);
+}
+
+.book-size-tab.active {
+	background: #0073aa;
+	color: #ffffff;
+	border-color: #0073aa;
+	box-shadow: 0 2px 4px rgba(0, 115, 170, 0.3);
+}
+
+/* Pricing sections */
+.pricing-sections {
+	display: flex;
+	flex-direction: column;
+	gap: 32px;
+}
+
+.pricing-section {
+	padding: 24px;
+	background: #f8fafc;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+}
+
+.pricing-section h3 {
+	margin: 0 0 8px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #0073aa;
+}
+
+.pricing-section .description {
+	margin: 0 0 20px 0;
+	font-size: 14px;
+	color: #64748b;
+	line-height: 1.6;
+}
+
+/* Page costs matrix */
+.page-costs-matrix {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 20px;
+	margin-top: 20px;
+}
+
+.paper-type-group {
+	background: #ffffff;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid #e2e8f0;
+}
+
+.paper-type-group h4 {
+	margin: 0;
+	padding: 12px 16px;
+	background: #0073aa;
+	color: #ffffff;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+/* Pricing tables */
+.pricing-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+}
+
+.pricing-table th,
+.pricing-table td {
+	padding: 12px 16px;
+	text-align: right;
+	border-bottom: 1px solid #e2e8f0;
+	font-size: 14px;
+}
+
+.pricing-table th {
+	background: #f8fafc;
+	font-weight: 600;
+	color: #475569;
+	white-space: nowrap;
+}
+
+.pricing-table td {
+	color: #1e293b;
+}
+
+.pricing-table tr:last-child td {
+	border-bottom: none;
+}
+
+.pricing-table input[type="number"] {
+	width: 100%;
+	max-width: 120px;
+	padding: 8px 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	font-size: 14px;
+	transition: border-color 0.2s;
+}
+
+.pricing-table input[type="number"]:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.pricing-table .unit {
+	margin-right: 8px;
+	color: #64748b;
+	font-size: 13px;
+}
+
+/* Restrictions section */
+.restrictions-group {
+	margin: 20px 0;
+	padding: 20px;
+	background: #ffffff;
+	border-radius: 8px;
+	border: 1px solid #fecaca;
+	background: #fef2f2;
+}
+
+.restrictions-group h4 {
+	margin: 0 0 16px 0;
+	color: #dc2626;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.restrictions-group label {
+	display: flex;
+	align-items: center;
+	margin: 10px 0;
+	font-size: 14px;
+	color: #475569;
+	cursor: pointer;
+}
+
+.restrictions-group input[type="checkbox"] {
+	margin-left: 10px;
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+}
+
+/* Restrictions table */
+.restrictions-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 12px;
+}
+
+.restrictions-table th {
+	background: #f8fafc;
+	padding: 10px 12px;
+	text-align: center;
+	font-weight: 600;
+	color: #475569;
+	font-size: 13px;
+	border-bottom: 2px solid #e2e8f0;
+}
+
+.restrictions-table td {
+	padding: 10px 12px;
+	text-align: center;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.restrictions-table td:first-child {
+	text-align: right;
+	font-weight: 500;
+}
+
+.restrictions-table tr:last-child td {
+	border-bottom: none;
+}
+
+/* Form footer */
+.pricing-form-footer {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 2px solid #e2e8f0;
+	text-align: center;
+}
+
+.pricing-form-footer .button-primary {
+	padding: 12px 32px;
+	font-size: 15px;
+	font-weight: 600;
+	height: auto;
+	line-height: 1.5;
+}
+
+/* Success and error messages */
+.tabesh-success {
+	padding: 16px 20px;
+	margin-bottom: 24px;
+	background: #d1fae5;
+	border: 1px solid #a7f3d0;
+	border-right: 4px solid #10b981;
+	border-radius: 6px;
+	color: #065f46;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.tabesh-error {
+	padding: 16px 20px;
+	margin-bottom: 24px;
+	background: #fee2e2;
+	border: 1px solid #fecaca;
+	border-right: 4px solid #dc2626;
+	border-radius: 6px;
+	color: #991b1b;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+/* Input helpers */
+.small-text {
+	width: 80px;
+}
+
+.help-text {
+	font-size: 13px;
+	color: #64748b;
+	font-style: italic;
+	margin: 8px 0 12px 0;
+	line-height: 1.5;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+	.tabesh-product-pricing-wrapper {
+		padding: 16px;
+		margin: 16px;
+	}
+
+	.tabesh-pricing-header h2 {
+		font-size: 24px;
+	}
+
+	.page-costs-matrix {
+		grid-template-columns: 1fr;
+	}
+
+	.book-size-tabs {
+		gap: 8px;
+	}
+
+	.book-size-tab {
+		padding: 10px 16px;
+		font-size: 13px;
+	}
+
+	.pricing-table th,
+	.pricing-table td {
+		padding: 10px 12px;
+		font-size: 13px;
+	}
+}
+
+/* Print styles */
+@media print {
+	.engine-toggle-form,
+	.pricing-form-footer {
+		display: none;
+	}
+}
