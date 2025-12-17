@@ -204,25 +204,33 @@
 /* Page costs matrix */
 .page-costs-matrix {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+	gap: 24px;
 	margin-top: 20px;
 }
 
 .paper-type-group {
 	background: #ffffff;
-	border-radius: 8px;
+	border-radius: 12px;
 	overflow: hidden;
 	border: 1px solid #e2e8f0;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: box-shadow 0.2s ease;
+}
+
+.paper-type-group:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .paper-type-group h4 {
 	margin: 0;
-	padding: 12px 16px;
-	background: #0073aa;
+	padding: 14px 18px;
+	background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
 	color: #ffffff;
-	font-size: 15px;
+	font-size: 16px;
 	font-weight: 600;
+	text-align: center;
+	letter-spacing: 0.3px;
 }
 
 /* Pricing tables */
@@ -409,6 +417,7 @@
 
 	.page-costs-matrix {
 		grid-template-columns: 1fr;
+		gap: 16px;
 	}
 
 	.book-size-tabs {
@@ -424,6 +433,12 @@
 	.pricing-table td {
 		padding: 10px 12px;
 		font-size: 13px;
+	}
+}
+
+@media (max-width: 1024px) {
+	.page-costs-matrix {
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 	}
 }
 
