@@ -50,7 +50,7 @@ class Tabesh_Product_Pricing {
 
 		// Check access control settings
 		$allowed_capability = $this->get_pricing_access_capability();
-		
+
 		if ( ! current_user_can( $allowed_capability ) ) {
 			return '<div class="tabesh-error">' . __( 'شما دسترسی به این بخش را ندارید', 'tabesh' ) . '</div>';
 		}
@@ -107,13 +107,14 @@ class Tabesh_Product_Pricing {
 
 		// Build pricing matrix from POST data
 		$matrix = array(
-			'book_size'     => $book_size,
-			'page_costs'    => $this->parse_page_costs( $_POST['page_costs'] ?? array() ),
-			'binding_costs' => $this->parse_binding_costs( $_POST['binding_costs'] ?? array() ),
-			'cover_cost'    => isset( $_POST['cover_cost'] ) ? floatval( $_POST['cover_cost'] ) : 8000.0,
-			'extras_costs'  => $this->parse_extras_costs( $_POST['extras_costs'] ?? array() ),
-			'profit_margin' => isset( $_POST['profit_margin'] ) ? floatval( $_POST['profit_margin'] ) / 100 : 0.0,
-			'restrictions'  => $this->parse_restrictions( $_POST['restrictions'] ?? array() ),
+			'book_size'            => $book_size,
+			'page_costs'           => $this->parse_page_costs( $_POST['page_costs'] ?? array() ),
+			'binding_costs'        => $this->parse_binding_costs( $_POST['binding_costs'] ?? array() ),
+			'cover_cost'           => isset( $_POST['cover_cost'] ) ? floatval( $_POST['cover_cost'] ) : 8000.0,
+			'extras_costs'         => $this->parse_extras_costs( $_POST['extras_costs'] ?? array() ),
+			'profit_margin'        => isset( $_POST['profit_margin'] ) ? floatval( $_POST['profit_margin'] ) / 100 : 0.0,
+			'restrictions'         => $this->parse_restrictions( $_POST['restrictions'] ?? array() ),
+			'quantity_constraints' => $this->parse_quantity_constraints( $_POST['quantity_constraints'] ?? array() ),
 		);
 
 		// Save to database
@@ -179,7 +180,7 @@ class Tabesh_Product_Pricing {
 		}
 
 		foreach ( $data as $binding_type => $cost ) {
-			$binding_type             = sanitize_text_field( $binding_type );
+			$binding_type                   = sanitize_text_field( $binding_type );
 			$binding_costs[ $binding_type ] = floatval( $cost );
 		}
 
@@ -264,6 +265,50 @@ class Tabesh_Product_Pricing {
 		}
 
 		return $restrictions;
+	}
+
+	/**
+	 * Parse quantity constraints from POST data
+	 *
+	 * @param array $data POST data for quantity constraints
+	 * @return array Parsed quantity constraints
+	 */
+	private function parse_quantity_constraints( $data ) {
+		$constraints = array(
+			'minimum_quantity' => 10,
+			'maximum_quantity' => 10000,
+			'quantity_step'    => 10,
+		);
+
+		if ( ! is_array( $data ) ) {
+			return $constraints;
+		}
+
+		// Parse and validate minimum quantity
+		if ( isset( $data['minimum_quantity'] ) ) {
+			$min = intval( $data['minimum_quantity'] );
+			if ( $min > 0 ) {
+				$constraints['minimum_quantity'] = $min;
+			}
+		}
+
+		// Parse and validate maximum quantity
+		if ( isset( $data['maximum_quantity'] ) ) {
+			$max = intval( $data['maximum_quantity'] );
+			if ( $max > 0 ) {
+				$constraints['maximum_quantity'] = $max;
+			}
+		}
+
+		// Parse and validate quantity step
+		if ( isset( $data['quantity_step'] ) ) {
+			$step = intval( $data['quantity_step'] );
+			if ( $step > 0 ) {
+				$constraints['quantity_step'] = $step;
+			}
+		}
+
+		return $constraints;
 	}
 
 	/**
@@ -370,6 +415,11 @@ class Tabesh_Product_Pricing {
 			);
 		}
 
+		// Clear pricing engine cache to ensure fresh data on reactivation
+		if ( false !== $result ) {
+			Tabesh_Pricing_Engine::clear_cache();
+		}
+
 		return false !== $result;
 	}
 
@@ -466,6 +516,11 @@ class Tabesh_Product_Pricing {
 			array( '%s' ),
 			array( '%s' )
 		);
+
+		// Clear pricing engine cache when disabling
+		if ( false !== $result ) {
+			Tabesh_Pricing_Engine::clear_cache();
+		}
 
 		return false !== $result;
 	}

@@ -355,6 +355,69 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 					</tbody>
 				</table>
 			</div>
+
+			<!-- Section 7: Quantity Constraints -->
+			<div class="pricing-section">
+				<h3><?php esc_html_e( '۷. محدودیت‌های تیراژ', 'tabesh' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'تعیین حداقل، حداکثر و گام تغییر تیراژ برای این قطع کتاب', 'tabesh' ); ?>
+				</p>
+				<?php
+				$constraints = $pricing_matrix['quantity_constraints'] ?? array();
+				$min_qty     = $constraints['minimum_quantity'] ?? 10;
+				$max_qty     = $constraints['maximum_quantity'] ?? 10000;
+				$step_qty    = $constraints['quantity_step'] ?? 10;
+				?>
+				<table class="pricing-table">
+					<tbody>
+						<tr>
+							<td>
+								<strong><?php esc_html_e( 'حداقل تیراژ', 'tabesh' ); ?></strong>
+								<p class="help-text"><?php esc_html_e( 'کمترین تعداد مجاز برای سفارش این قطع', 'tabesh' ); ?></p>
+							</td>
+							<td>
+								<input type="number" 
+									   name="quantity_constraints[minimum_quantity]" 
+									   value="<?php echo esc_attr( $min_qty ); ?>" 
+									   step="1" 
+									   min="1" 
+									   class="regular-text">
+								<span class="unit"><?php esc_html_e( 'عدد', 'tabesh' ); ?></span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<strong><?php esc_html_e( 'حداکثر تیراژ', 'tabesh' ); ?></strong>
+								<p class="help-text"><?php esc_html_e( 'بیشترین تعداد مجاز برای سفارش این قطع', 'tabesh' ); ?></p>
+							</td>
+							<td>
+								<input type="number" 
+									   name="quantity_constraints[maximum_quantity]" 
+									   value="<?php echo esc_attr( $max_qty ); ?>" 
+									   step="1" 
+									   min="1" 
+									   class="regular-text">
+								<span class="unit"><?php esc_html_e( 'عدد', 'tabesh' ); ?></span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<strong><?php esc_html_e( 'گام تغییر تیراژ', 'tabesh' ); ?></strong>
+								<p class="help-text"><?php esc_html_e( 'تیراژ باید مضربی از این عدد باشد (مثال: اگر 50 باشد، فقط 50، 100، 150، ... مجاز است)', 'tabesh' ); ?></p>
+							</td>
+							<td>
+								<input type="number" 
+									   name="quantity_constraints[quantity_step]" 
+									   value="<?php echo esc_attr( $step_qty ); ?>" 
+									   step="1" 
+									   min="1" 
+									   class="regular-text">
+								<span class="unit"><?php esc_html_e( 'عدد', 'tabesh' ); ?></span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 
 		<!-- Save Button -->

@@ -77,22 +77,22 @@ class Tabesh_Pricing_Engine {
 		}
 
 		// Sanitize and extract input parameters with strict validation
-		$book_size        = sanitize_text_field( $params['book_size'] ?? '' );
-		$paper_type       = sanitize_text_field( $params['paper_type'] ?? '' );
-		$paper_weight     = sanitize_text_field( $params['paper_weight'] ?? '' );
-		$print_type       = sanitize_text_field( $params['print_type'] ?? '' );
-		
+		$book_size    = sanitize_text_field( $params['book_size'] ?? '' );
+		$paper_type   = sanitize_text_field( $params['paper_type'] ?? '' );
+		$paper_weight = sanitize_text_field( $params['paper_weight'] ?? '' );
+		$print_type   = sanitize_text_field( $params['print_type'] ?? '' );
+
 		// Validate and sanitize numeric inputs - prevent null/NaN
 		$page_count_color = intval( $params['page_count_color'] ?? 0 );
 		$page_count_bw    = intval( $params['page_count_bw'] ?? 0 );
 		$quantity         = intval( $params['quantity'] ?? 0 );
-		
+
 		// Ensure non-negative values
 		$page_count_color = max( 0, $page_count_color );
 		$page_count_bw    = max( 0, $page_count_bw );
 		$quantity         = max( 0, $quantity );
-		
-		$binding_type     = sanitize_text_field( $params['binding_type'] ?? '' );
+
+		$binding_type = sanitize_text_field( $params['binding_type'] ?? '' );
 
 		// Validate required fields
 		if ( empty( $book_size ) || empty( $paper_type ) || empty( $binding_type ) ) {
@@ -147,6 +147,53 @@ class Tabesh_Pricing_Engine {
 			return array(
 				'error'   => true,
 				'message' => sprintf( __( 'قیمت‌گذاری برای قطع %s تنظیم نشده است', 'tabesh' ), $book_size ),
+			);
+		}
+
+		// Validate quantity constraints for this book size
+		$quantity_constraints = $pricing_matrix['quantity_constraints'] ?? array();
+		$min_quantity         = isset( $quantity_constraints['minimum_quantity'] ) ? intval( $quantity_constraints['minimum_quantity'] ) : 0;
+		$max_quantity         = isset( $quantity_constraints['maximum_quantity'] ) ? intval( $quantity_constraints['maximum_quantity'] ) : 0;
+		$quantity_step        = isset( $quantity_constraints['quantity_step'] ) ? intval( $quantity_constraints['quantity_step'] ) : 0;
+
+		// Check minimum quantity
+		if ( $min_quantity > 0 && $quantity < $min_quantity ) {
+			return array(
+				'error'   => true,
+				/* translators: 1: minimum quantity, 2: book size */
+				'message' => sprintf(
+					__( 'حداقل تیراژ مجاز برای قطع %2$s، %1$d عدد است', 'tabesh' ),
+					$min_quantity,
+					$book_size
+				),
+			);
+		}
+
+		// Check maximum quantity
+		if ( $max_quantity > 0 && $quantity > $max_quantity ) {
+			return array(
+				'error'   => true,
+				/* translators: 1: maximum quantity, 2: book size */
+				'message' => sprintf(
+					__( 'حداکثر تیراژ مجاز برای قطع %2$s، %1$d عدد است', 'tabesh' ),
+					$max_quantity,
+					$book_size
+				),
+			);
+		}
+
+		// Check quantity step
+		if ( $quantity_step > 0 && ( $quantity % $quantity_step ) !== 0 ) {
+			return array(
+				'error'   => true,
+				/* translators: 1: quantity step, 2: book size */
+				'message' => sprintf(
+					__( 'تیراژ باید بر اساس گام %1$d برای قطع %2$s باشد (مثال: %1$d، %3$d، %4$d)', 'tabesh' ),
+					$quantity_step,
+					$book_size,
+					$quantity_step * 2,
+					$quantity_step * 3
+				),
 			);
 		}
 
@@ -555,8 +602,8 @@ class Tabesh_Pricing_Engine {
 	 */
 	public function get_default_pricing_matrix( $book_size ) {
 		return array(
-			'book_size'     => $book_size,
-			'page_costs'    => array(
+			'book_size'            => $book_size,
+			'page_costs'           => array(
 				'تحریر' => array(
 					'60' => array(
 						'bw'    => 350,
@@ -590,14 +637,14 @@ class Tabesh_Pricing_Engine {
 					),
 				),
 			),
-			'binding_costs' => array(
+			'binding_costs'        => array(
 				'شومیز'    => 3000,
 				'جلد سخت'  => 8000,
 				'گالینگور' => 6000,
 				'سیمی'     => 2000,
 			),
-			'cover_cost'    => 8000,
-			'extras_costs'  => array(
+			'cover_cost'           => 8000,
+			'extras_costs'         => array(
 				'لب گرد' => array(
 					'price' => 1000,
 					'type'  => 'per_unit',
@@ -614,11 +661,16 @@ class Tabesh_Pricing_Engine {
 					'step'  => 0,
 				),
 			),
-			'profit_margin' => 0.0,
-			'restrictions'  => array(
+			'profit_margin'        => 0.0,
+			'restrictions'         => array(
 				'forbidden_paper_types'   => array(),
 				'forbidden_binding_types' => array(),
 				'forbidden_print_types'   => array(),
+			),
+			'quantity_constraints' => array(
+				'minimum_quantity' => 10,
+				'maximum_quantity' => 10000,
+				'quantity_step'    => 10,
 			),
 		);
 	}
