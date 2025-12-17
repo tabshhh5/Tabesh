@@ -48,6 +48,15 @@ class Tabesh_Product_Pricing {
 			TABESH_VERSION
 		);
 
+		// Enqueue the product pricing JS
+		wp_enqueue_script(
+			'tabesh-product-pricing',
+			TABESH_PLUGIN_URL . 'assets/js/product-pricing.js',
+			array( 'jquery' ),
+			TABESH_VERSION,
+			true
+		);
+
 		// Check access control settings
 		$allowed_capability = $this->get_pricing_access_capability();
 
@@ -591,21 +600,6 @@ class Tabesh_Product_Pricing {
 		}
 
 		return $matrix;
-	}
-				return array_filter(
-					array_map(
-						function ( $extra ) {
-							$extra = is_scalar( $extra ) ? trim( strval( $extra ) ) : '';
-							return ( ! empty( $extra ) && $extra !== 'on' ) ? $extra : null;
-						},
-						$decoded
-					)
-				);
-			}
-		}
-
-		// Default if not found
-		return array( 'لب گرد', 'خط تا', 'شیرینک', 'سوراخ', 'شماره گذاری' );
 	}
 
 	/**
