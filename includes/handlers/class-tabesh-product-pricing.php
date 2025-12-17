@@ -404,11 +404,14 @@ class Tabesh_Product_Pricing {
 		global $wpdb;
 		$table_settings = $wpdb->prefix . 'tabesh_settings';
 
-		// Validate capability
-		$valid_capabilities = array(
-			'manage_woocommerce',
-			'manage_options',
-			'edit_shop_orders',
+		// Get valid capabilities - filterable for extensibility
+		$valid_capabilities = apply_filters(
+			'tabesh_pricing_access_capabilities',
+			array(
+				'manage_woocommerce',
+				'manage_options',
+				'edit_shop_orders',
+			)
 		);
 
 		if ( ! in_array( $capability, $valid_capabilities, true ) ) {

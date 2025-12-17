@@ -83,9 +83,9 @@ class Tabesh_Pricing_Engine {
 		$print_type       = sanitize_text_field( $params['print_type'] ?? '' );
 		
 		// Validate and sanitize numeric inputs - prevent null/NaN
-		$page_count_color = isset( $params['page_count_color'] ) ? intval( $params['page_count_color'] ) : 0;
-		$page_count_bw    = isset( $params['page_count_bw'] ) ? intval( $params['page_count_bw'] ) : 0;
-		$quantity         = isset( $params['quantity'] ) ? intval( $params['quantity'] ) : 0;
+		$page_count_color = intval( $params['page_count_color'] ?? 0 );
+		$page_count_bw    = intval( $params['page_count_bw'] ?? 0 );
+		$quantity         = intval( $params['quantity'] ?? 0 );
 		
 		// Ensure non-negative values
 		$page_count_color = max( 0, $page_count_color );
