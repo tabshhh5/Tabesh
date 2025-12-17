@@ -174,15 +174,45 @@ class Tabesh_Admin_Order_Form {
 							$quantity_constraints[ $book_size ] = $matrix['quantity_constraints'];
 						}
 
+						// Get restrictions for filtering
+						$restrictions          = $matrix['restrictions'] ?? array();
+						$forbidden_papers      = $restrictions['forbidden_paper_types'] ?? array();
+						$forbidden_bindings    = $restrictions['forbidden_binding_types'] ?? array();
+						$forbidden_print_types = $restrictions['forbidden_print_types'] ?? array();
+
 						$v2_pricing_matrices[ $book_size ] = array(
 							'paper_types'   => array(),
-							'binding_types' => array_keys( $matrix['binding_costs'] ?? array() ),
+							'binding_types' => array(),
 							'extras'        => array_keys( $matrix['extras_costs'] ?? array() ),
 						);
 
+						// Filter binding types to exclude forbidden ones
+						$all_bindings = array_keys( $matrix['binding_costs'] ?? array() );
+						foreach ( $all_bindings as $binding_type ) {
+							if ( ! in_array( $binding_type, $forbidden_bindings, true ) ) {
+								$v2_pricing_matrices[ $book_size ]['binding_types'][] = $binding_type;
+							}
+						}
+
+						// Extract paper types with their weights, excluding forbidden ones
 						if ( isset( $matrix['page_costs'] ) && is_array( $matrix['page_costs'] ) ) {
 							foreach ( $matrix['page_costs'] as $paper_type => $weights_data ) {
-								$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = array_keys( $weights_data );
+								// Skip if paper type is completely forbidden
+								if ( in_array( $paper_type, $forbidden_papers, true ) ) {
+									continue;
+								}
+
+								// Get forbidden print types for this paper
+								$forbidden_for_paper = $forbidden_print_types[ $paper_type ] ?? array();
+
+								// Check if both bw and color are forbidden for this paper
+								$bw_forbidden    = in_array( 'bw', $forbidden_for_paper, true );
+								$color_forbidden = in_array( 'color', $forbidden_for_paper, true );
+
+								// Only include this paper type if at least one print type is allowed
+								if ( ! ( $bw_forbidden && $color_forbidden ) ) {
+									$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = array_keys( $weights_data );
+								}
 							}
 						}
 					}
