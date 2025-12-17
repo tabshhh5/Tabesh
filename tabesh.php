@@ -2296,18 +2296,49 @@ final class Tabesh {
 			)
 		) : array();
 
+		// Get V2 pricing engine quantity constraints if enabled
+		$pricing_engine       = new Tabesh_Pricing_Engine();
+		$v2_enabled           = $pricing_engine->is_enabled();
+		$quantity_constraints = array();
+
+		if ( $v2_enabled ) {
+			// Get all configured book sizes
+			$configured_sizes = $pricing_engine->get_configured_book_sizes();
+			foreach ( $configured_sizes as $book_size ) {
+				// Get pricing matrix directly from engine
+				global $wpdb;
+				$table_settings = $wpdb->prefix . 'tabesh_settings';
+				$setting_key    = 'pricing_matrix_' . sanitize_key( $book_size );
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$result = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+						$setting_key
+					)
+				);
+
+				if ( $result ) {
+					$matrix = json_decode( $result, true );
+					if ( JSON_ERROR_NONE === json_last_error() && is_array( $matrix ) && isset( $matrix['quantity_constraints'] ) ) {
+						$quantity_constraints[ $book_size ] = $matrix['quantity_constraints'];
+					}
+				}
+			}
+		}
+
 		wp_localize_script(
 			'tabesh-frontend',
 			'tabeshData',
 			array(
-				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-				'restUrl'    => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'      => wp_create_nonce( 'wp_rest' ),
-				'ajaxNonce'  => wp_create_nonce( 'tabesh_nonce' ), // For AJAX backward compatibility (field name: 'security')
-				'logoutUrl'  => wp_logout_url( home_url() ),
-				'debug'      => WP_DEBUG, // Add debug flag for conditional console logging
-			// Settings - all decoded as arrays/objects for frontend use
-				'settings'   => array(
+				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+				'restUrl'              => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'                => wp_create_nonce( 'wp_rest' ),
+				'ajaxNonce'            => wp_create_nonce( 'tabesh_nonce' ), // For AJAX backward compatibility (field name: 'security')
+				'logoutUrl'            => wp_logout_url( home_url() ),
+				'debug'                => WP_DEBUG, // Add debug flag for conditional console logging
+				// Settings - all decoded as arrays/objects for frontend use
+				'settings'             => array(
 					'paperTypes'        => $paper_types,
 					'bookSizes'         => $book_sizes,
 					'printTypes'        => $print_types,
@@ -2318,8 +2349,11 @@ final class Tabesh {
 					'extras'            => $extras,
 				),
 				// Backwards compatibility
-				'paperTypes' => $paper_types,
-				'strings'    => array(
+				'paperTypes'           => $paper_types,
+				// V2 Pricing Engine data
+				'v2Enabled'            => $v2_enabled,
+				'quantityConstraints'  => $quantity_constraints,
+				'strings'              => array(
 					'calculating' => __( 'در حال محاسبه...', 'tabesh' ),
 					'error'       => __( 'خطا در پردازش درخواست', 'tabesh' ),
 					'success'     => __( 'عملیات با موفقیت انجام شد', 'tabesh' ),

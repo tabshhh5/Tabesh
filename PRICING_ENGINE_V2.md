@@ -110,9 +110,16 @@ Each book size has its own pricing matrix stored as JSON:
     "forbidden_paper_types": [],
     "forbidden_binding_types": [],
     "forbidden_print_types": {}
+  },
+  "quantity_constraints": {
+    "minimum_quantity": 10,
+    "maximum_quantity": 10000,
+    "quantity_step": 10
   }
 }
 ```
+
+**New in v1.1:** Quantity constraints allow you to set minimum, maximum, and step values for order quantities on a per-book-size basis. This provides finer control over allowed order quantities based on production capabilities for each book size.
 
 ## Pricing Calculation Logic
 
@@ -208,6 +215,44 @@ Example: Forbid "color" print for "تحریر" paper in "خشتی" size
 
 When a restricted combination is attempted, the pricing calculation returns an error with a clear message.
 
+## Quantity Constraints (New in v1.1)
+
+The V2 pricing engine now supports per-book-size quantity constraints, allowing you to control the minimum, maximum, and step values for order quantities.
+
+### Configuration
+
+In the `[tabesh_product_pricing]` shortcode interface, Section 7 allows you to configure:
+
+1. **Minimum Quantity** - The smallest allowed order quantity for this book size (e.g., 10)
+2. **Maximum Quantity** - The largest allowed order quantity for this book size (e.g., 10,000)
+3. **Quantity Step** - The increment for valid quantities (e.g., 50 means only 50, 100, 150, ... are allowed)
+
+### How It Works
+
+**Backend Validation:**
+- When `calculate_price()` is called, the engine validates the quantity against the constraints
+- If the quantity is below minimum: Returns error "حداقل تیراژ مجاز برای قطع X، Y عدد است"
+- If the quantity is above maximum: Returns error "حداکثر تیراژ مجاز برای قطع X، Y عدد است"
+- If the quantity doesn't match the step: Returns error "تیراژ باید بر اساس گام X برای قطع Y باشد"
+
+**Frontend Integration:**
+- When a user selects a book size in `[tabesh_order_form]`, JavaScript automatically updates the quantity input
+- The input's min, max, and step attributes are dynamically set based on the selected book size
+- The label updates to show the constraints clearly
+- Client-side validation prevents users from entering invalid values
+
+### Use Cases
+
+**Example 1: Different minimums for different sizes**
+- A5: minimum 100, maximum 10,000, step 50
+- A4: minimum 50, maximum 5,000, step 25
+
+**Example 2: Large format restrictions**
+- خشتی: minimum 10, maximum 500, step 10 (expensive, limited production)
+
+**Example 3: Standard increments**
+- All sizes: step 100 (only accept orders in multiples of 100)
+
 ## Migration from V1 to V2
 
 ### Step 1: Review Current Pricing
@@ -254,6 +299,42 @@ When a restricted combination is attempted, the pricing calculation returns an e
 1. User has `manage_woocommerce` capability
 2. Database table `wp_tabesh_settings` exists and is writable
 3. Check for JavaScript errors in browser console
+
+### V2 Doesn't Reactivate After Disabling (FIXED in v1.1)
+
+**Issue:** After disabling V2 and then re-enabling it, the pricing form doesn't load or pricing calculations fail.
+
+**Root Cause:** Static cache in `Tabesh_Pricing_Engine` class was not cleared when toggling the engine on/off.
+
+**Solution (Implemented):**
+- `enable_pricing_engine_v2()` now calls `Tabesh_Pricing_Engine::clear_cache()`
+- `disable_pricing_engine_v2()` now calls `Tabesh_Pricing_Engine::clear_cache()`
+- This ensures fresh data is loaded when the engine state changes
+
+**If you still experience this issue:**
+1. Update to the latest version of the plugin
+2. Try disabling and re-enabling V2 again
+3. Clear your browser cache
+4. Check for any PHP errors in the WordPress debug log
+
+### Quantity Constraints Not Applied
+
+**Check:**
+1. Verify quantity constraints are configured in Section 7 of the pricing form for the specific book size
+2. Ensure V2 engine is enabled
+3. Check browser console for JavaScript errors
+4. Verify the order form is using the latest version of `frontend.js`
+5. Clear browser cache and reload the page
+
+**Default Values:**
+- Minimum quantity: 10
+- Maximum quantity: 10,000
+- Quantity step: 10
+
+**How It Works:**
+- When a user selects a book size in the order form, JavaScript automatically updates the quantity input constraints
+- The label updates to show "تعداد (حداقل X، حداکثر Y)"
+- Backend validation in `calculate_price()` also checks these constraints and returns clear error messages in Persian
 
 ## Security Considerations
 

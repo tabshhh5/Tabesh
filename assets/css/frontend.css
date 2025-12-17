@@ -1,30 +1,32 @@
 /**
  * Tabesh Frontend Styles
  * RTL Support for Persian
+ * Modern, clean design matching product-pricing interface
  */
 
 /* General Styles */
 .tabesh-order-form {
     direction: rtl;
     text-align: right;
-    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Vazir', 'Tahoma', Arial, sans-serif;
 }
 
 .tabesh-form-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 30px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 32px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .tabesh-form-title {
     font-size: 28px;
-    color: #2c3e50;
-    margin-bottom: 30px;
+    color: #1e293b;
+    margin-bottom: 32px;
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
 /* Form Steps */
@@ -50,22 +52,24 @@
 
 .tabesh-form-step h3 {
     font-size: 22px;
-    color: #34495e;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #3498db;
+    color: #1e293b;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0073aa;
+    font-weight: 600;
 }
 
 /* Form Groups */
 .tabesh-form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .tabesh-form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #1e293b;
+    font-size: 15px;
 }
 
 /* Form Controls */
@@ -73,19 +77,28 @@
 .tabesh-input,
 .tabesh-textarea {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 5px;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
     font-size: 16px;
-    transition: border-color 0.3s;
+    transition: all 0.2s ease;
     font-family: inherit;
+    background: #ffffff;
+    color: #1e293b;
 }
 
 .tabesh-select:focus,
 .tabesh-input:focus,
 .tabesh-textarea:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.tabesh-select:hover,
+.tabesh-input:hover,
+.tabesh-textarea:hover {
+    border-color: #cbd5e1;
 }
 
 .tabesh-textarea {
@@ -97,13 +110,14 @@
 .tabesh-checkbox {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     cursor: pointer;
     user-select: none;
+    padding: 8px 0;
 }
 
 .tabesh-checkbox input[type="checkbox"] {
-    margin-left: 10px;
+    margin-left: 12px;
     width: 20px;
     height: 20px;
     cursor: pointer;
@@ -111,102 +125,109 @@
 
 .tabesh-checkbox span {
     font-size: 16px;
-    color: #2c3e50;
+    color: #334155;
+}
+
+.tabesh-checkbox:hover span {
+    color: #0073aa;
 }
 
 /* Buttons */
 .tabesh-btn {
-    padding: 12px 30px;
+    padding: 12px 32px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
     font-family: inherit;
 }
 
 .tabesh-btn-primary {
-    background-color: #3498db;
-    color: #fff;
+    background-color: #0073aa;
+    color: #ffffff;
 }
 
 .tabesh-btn-primary:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    background-color: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 115, 170, 0.2);
 }
 
 .tabesh-btn-secondary {
-    background-color: #95a5a6;
-    color: #fff;
+    background-color: #64748b;
+    color: #ffffff;
 }
 
 .tabesh-btn-secondary:hover {
-    background-color: #7f8c8d;
+    background-color: #475569;
 }
 
 .tabesh-btn-success {
-    background-color: #27ae60;
-    color: #fff;
+    background-color: #10b981;
+    color: #ffffff;
 }
 
 .tabesh-btn-success:hover {
-    background-color: #229954;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+    background-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
 /* Navigation */
 .tabesh-form-navigation {
     display: flex;
     justify-content: space-between;
-    margin-top: 30px;
-    gap: 10px;
+    margin-top: 32px;
+    gap: 16px;
 }
 
 /* Progress Bar */
 .tabesh-progress {
     width: 100%;
     height: 8px;
-    background-color: #ecf0f1;
-    border-radius: 10px;
+    background-color: #e2e8f0;
+    border-radius: 8px;
     overflow: hidden;
-    margin-top: 20px;
+    margin-top: 24px;
 }
 
 .tabesh-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #3498db, #2ecc71);
+    background: linear-gradient(90deg, #0073aa, #10b981);
     transition: width 0.3s ease;
 }
 
 /* Price Result */
 .tabesh-price-result {
-    margin-top: 30px;
-    padding: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    color: #fff;
+    margin-top: 32px;
+    padding: 24px;
+    background: linear-gradient(135deg, #0073aa 0%, #0284c7 100%);
+    border-radius: 8px;
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 115, 170, 0.2);
 }
 
 .tabesh-price-result h3 {
     font-size: 24px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     text-align: center;
+    font-weight: 600;
 }
 
 .tabesh-price-details {
     background: rgba(255, 255, 255, 0.1);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 6px;
     margin-bottom: 20px;
+    backdrop-filter: blur(10px);
 }
 
 .price-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -216,9 +237,9 @@
 
 .price-row.total {
     font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    padding-top: 15px;
+    font-weight: 700;
+    margin-top: 12px;
+    padding-top: 16px;
     border-top: 2px solid rgba(255, 255, 255, 0.5);
 }
 
@@ -244,7 +265,7 @@
 /* Responsive */
 @media (max-width: 768px) {
     .tabesh-form-container {
-        padding: 20px;
+        padding: 24px 16px;
     }
 
     .tabesh-form-title {
@@ -253,6 +274,7 @@
 
     .tabesh-form-navigation {
         flex-direction: column;
+        gap: 12px;
     }
 
     .tabesh-btn {
@@ -268,7 +290,7 @@
     }
 
     .status-step {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 }
 
@@ -277,9 +299,9 @@
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(0, 115, 170, 0.2);
     border-radius: 50%;
-    border-top-color: #fff;
+    border-top-color: #0073aa;
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -290,14 +312,15 @@
 /* Notifications */
 .tabesh-notification {
     position: fixed;
-    top: 20px;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 15px 25px;
-    border-radius: 5px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px 24px;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     z-index: 9999;
-    animation: slideDown 0.3s;
+    animation: slideDown 0.3s ease-out;
+    font-weight: 500;
 }
 
 @keyframes slideDown {
@@ -312,16 +335,46 @@
 }
 
 .tabesh-notification.success {
-    background-color: #27ae60;
-    color: #fff;
+    background-color: #10b981;
+    color: #ffffff;
+    border-right: 4px solid #059669;
 }
 
 .tabesh-notification.error {
-    background-color: #e74c3c;
-    color: #fff;
+    background-color: #ef4444;
+    color: #ffffff;
+    border-right: 4px solid #dc2626;
 }
 
 .tabesh-notification.info {
-    background-color: #3498db;
-    color: #fff;
+    background-color: #0073aa;
+    color: #ffffff;
+    border-right: 4px solid #005a87;
+}
+
+/* Messages */
+.tabesh-message {
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.tabesh-message.error {
+    background-color: #fef2f2;
+    border-right: 4px solid #ef4444;
+    color: #991b1b;
+}
+
+.tabesh-message.success {
+    background-color: #f0fdf4;
+    border-right: 4px solid #10b981;
+    color: #166534;
+}
+
+.tabesh-message.info {
+    background-color: #eff6ff;
+    border-right: 4px solid #0073aa;
+    color: #1e40af;
 }

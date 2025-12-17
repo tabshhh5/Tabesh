@@ -79,6 +79,9 @@
             // Paper type change
             this.$form.find('#paper_type').on('change', (e) => this.updatePaperWeights(e.target.value));
             
+            // Book size change - update quantity constraints if V2 is enabled
+            this.$form.find('#book_size').on('change', (e) => this.updateQuantityConstraints(e.target.value));
+            
             // License type change
             this.$form.find('#license_type').on('change', (e) => this.toggleLicenseUpload(e.target.value));
             
@@ -120,17 +123,75 @@
 
         correctQuantity(e) {
             const $input = $(e.target);
-            const min = parseInt($input.attr('min'));
-            const step = parseInt($input.attr('step'));
-            let value = parseInt($input.val());
+            const bookSize = this.$form.find('#book_size').val();
+            
+            // Check if V2 is enabled and has constraints for this book size
+            if (tabeshData.v2Enabled && tabeshData.quantityConstraints && tabeshData.quantityConstraints[bookSize]) {
+                const constraints = tabeshData.quantityConstraints[bookSize];
+                const min = constraints.minimum_quantity || parseInt($input.attr('min'));
+                const max = constraints.maximum_quantity || parseInt($input.attr('max'));
+                const step = constraints.quantity_step || parseInt($input.attr('step'));
+                let value = parseInt($input.val());
 
-            if (value < min) {
-                value = min;
-            } else if ((value - min) % step !== 0) {
-                value = min + Math.floor((value - min) / step) * step;
+                // Check minimum
+                if (value < min) {
+                    value = min;
+                }
+                
+                // Check maximum
+                if (max > 0 && value > max) {
+                    value = max;
+                }
+                
+                // Check step
+                if ((value - min) % step !== 0) {
+                    value = min + Math.floor((value - min) / step) * step;
+                }
+
+                $input.val(value);
+            } else {
+                // Fallback to HTML attributes (legacy/V1)
+                const min = parseInt($input.attr('min'));
+                const step = parseInt($input.attr('step'));
+                let value = parseInt($input.val());
+
+                if (value < min) {
+                    value = min;
+                } else if ((value - min) % step !== 0) {
+                    value = min + Math.floor((value - min) / step) * step;
+                }
+
+                $input.val(value);
             }
+        }
 
-            $input.val(value);
+        updateQuantityConstraints(bookSize) {
+            const $quantityInput = this.$form.find('#quantity');
+            
+            // Check if V2 is enabled and has constraints for this book size
+            if (tabeshData.v2Enabled && tabeshData.quantityConstraints && tabeshData.quantityConstraints[bookSize]) {
+                const constraints = tabeshData.quantityConstraints[bookSize];
+                
+                // Update HTML attributes
+                $quantityInput.attr('min', constraints.minimum_quantity);
+                $quantityInput.attr('max', constraints.maximum_quantity);
+                $quantityInput.attr('step', constraints.quantity_step);
+                
+                // Update value if current value is out of bounds
+                const currentValue = parseInt($quantityInput.val()) || constraints.minimum_quantity;
+                if (currentValue < constraints.minimum_quantity) {
+                    $quantityInput.val(constraints.minimum_quantity);
+                } else if (constraints.maximum_quantity > 0 && currentValue > constraints.maximum_quantity) {
+                    $quantityInput.val(constraints.maximum_quantity);
+                }
+                
+                // Update label to show constraints
+                const $label = $quantityInput.closest('.tabesh-form-group').find('label');
+                if ($label.length) {
+                    const labelText = 'تعداد (حداقل ' + constraints.minimum_quantity + '، حداکثر ' + constraints.maximum_quantity + ')';
+                    $label.text(labelText);
+                }
+            }
         }
 
         nextStep() {
