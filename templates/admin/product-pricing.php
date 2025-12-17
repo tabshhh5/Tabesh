@@ -120,12 +120,14 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 						?>
 						<div class="paper-type-group">
 							<h4><?php echo esc_html( $paper_type ); ?></h4>
-							<table class="pricing-table">
+							<table class="pricing-table pricing-table-with-toggles">
 								<thead>
 									<tr>
 										<th><?php esc_html_e( 'گرماژ', 'tabesh' ); ?></th>
 										<th><?php esc_html_e( 'تک‌رنگ (تومان)', 'tabesh' ); ?></th>
+										<th><?php esc_html_e( 'فعال/غیرفعال', 'tabesh' ); ?></th>
 										<th><?php esc_html_e( 'رنگی (تومان)', 'tabesh' ); ?></th>
+										<th><?php esc_html_e( 'فعال/غیرفعال', 'tabesh' ); ?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -133,24 +135,67 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 										<?php
 										$bw_cost    = $pricing_matrix['page_costs'][ $paper_type ][ $weight ]['bw'] ?? 0;
 										$color_cost = $pricing_matrix['page_costs'][ $paper_type ][ $weight ]['color'] ?? 0;
+										
+										// Check if this combination is forbidden
+										$forbidden_prints = $pricing_matrix['restrictions']['forbidden_print_types'][ $paper_type ] ?? array();
+										$bw_forbidden     = in_array( 'bw', $forbidden_prints, true );
+										$color_forbidden  = in_array( 'color', $forbidden_prints, true );
 										?>
 										<tr>
 											<td><?php echo esc_html( $weight ); ?></td>
+											
+											<!-- BW Price Input -->
 											<td>
 												<input type="number" 
 													   name="page_costs[<?php echo esc_attr( $paper_type ); ?>][<?php echo esc_attr( $weight ); ?>][bw]" 
 													   value="<?php echo esc_attr( $bw_cost ); ?>" 
 													   step="10" 
 													   min="0" 
-													   class="small-text">
+													   class="small-text"
+													   <?php echo $bw_forbidden ? 'disabled' : ''; ?>>
 											</td>
+											
+											<!-- BW Enable/Disable Toggle -->
+											<td class="toggle-cell">
+												<label class="toggle-switch">
+													<input type="checkbox" 
+														   name="restrictions[forbidden_print_types][<?php echo esc_attr( $paper_type ); ?>][<?php echo esc_attr( $weight ); ?>][bw]" 
+														   value="0"
+														   class="print-type-toggle"
+														   data-paper="<?php echo esc_attr( $paper_type ); ?>"
+														   data-weight="<?php echo esc_attr( $weight ); ?>"
+														   data-print="bw"
+														   <?php checked( ! $bw_forbidden ); ?>>
+													<span class="toggle-slider"></span>
+												</label>
+												<span class="toggle-label"><?php echo $bw_forbidden ? esc_html__( 'غیرفعال', 'tabesh' ) : esc_html__( 'فعال', 'tabesh' ); ?></span>
+											</td>
+											
+											<!-- Color Price Input -->
 											<td>
 												<input type="number" 
 													   name="page_costs[<?php echo esc_attr( $paper_type ); ?>][<?php echo esc_attr( $weight ); ?>][color]" 
 													   value="<?php echo esc_attr( $color_cost ); ?>" 
 													   step="10" 
 													   min="0" 
-													   class="small-text">
+													   class="small-text"
+													   <?php echo $color_forbidden ? 'disabled' : ''; ?>>
+											</td>
+											
+											<!-- Color Enable/Disable Toggle -->
+											<td class="toggle-cell">
+												<label class="toggle-switch">
+													<input type="checkbox" 
+														   name="restrictions[forbidden_print_types][<?php echo esc_attr( $paper_type ); ?>][<?php echo esc_attr( $weight ); ?>][color]" 
+														   value="0"
+														   class="print-type-toggle"
+														   data-paper="<?php echo esc_attr( $paper_type ); ?>"
+														   data-weight="<?php echo esc_attr( $weight ); ?>"
+														   data-print="color"
+														   <?php checked( ! $color_forbidden ); ?>>
+													<span class="toggle-slider"></span>
+												</label>
+												<span class="toggle-label"><?php echo $color_forbidden ? esc_html__( 'غیرفعال', 'tabesh' ) : esc_html__( 'فعال', 'tabesh' ); ?></span>
 											</td>
 										</tr>
 									<?php endforeach; ?>
@@ -293,88 +338,9 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 				</table>
 			</div>
 
-			<!-- Section 5: Restrictions -->
+			<!-- Section 5: Profit Margin (renumbered from 6) -->
 			<div class="pricing-section">
-				<h3><?php esc_html_e( '۵. محدودیت‌ها (ممنوع‌سازی پارامترها)', 'tabesh' ); ?></h3>
-				<p class="description">
-					<?php esc_html_e( 'تعیین کنید کدام پارامترها برای این قطع مجاز نیستند', 'tabesh' ); ?>
-				</p>
-
-				<div class="restrictions-group">
-					<h4><?php esc_html_e( 'کاغذهای ممنوع (کاملاً)', 'tabesh' ); ?></h4>
-					<p class="help-text"><?php esc_html_e( 'این کاغذها برای هر دو نوع چاپ (تک‌رنگ و رنگی) ممنوع می‌شوند', 'tabesh' ); ?></p>
-					<?php
-					foreach ( $paper_types_names as $paper_type ) :
-						$forbidden = in_array( $paper_type, $pricing_matrix['restrictions']['forbidden_paper_types'] ?? array(), true );
-						?>
-						<label>
-							<input type="checkbox" 
-								   name="restrictions[forbidden_paper_types][]" 
-								   value="<?php echo esc_attr( $paper_type ); ?>"
-								   <?php checked( $forbidden ); ?>>
-							<?php echo esc_html( $paper_type ); ?>
-						</label>
-					<?php endforeach; ?>
-				</div>
-
-				<div class="restrictions-group">
-					<h4><?php esc_html_e( 'محدودیت نوع چاپ برای هر کاغذ (گزینشی)', 'tabesh' ); ?></h4>
-					<p class="help-text"><?php esc_html_e( 'می‌توانید برای هر کاغذ، فقط تک‌رنگ یا فقط رنگی را ممنوع کنید', 'tabesh' ); ?></p>
-					<table class="restrictions-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'نوع کاغذ', 'tabesh' ); ?></th>
-								<th><?php esc_html_e( 'تک‌رنگ ممنوع؟', 'tabesh' ); ?></th>
-								<th><?php esc_html_e( 'رنگی ممنوع؟', 'tabesh' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php
-							foreach ( $paper_types_names as $paper_type ) :
-								$forbidden_prints = $pricing_matrix['restrictions']['forbidden_print_types'][ $paper_type ] ?? array();
-								$bw_forbidden     = in_array( 'bw', $forbidden_prints, true );
-								$color_forbidden  = in_array( 'color', $forbidden_prints, true );
-								?>
-								<tr>
-									<td><strong><?php echo esc_html( $paper_type ); ?></strong></td>
-									<td>
-										<input type="checkbox" 
-											   name="restrictions[forbidden_print_types][<?php echo esc_attr( $paper_type ); ?>][]" 
-											   value="bw"
-											   <?php checked( $bw_forbidden ); ?>>
-									</td>
-									<td>
-										<input type="checkbox" 
-											   name="restrictions[forbidden_print_types][<?php echo esc_attr( $paper_type ); ?>][]" 
-											   value="color"
-											   <?php checked( $color_forbidden ); ?>>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				</div>
-
-				<div class="restrictions-group">
-					<h4><?php esc_html_e( 'صحافی‌های ممنوع', 'tabesh' ); ?></h4>
-					<?php
-					foreach ( $configured_binding_types as $binding_type ) :
-						$forbidden = in_array( $binding_type, $pricing_matrix['restrictions']['forbidden_binding_types'] ?? array(), true );
-						?>
-						<label>
-							<input type="checkbox" 
-								   name="restrictions[forbidden_binding_types][]" 
-								   value="<?php echo esc_attr( $binding_type ); ?>"
-								   <?php checked( $forbidden ); ?>>
-							<?php echo esc_html( $binding_type ); ?>
-						</label>
-					<?php endforeach; ?>
-				</div>
-			</div>
-
-			<!-- Section 6: Profit Margin -->
-			<div class="pricing-section">
-				<h3><?php esc_html_e( '۶. حاشیه سود', 'tabesh' ); ?></h3>
+				<h3><?php esc_html_e( '۵. حاشیه سود', 'tabesh' ); ?></h3>
 				<table class="pricing-table">
 					<tbody>
 						<tr>
@@ -394,9 +360,9 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 				</table>
 			</div>
 
-			<!-- Section 7: Quantity Constraints -->
+			<!-- Section 6: Quantity Constraints (renumbered from 7) -->
 			<div class="pricing-section">
-				<h3><?php esc_html_e( '۷. محدودیت‌های تیراژ', 'tabesh' ); ?></h3>
+				<h3><?php esc_html_e( '۶. محدودیت‌های تیراژ', 'tabesh' ); ?></h3>
 				<p class="description">
 					<?php esc_html_e( 'تعیین حداقل، حداکثر و گام تغییر تیراژ برای این قطع کتاب', 'tabesh' ); ?>
 				</p>
@@ -493,7 +459,117 @@ jQuery(document).ready(function($) {
 			$stepInput.prop('disabled', true);
 		}
 	});
+	
+	// Handle print type toggle switches
+	$('.print-type-toggle').on('change', function() {
+		var $toggle = $(this);
+		var paperType = $toggle.data('paper');
+		var weight = $toggle.data('weight');
+		var printType = $toggle.data('print');
+		var isEnabled = $toggle.is(':checked');
+		
+		// Find the corresponding price input
+		var $priceInput = $('input[name="page_costs[' + paperType + '][' + weight + '][' + printType + ']"]');
+		
+		// Enable/disable the price input
+		$priceInput.prop('disabled', !isEnabled);
+		
+		// Update the label text
+		var $label = $toggle.closest('.toggle-cell').find('.toggle-label');
+		$label.text(isEnabled ? 'فعال' : 'غیرفعال');
+		
+		// If disabling, optionally clear the value (or keep it for when re-enabled)
+		// For now, we'll keep the value so admins don't lose their pricing
+	});
+	
+	// Initialize toggles on page load
+	$('.print-type-toggle').each(function() {
+		var $toggle = $(this);
+		var isEnabled = $toggle.is(':checked');
+		var paperType = $toggle.data('paper');
+		var weight = $toggle.data('weight');
+		var printType = $toggle.data('print');
+		
+		// Find the corresponding price input
+		var $priceInput = $('input[name="page_costs[' + paperType + '][' + weight + '][' + printType + ']"]');
+		
+		// Set initial state
+		$priceInput.prop('disabled', !isEnabled);
+	});
 });
 </script>
+
+<!-- Inline CSS for toggle switches -->
+<style>
+.toggle-cell {
+	text-align: center;
+	white-space: nowrap;
+}
+
+.toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 50px;
+	height: 24px;
+	vertical-align: middle;
+}
+
+.toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 24px;
+}
+
+.toggle-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: .4s;
+	border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+	background-color: #2ecc71;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+	transform: translateX(26px);
+}
+
+.toggle-label {
+	display: inline-block;
+	margin-right: 8px;
+	font-size: 12px;
+	color: #666;
+	vertical-align: middle;
+}
+
+.pricing-table-with-toggles th,
+.pricing-table-with-toggles td {
+	padding: 8px 12px;
+}
+
+.pricing-table-with-toggles input[type="number"]:disabled {
+	background-color: #f5f5f5;
+	color: #999;
+	cursor: not-allowed;
+}
+</style>
 
 <!-- Styles loaded via enqueued CSS file (assets/css/product-pricing.css) -->
