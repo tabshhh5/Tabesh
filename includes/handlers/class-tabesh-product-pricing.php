@@ -243,6 +243,7 @@ class Tabesh_Product_Pricing {
 			'forbidden_binding_types' => array(),
 			'forbidden_print_types'   => array(),
 			'forbidden_cover_weights' => array(),
+			'forbidden_extras'        => array(),
 		);
 
 		if ( ! is_array( $data ) ) {
@@ -345,6 +346,53 @@ class Tabesh_Product_Pricing {
 				// Only add to restrictions if there are forbidden weights
 				if ( ! empty( $forbidden_for_binding ) ) {
 					$restrictions['forbidden_cover_weights'][ $binding_type ] = $forbidden_for_binding;
+				}
+			}
+		}
+
+		// Parse forbidden extras from inline toggles.
+		// Format: restrictions[forbidden_extras][binding_type][extra_service] = "0"
+		// Logic: If checkbox is CHECKED, it's in POST data (enabled for that binding type).
+		// If checkbox is UNCHECKED, it's NOT in POST data (disabled/forbidden for that binding type).
+		// We track which combinations are enabled, then infer which are forbidden.
+		if ( isset( $data['forbidden_extras'] ) && is_array( $data['forbidden_extras'] ) ) {
+			$enabled_extras_combinations = array();
+
+			foreach ( $data['forbidden_extras'] as $binding_type => $extras_data ) {
+				$binding_type = sanitize_text_field( $binding_type );
+
+				if ( ! is_array( $extras_data ) ) {
+					continue;
+				}
+
+				foreach ( $extras_data as $extra_service => $value ) {
+					$extra_service = sanitize_text_field( $extra_service );
+
+					// If checkbox exists in POST data, it means the checkbox was CHECKED (enabled).
+					// The value "0" is arbitrary - we only care that the key exists in POST.
+					if ( ! isset( $enabled_extras_combinations[ $binding_type ] ) ) {
+						$enabled_extras_combinations[ $binding_type ] = array();
+					}
+					$enabled_extras_combinations[ $binding_type ][ $extra_service ] = true;
+				}
+			}
+
+			// Determine forbidden extras for each binding type
+			// We need to get all extra services to know which ones are disabled
+			$all_extras = $this->get_configured_extra_services();
+
+			foreach ( $enabled_extras_combinations as $binding_type => $enabled_extras ) {
+				$forbidden_for_binding = array();
+
+				foreach ( $all_extras as $extra_service ) {
+					if ( ! isset( $enabled_extras[ $extra_service ] ) ) {
+						$forbidden_for_binding[] = $extra_service;
+					}
+				}
+
+				// Only add to restrictions if there are forbidden extras
+				if ( ! empty( $forbidden_for_binding ) ) {
+					$restrictions['forbidden_extras'][ $binding_type ] = $forbidden_for_binding;
 				}
 			}
 		}

@@ -287,7 +287,7 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 			<div class="pricing-section">
 				<h3><?php esc_html_e( '۳. خدمات اضافی', 'tabesh' ); ?></h3>
 				<p class="description">
-					<?php esc_html_e( 'تنظیم قیمت برای خدمات اضافی (لب گرد، شیرینک، ...)', 'tabesh' ); ?>
+					<?php esc_html_e( 'تنظیم قیمت برای خدمات اضافی و مجاز بودن آن‌ها برای هر نوع صحافی', 'tabesh' ); ?>
 				</p>
 
 				<table class="pricing-table">
@@ -351,6 +351,49 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 						<?php endforeach; ?>
 					</tbody>
 				</table>
+
+				<!-- Extra Services Restrictions per Binding Type -->
+				<div class="extras-restrictions-section">
+					<h4><?php esc_html_e( 'محدودیت‌های خدمات اضافی بر اساس نوع صحافی', 'tabesh' ); ?></h4>
+					<p class="description">
+						<?php esc_html_e( 'برای هر خدمت اضافی مشخص کنید که برای کدام نوع صحافی مجاز است. برای مثال، می‌توانید خدمت "لب گرد" را برای صحافی "جلد سخت" غیرفعال کنید.', 'tabesh' ); ?>
+					</p>
+					
+					<div class="extras-binding-matrix">
+						<?php foreach ( $configured_extra_services as $service ) : ?>
+							<div class="extra-service-restrictions">
+								<h5 class="extra-service-name"><?php echo esc_html( $service ); ?></h5>
+								<div class="binding-toggles-grid">
+									<?php
+									foreach ( $configured_binding_types as $binding_type ) :
+										// Check if this extra is forbidden for this binding type
+										$forbidden_extras = $pricing_matrix['restrictions']['forbidden_extras'][ $binding_type ] ?? array();
+										$is_forbidden     = in_array( $service, $forbidden_extras, true );
+										?>
+										<div class="binding-toggle-item">
+											<label class="binding-toggle-label">
+												<span class="binding-name"><?php echo esc_html( $binding_type ); ?></span>
+												<span class="toggle-switch-inline">
+													<input type="checkbox" 
+															name="restrictions[forbidden_extras][<?php echo esc_attr( $binding_type ); ?>][<?php echo esc_attr( $service ); ?>]" 
+															value="0"
+															class="extra-binding-toggle"
+															data-binding="<?php echo esc_attr( $binding_type ); ?>"
+															data-extra="<?php echo esc_attr( $service ); ?>"
+															<?php checked( ! $is_forbidden ); ?>>
+													<span class="toggle-slider-inline"></span>
+												</span>
+												<span class="status-badge <?php echo $is_forbidden ? 'status-disabled' : 'status-enabled'; ?>">
+													<?php echo $is_forbidden ? esc_html__( 'غیرفعال', 'tabesh' ) : esc_html__( 'فعال', 'tabesh' ); ?>
+												</span>
+											</label>
+										</div>
+									<?php endforeach; ?>
+								</div>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
 			</div>
 
 			<!-- Section 4: Profit Margin -->
@@ -552,6 +595,42 @@ jQuery(document).ready(function($) {
 		// Set initial state
 		$priceInput.prop('disabled', !isEnabled);
 	});
+	
+	// Handle extra service binding type toggle switches
+	$('.extra-binding-toggle').on('change', function() {
+		var $toggle = $(this);
+		var bindingType = $toggle.data('binding');
+		var extraService = $toggle.data('extra');
+		var isEnabled = $toggle.is(':checked');
+		
+		// Find the corresponding status badge in the same label
+		var $label = $toggle.closest('.binding-toggle-label');
+		var $statusBadge = $label.find('.status-badge');
+		
+		// Update the status badge
+		if (isEnabled) {
+			$statusBadge.removeClass('status-disabled').addClass('status-enabled').text('فعال');
+		} else {
+			$statusBadge.removeClass('status-enabled').addClass('status-disabled').text('غیرفعال');
+		}
+	});
+	
+	// Initialize extra binding toggles on page load
+	$('.extra-binding-toggle').each(function() {
+		var $toggle = $(this);
+		var isEnabled = $toggle.is(':checked');
+		
+		// Find the corresponding status badge in the same label
+		var $label = $toggle.closest('.binding-toggle-label');
+		var $statusBadge = $label.find('.status-badge');
+		
+		// Set initial state
+		if (isEnabled) {
+			$statusBadge.removeClass('status-disabled').addClass('status-enabled').text('فعال');
+		} else {
+			$statusBadge.removeClass('status-enabled').addClass('status-disabled').text('غیرفعال');
+		}
+	});
 });
 </script>
 
@@ -742,6 +821,96 @@ jQuery(document).ready(function($) {
 	border: 1px solid #fecaca;
 }
 
+/* Extra Services Restrictions Section */
+.extras-restrictions-section {
+	margin-top: 32px;
+	padding: 24px;
+	background: #f8fafc;
+	border-radius: 12px;
+	border: 2px solid #e2e8f0;
+}
+
+.extras-restrictions-section h4 {
+	margin: 0 0 8px 0;
+	color: #1e293b;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.extras-restrictions-section .description {
+	margin-bottom: 20px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+.extras-binding-matrix {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.extra-service-restrictions {
+	background: #ffffff;
+	border: 2px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	transition: all 0.2s ease;
+}
+
+.extra-service-restrictions:hover {
+	border-color: #cbd5e1;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.extra-service-name {
+	margin: 0 0 16px 0;
+	padding: 10px 16px;
+	background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+	color: #ffffff;
+	border-radius: 8px;
+	font-size: 15px;
+	font-weight: 600;
+	text-align: center;
+	box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+.binding-toggles-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 16px;
+}
+
+.binding-toggle-item {
+	display: flex;
+	align-items: center;
+}
+
+.binding-toggle-label {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 12px 16px;
+	background: #f8fafc;
+	border: 2px solid #e2e8f0;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.binding-toggle-label:hover {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+
+.binding-toggle-label .binding-name {
+	flex: 1;
+	font-weight: 500;
+	color: #334155;
+	font-size: 14px;
+}
+
 /* Responsive adjustments for compact design */
 @media (max-width: 768px) {
 	.pricing-table-compact .col-weight {
@@ -770,6 +939,15 @@ jQuery(document).ready(function($) {
 		padding: 4px 10px;
 		font-size: 12px;
 	}
+	
+	.binding-toggles-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.binding-toggle-label {
+		padding: 10px 12px;
+		gap: 8px;
+	}
 }
 
 /* Additional responsive handling */
@@ -786,6 +964,11 @@ jQuery(document).ready(function($) {
 	.pricing-table-compact td {
 		padding: 8px 6px;
 		font-size: 12px;
+	}
+	
+	.extra-service-name {
+		font-size: 13px;
+		padding: 8px 12px;
 	}
 }
 </style>

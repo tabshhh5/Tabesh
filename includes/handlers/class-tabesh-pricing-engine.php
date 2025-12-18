@@ -348,6 +348,23 @@ class Tabesh_Pricing_Engine {
 		// Step 5: Get cover cost for this book size
 		$cover_cost = $this->get_cover_cost( $pricing_matrix );
 
+		// Step 5.5: Validate extras are allowed for this binding type
+		$forbidden_extras = $pricing_matrix['restrictions']['forbidden_extras'][ $binding_type ] ?? array();
+		foreach ( $extras as $extra ) {
+			if ( in_array( $extra, $forbidden_extras, true ) ) {
+				return array(
+					'error'   => true,
+					/* translators: 1: extra service name, 2: binding type, 3: book size */
+					'message' => sprintf(
+						__( 'خدمت اضافی "%1$s" برای صحافی %2$s در قطع %3$s مجاز نیست', 'tabesh' ),
+						$extra,
+						$binding_type,
+						$book_size
+					),
+				);
+			}
+		}
+
 		// Step 6: Calculate extras cost (no change from old system)
 		$extras_cost = $this->calculate_extras_cost( $pricing_matrix, $extras, $quantity, $page_count_total );
 
@@ -560,7 +577,7 @@ class Tabesh_Pricing_Engine {
 
 				// No weights configured
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'Tabesh Pricing Engine V2 WARNING: No cover weights configured for binding type=' . sanitize_text_field( $binding_type ) );
+					error_log( 'Tabesh Pricing Engine V2 WARNING: No cover weights configured for binding type=' . sanitize_text_field( $binding_type ) );
 				}
 				return null;
 			}
@@ -570,7 +587,7 @@ class Tabesh_Pricing_Engine {
 		}
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Tabesh Pricing Engine V2 ERROR: Binding cost not configured for type=' . sanitize_text_field( $binding_type ) );
+			error_log( 'Tabesh Pricing Engine V2 ERROR: Binding cost not configured for type=' . sanitize_text_field( $binding_type ) );
 		}
 
 		return null;
@@ -828,6 +845,7 @@ class Tabesh_Pricing_Engine {
 				'forbidden_binding_types' => array(),
 				'forbidden_print_types'   => array(),
 				'forbidden_cover_weights' => array(),
+				'forbidden_extras'        => array(),
 			),
 			'quantity_constraints' => array(
 				'minimum_quantity' => 10,
