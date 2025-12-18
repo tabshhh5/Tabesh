@@ -22,7 +22,8 @@
 		cover_weight: '',
 		extras: [],
 		book_title: '',
-		notes: ''
+		notes: '',
+		calculated_price: null  // Store calculated price for order submission
 	};
 
 	// Cache for allowed options to reduce API calls
@@ -491,15 +492,20 @@
 		showLoading();
 		updateExtrasState();
 
+		// Transform V2 form data to legacy format expected by pricing engine
 		const priceData = {
 			book_size: formState.book_size,
 			paper_type: formState.paper_type,
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
-			page_count: formState.page_count,
+			// Split page count based on print type
+			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
+			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
+			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
+			license_type: 'دارم', // Default value for V2 form
 			extras: formState.extras
 		};
 
@@ -544,6 +550,9 @@
 		$('#price-quantity-v2').text(priceData.quantity);
 		$('#price-total-v2').text(formatPrice(priceData.total_price));
 
+		// Store calculated price in formState for order submission
+		formState.calculated_price = priceData;
+
 		// Show breakdown if available
 		if (priceData.breakdown) {
 			displayPriceBreakdown(priceData.breakdown);
@@ -582,19 +591,31 @@
 			return;
 		}
 
+		// Check if price was calculated
+		if (!formState.calculated_price) {
+			showError('لطفاً ابتدا قیمت را محاسبه کنید.');
+			return;
+		}
+
 		showLoading();
 		updateExtrasState();
 
+		// Transform V2 form data to legacy format expected by submit_order
 		const orderData = {
 			book_title: formState.book_title || $('#book_title_v2').val(),
 			book_size: formState.book_size,
 			paper_type: formState.paper_type,
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
-			page_count: formState.page_count,
+			// Split page count based on print type
+			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
+			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
+			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
+			license_type: 'دارم', // Default value for V2 form
+			lamination_type: 'براق', // Default value for V2 form
 			extras: formState.extras,
 			notes: $('#notes_v2').val()
 		};
@@ -615,9 +636,12 @@
 
 				if (response.success) {
 					showSuccess('سفارش شما با موفقیت ثبت شد!');
-					// Optionally redirect to user orders page
+					// Redirect to user orders page after a short delay
 					setTimeout(function() {
-						window.location.href = response.redirect_url || '/';
+						// Try to find user orders page, fallback to homepage
+						const redirectUrl = response.data?.redirect_url || 
+							(typeof tabeshOrderFormV2.userOrdersUrl !== 'undefined' ? tabeshOrderFormV2.userOrdersUrl : window.location.origin);
+						window.location.href = redirectUrl;
 					}, 2000);
 				} else {
 					showError(response.message || 'خطا در ثبت سفارش');
@@ -625,8 +649,12 @@
 			},
 			error: function(xhr, status, error) {
 				console.error('Order submission error:', error);
+				console.error('Response:', xhr.responseJSON);
 				hideLoading();
-				showError('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
+				
+				// Try to extract error message from response
+				const errorMessage = xhr.responseJSON?.message || 'خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.';
+				showError(errorMessage);
 			}
 		});
 	}
