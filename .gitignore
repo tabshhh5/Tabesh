@@ -1,54 +1,27 @@
-# Ignore WordPress core files
-wp-config.php
-wp-content/uploads/
-wp-content/blogs.dir/
-wp-content/upgrade/
-wp-content/backup-db/
-wp-content/advanced-cache.php
-wp-content/wp-cache-config.php
-wp-content/cache/
-wp-content/cache/supercache/
+# Backup files
+*-old.*
+*.bak
+*.backup
 
-# Ignore dependencies
-node_modules/
-bower_components/
-vendor/
+# Composer
+/vendor/
 
-# Ignore build files
-*.sass-cache/
-*.log
-*.tmp
-*.zip
-*.tar.gz
+# Node modules
+/node_modules/
 
-# Ignore OS files
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Ignore IDE files
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-*.swp
-*.swo
-*~
+# Build artifacts
+/dist/
+/build/
 
-# Ignore temp files
-/tmp/
-temp/
-
-# Keep but ignore these
-!.gitkeep
-
-# Ignore test files
-test-*.php
-test-*.js
-
-# Ignore composer lock (for libraries, not applications)
-composer.lock
+# Logs
+*.log
+debug.log

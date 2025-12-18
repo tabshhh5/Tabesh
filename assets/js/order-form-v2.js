@@ -1,17 +1,21 @@
 /**
- * Order Form V2 - Dynamic Dependency Mapping
- *
- * Handles cascading form logic, dynamic option loading,
- * and real-time price calculation using V2 pricing matrix.
- *
+ * Modern Wizard Form - Order Form V2
+ * 
+ * Handles step navigation, form validation, and order submission
+ * 
  * @package Tabesh
  */
 
 (function($) {
 	'use strict';
 
-	// Form state management
+	// Current step tracking
+	let currentStep = 1;
+	const totalSteps = 4;
+
+	// Form state
 	const formState = {
+		book_title: '',
 		book_size: '',
 		paper_type: '',
 		paper_weight: '',
@@ -21,217 +25,257 @@
 		binding_type: '',
 		cover_weight: '',
 		extras: [],
-		book_title: '',
 		notes: '',
-		calculated_price: null  // Store complete price calculation response for order submission validation
+		calculated_price: null
 	};
 
-	// Cache for allowed options to reduce API calls
-	const optionsCache = {};
-
 	/**
-	 * Initialize form on document ready
+	 * Initialize wizard on document ready
 	 */
 	$(document).ready(function() {
-		initFormV2();
+		initWizard();
 	});
 
 	/**
-	 * Initialize form V2
+	 * Initialize wizard
 	 */
-	function initFormV2() {
-		// Check if form exists
-		if ($('#tabesh-order-form-v2').length === 0) {
+	function initWizard() {
+		if ($('#tabesh-wizard-form').length === 0) {
 			return;
 		}
 
-		console.log('Initializing Tabesh Order Form V2...');
+		console.log('Initializing Tabesh Modern Wizard...');
 
 		// Attach event listeners
 		attachEventListeners();
 
-		// Set initial quantity from form
-		const initialQuantity = parseInt($('#quantity_v2').val(), 10);
-		if (initialQuantity) {
-			formState.quantity = initialQuantity;
-		}
+		// Initialize first step
+		showStep(1);
 	}
 
 	/**
 	 * Attach all event listeners
 	 */
 	function attachEventListeners() {
-		// Book title input
-		$('#book_title_v2').on('change', function() {
+		// Navigation buttons
+		$('#nextBtn').on('click', handleNext);
+		$('#prevBtn').on('click', handlePrevious);
+		$('#submitBtn').on('click', handleSubmit);
+
+		// Form field changes
+		$('#book_title_wizard').on('input', function() {
 			formState.book_title = $(this).val();
 		});
 
-		// Book size selection - triggers cascade
-		$('#book_size_v2').on('change', function() {
+		$('input[name="book_size"]').on('change', function() {
 			const bookSize = $(this).val();
-			console.log('Book size selected:', bookSize);
-
-			if (!bookSize) {
-				hideStepsAfter(2);
-				return;
-			}
-
 			formState.book_size = bookSize;
-			// Reset downstream selections
-			formState.paper_type = '';
-			formState.paper_weight = '';
-			formState.print_type = '';
-			formState.binding_type = '';
-			formState.cover_weight = '';
-			formState.extras = [];
-			
 			loadAllowedOptions({ book_size: bookSize });
 		});
 
-		// Paper type selection - loads weights and print types
-		$('#paper_type_v2').on('change', function() {
+		$('#paper_type_wizard').on('change', function() {
 			const paperType = $(this).val();
-			console.log('Paper type selected:', paperType);
-
-			if (!paperType) {
-				hideStepsAfter(3);
-				return;
-			}
-
 			formState.paper_type = paperType;
-			// Reset downstream selections
-			formState.paper_weight = '';
-			formState.print_type = '';
-			formState.binding_type = '';
-			formState.cover_weight = '';
-			formState.extras = [];
-			
-			// Refresh allowed options with paper_type in current_selection
-			refreshAllowedOptionsFromSelection();
 			loadPaperWeights(paperType);
 		});
 
-		// Paper weight selection - triggers print type update
-		$('#paper_weight_v2').on('change', function() {
-			const paperWeight = $(this).val();
-			console.log('Paper weight selected:', paperWeight);
-
-			if (!paperWeight) {
-				hideStepsAfter(3);
-				return;
-			}
-
-			formState.paper_weight = paperWeight;
-			// Reset downstream selections
-			formState.print_type = '';
-			formState.binding_type = '';
-			formState.cover_weight = '';
-			formState.extras = [];
-			
+		$('#paper_weight_wizard').on('change', function() {
+			formState.paper_weight = $(this).val();
 			loadPrintTypes();
 		});
 
-		// Print type selection
-		$('#print_type_v2').on('change', function() {
-			const printType = $(this).val();
-			console.log('Print type selected:', printType);
-
-			if (!printType) {
-				hideStepsAfter(4);
-				return;
-			}
-
-			formState.print_type = printType;
-			// Reset downstream selections
-			formState.binding_type = '';
-			formState.cover_weight = '';
-			formState.extras = [];
-			
-			showStep(5); // Show page count
+		$('input[name="print_type"]').on('change', function() {
+			formState.print_type = $(this).val();
 		});
 
-		// Page count input
-		$('#page_count_v2').on('change', function() {
-			const pageCount = parseInt($(this).val(), 10);
-			if (pageCount > 0) {
-				formState.page_count = pageCount;
-				showStep(6); // Show quantity
-			}
+		$('#page_count_wizard').on('input', function() {
+			formState.page_count = parseInt($(this).val(), 10);
 		});
 
-		// Quantity input
-		$('#quantity_v2').on('change', function() {
-			const quantity = parseInt($(this).val(), 10);
-			if (quantity > 0) {
-				formState.quantity = quantity;
-				showStep(7); // Show binding types
-			}
+		$('#quantity_wizard').on('input', function() {
+			formState.quantity = parseInt($(this).val(), 10);
 		});
 
-		// Binding type selection
-		$('#binding_type_v2').on('change', function() {
+		$('#binding_type_wizard').on('change', function() {
 			const bindingType = $(this).val();
-			console.log('Binding type selected:', bindingType);
-
-			if (!bindingType) {
-				hideStepsAfter(7);
-				return;
-			}
-
 			formState.binding_type = bindingType;
-			// Reset downstream selections
-			formState.cover_weight = '';
-			formState.extras = [];
-			
 			loadCoverWeights();
 			loadExtras();
 		});
 
-		// Cover weight selection
-		$('#cover_weight_v2').on('change', function() {
-			const coverWeight = $(this).val();
-			console.log('Cover weight selected:', coverWeight);
-
-			if (!coverWeight) {
-				hideStepsAfter(8);
-				return;
-			}
-
-			formState.cover_weight = coverWeight;
-			showStep(9); // Show extras
-			showStep(10); // Show notes
-			enablePriceCalculation();
+		$('#cover_weight_wizard').on('change', function() {
+			formState.cover_weight = $(this).val();
 		});
 
-		// Extras checkboxes (delegated event for dynamic content)
-		$(document).on('change', '#extras_container_v2 input[type="checkbox"]', function() {
+		$(document).on('change', '#extras_container_wizard input[type="checkbox"]', function() {
 			updateExtrasState();
 		});
 
-		// Calculate price button
-		$('#calculate-price-v2').on('click', function() {
-			calculatePrice();
+		$('#notes_wizard').on('input', function() {
+			formState.notes = $(this).val();
 		});
 
-		// Submit order button
-		$('#submit-order-v2').on('click', function() {
-			submitOrder();
+		// Calculate price button
+		$('#calculate_price_btn').on('click', function() {
+			calculatePrice();
 		});
 	}
 
 	/**
-	 * Load allowed options for the selected book size
+	 * Show specific step
+	 */
+	function showStep(step) {
+		// Hide all steps
+		$('.wizard-step').removeClass('active');
+		
+		// Show current step
+		$(`.wizard-step[data-step="${step}"]`).addClass('active');
+		
+		// Update progress
+		updateProgress(step);
+		
+		// Update navigation buttons
+		updateNavigation(step);
+		
+		// Update current step
+		currentStep = step;
+
+		// If step 4, update review
+		if (step === 4) {
+			updateOrderReview();
+		}
+	}
+
+	/**
+	 * Update progress bar and steps
+	 */
+	function updateProgress(step) {
+		const progress = (step / totalSteps) * 100;
+		$('#progressBar').css('width', progress + '%');
+
+		// Update step indicators
+		$('.progress-step').each(function() {
+			const stepNum = parseInt($(this).data('step'), 10);
+			$(this).removeClass('active completed');
+			
+			if (stepNum < step) {
+				$(this).addClass('completed');
+			} else if (stepNum === step) {
+				$(this).addClass('active');
+			}
+		});
+	}
+
+	/**
+	 * Update navigation buttons
+	 */
+	function updateNavigation(step) {
+		// Previous button
+		if (step === 1) {
+			$('#prevBtn').hide();
+		} else {
+			$('#prevBtn').show();
+		}
+
+		// Next button
+		if (step === totalSteps) {
+			$('#nextBtn').hide();
+			$('#submitBtn').show();
+		} else {
+			$('#nextBtn').show();
+			$('#submitBtn').hide();
+		}
+	}
+
+	/**
+	 * Handle next button click
+	 */
+	function handleNext() {
+		if (!validateStep(currentStep)) {
+			return;
+		}
+
+		if (currentStep < totalSteps) {
+			showStep(currentStep + 1);
+		}
+	}
+
+	/**
+	 * Handle previous button click
+	 */
+	function handlePrevious() {
+		if (currentStep > 1) {
+			showStep(currentStep - 1);
+		}
+	}
+
+	/**
+	 * Validate current step
+	 */
+	function validateStep(step) {
+		let isValid = true;
+		let message = '';
+
+		switch (step) {
+			case 1:
+				if (!formState.book_title) {
+					message = 'لطفاً عنوان کتاب را وارد کنید';
+					isValid = false;
+				} else if (!formState.book_size) {
+					message = 'لطفاً قطع کتاب را انتخاب کنید';
+					isValid = false;
+				}
+				break;
+
+			case 2:
+				if (!formState.paper_type) {
+					message = 'لطفاً نوع کاغذ را انتخاب کنید';
+					isValid = false;
+				} else if (!formState.paper_weight) {
+					message = 'لطفاً گرماژ کاغذ را انتخاب کنید';
+					isValid = false;
+				} else if (!formState.print_type) {
+					message = 'لطفاً نوع چاپ را انتخاب کنید';
+					isValid = false;
+				} else if (!formState.page_count || formState.page_count <= 0) {
+					message = 'لطفاً تعداد صفحات معتبر وارد کنید';
+					isValid = false;
+				} else if (!formState.quantity || formState.quantity <= 0) {
+					message = 'لطفاً تیراژ معتبر وارد کنید';
+					isValid = false;
+				}
+				break;
+
+			case 3:
+				if (!formState.binding_type) {
+					message = 'لطفاً نوع صحافی را انتخاب کنید';
+					isValid = false;
+				} else if (!formState.cover_weight) {
+					message = 'لطفاً گرماژ جلد را انتخاب کنید';
+					isValid = false;
+				}
+				break;
+
+			case 4:
+				if (!formState.calculated_price) {
+					message = 'لطفاً ابتدا قیمت را محاسبه کنید';
+					isValid = false;
+				}
+				break;
+		}
+
+		if (!isValid) {
+			showMessage(message, 'error');
+		}
+
+		return isValid;
+	}
+
+	/**
+	 * Load allowed options from API
 	 */
 	function loadAllowedOptions(selection) {
 		showLoading();
-
-		const cacheKey = JSON.stringify(selection);
-		if (optionsCache[cacheKey]) {
-			console.log('Using cached options for:', cacheKey);
-			populateOptionsFromCache(optionsCache[cacheKey]);
-			hideLoading();
-			return;
-		}
 
 		$.ajax({
 			url: tabeshOrderFormV2.apiUrl + '/get-allowed-options',
@@ -245,82 +289,18 @@
 				current_selection: {}
 			}),
 			success: function(response) {
-				console.log('Allowed options response:', response);
 				hideLoading();
 
 				if (response.success && response.data) {
-					optionsCache[cacheKey] = response.data;
 					populatePaperTypes(response.data.allowed_papers);
 					populateBindingTypes(response.data.allowed_bindings);
-					showStep(3);
 				} else {
-					showError(response.message || 'خطا در بارگذاری گزینه‌ها');
+					showMessage(response.message || 'خطا در بارگذاری گزینه‌ها', 'error');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error:', error);
+			error: function() {
 				hideLoading();
-				showError('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
-			}
-		});
-	}
-
-	/**
-	 * Refresh allowed options based on current form state
-	 * This is called when a selection changes to update all downstream options
-	 */
-	function refreshAllowedOptionsFromSelection() {
-		if (!formState.book_size) {
-			return;
-		}
-
-		showLoading();
-
-		// Build current selection from form state
-		const currentSelection = {};
-		if (formState.paper_type) {
-			currentSelection.paper_type = formState.paper_type;
-		}
-		if (formState.paper_weight) {
-			currentSelection.paper_weight = formState.paper_weight;
-		}
-		if (formState.binding_type) {
-			currentSelection.binding_type = formState.binding_type;
-		}
-
-		console.log('Refreshing allowed options with selection:', currentSelection);
-
-		$.ajax({
-			url: tabeshOrderFormV2.apiUrl + '/get-allowed-options',
-			method: 'POST',
-			headers: {
-				'X-WP-Nonce': tabeshOrderFormV2.nonce
-			},
-			contentType: 'application/json',
-			data: JSON.stringify({
-				book_size: formState.book_size,
-				current_selection: currentSelection
-			}),
-			success: function(response) {
-				hideLoading();
-				console.log('Refreshed options response:', response);
-
-				if (response.success && response.data) {
-					// Update bindings list based on current paper selection
-					if (response.data.allowed_bindings) {
-						populateBindingTypes(response.data.allowed_bindings);
-					}
-					// Update print types if we have paper selected
-					if (response.data.allowed_print_types && formState.paper_type) {
-						populatePrintTypes(response.data.allowed_print_types);
-					}
-				} else {
-					console.error('Error refreshing options:', response.message);
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error refreshing options:', error);
-				hideLoading();
+				showMessage('خطا در ارتباط با سرور', 'error');
 			}
 		});
 	}
@@ -329,7 +309,7 @@
 	 * Populate paper types dropdown
 	 */
 	function populatePaperTypes(papers) {
-		const $select = $('#paper_type_v2');
+		const $select = $('#paper_type_wizard');
 		$select.empty();
 		$select.append('<option value="">انتخاب کنید...</option>');
 
@@ -349,11 +329,11 @@
 	}
 
 	/**
-	 * Load paper weights for selected paper type
+	 * Load paper weights
 	 */
 	function loadPaperWeights(paperType) {
-		const $paperSelect = $('#paper_type_v2');
-		const $weightSelect = $('#paper_weight_v2');
+		const $paperSelect = $('#paper_type_wizard');
+		const $weightSelect = $('#paper_weight_wizard');
 		const selectedOption = $paperSelect.find('option:selected');
 		const weights = selectedOption.data('weights');
 
@@ -375,77 +355,18 @@
 	}
 
 	/**
-	 * Load print types based on current selection
+	 * Load print types
 	 */
 	function loadPrintTypes() {
-		showLoading();
-
-		const selection = {
-			book_size: formState.book_size,
-			paper_type: formState.paper_type,
-			paper_weight: formState.paper_weight
-		};
-
-		$.ajax({
-			url: tabeshOrderFormV2.apiUrl + '/get-allowed-options',
-			method: 'POST',
-			headers: {
-				'X-WP-Nonce': tabeshOrderFormV2.nonce
-			},
-			contentType: 'application/json',
-			data: JSON.stringify({
-				book_size: selection.book_size,
-				current_selection: {
-					paper_type: selection.paper_type
-				}
-			}),
-			success: function(response) {
-				hideLoading();
-
-				if (response.success && response.data && response.data.allowed_print_types) {
-					populatePrintTypes(response.data.allowed_print_types);
-					showStep(4);
-				} else {
-					showError('خطا در بارگذاری انواع چاپ');
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error:', error);
-				hideLoading();
-				showError('خطا در ارتباط با سرور.');
-			}
-		});
+		// Print types are static (bw and color)
+		// Already rendered in template
 	}
 
 	/**
-	 * Populate print types dropdown
-	 */
-	function populatePrintTypes(printTypes) {
-		const $select = $('#print_type_v2');
-		$select.empty();
-		$select.append('<option value="">انتخاب کنید...</option>');
-
-		if (!printTypes || printTypes.length === 0) {
-			$select.append('<option value="" disabled>هیچ نوع چاپی در دسترس نیست</option>');
-			return;
-		}
-
-		printTypes.forEach(function(printType) {
-			$select.append(
-				$('<option></option>')
-					.val(printType.type)
-					.text(printType.label)
-			);
-		});
-	}
-
-	/**
-	 * Populate binding types dropdown
+	 * Populate binding types
 	 */
 	function populateBindingTypes(bindings) {
-		const $select = $('#binding_type_v2');
-		const currentValue = $select.val(); // Preserve current selection if valid
-		
+		const $select = $('#binding_type_wizard');
 		$select.empty();
 		$select.append('<option value="">انتخاب کنید...</option>');
 
@@ -454,7 +375,6 @@
 			return;
 		}
 
-		let currentValueStillValid = false;
 		bindings.forEach(function(binding) {
 			$select.append(
 				$('<option></option>')
@@ -462,40 +382,15 @@
 					.text(binding.type)
 					.data('cover_weights', binding.cover_weights)
 			);
-			
-			if (binding.type === currentValue) {
-				currentValueStillValid = true;
-			}
 		});
-		
-		// Restore selection if still valid, otherwise clear it
-		if (currentValueStillValid) {
-			$select.val(currentValue);
-		} else if (currentValue) {
-			// Current selection is no longer valid - clear downstream fields
-			console.log('Binding type "' + currentValue + '" is no longer available, clearing selection');
-			formState.binding_type = '';
-			formState.cover_weight = '';
-			formState.extras = [];
-			hideStepsAfter(7);
-		}
 	}
 
 	/**
-	 * Load binding types when quantity is set
-	 */
-	function loadBindingTypes() {
-		// Binding types are already loaded from initial book size selection
-		// Just show the step
-		showStep(7);
-	}
-
-	/**
-	 * Load cover weights for selected binding
+	 * Load cover weights
 	 */
 	function loadCoverWeights() {
-		const $bindingSelect = $('#binding_type_v2');
-		const $coverSelect = $('#cover_weight_v2');
+		const $bindingSelect = $('#binding_type_wizard');
+		const $coverSelect = $('#cover_weight_wizard');
 		const selectedOption = $bindingSelect.find('option:selected');
 		const coverWeights = selectedOption.data('cover_weights');
 
@@ -504,7 +399,6 @@
 
 		if (!coverWeights || coverWeights.length === 0) {
 			$coverSelect.append('<option value="" disabled>هیچ گرماژ جلدی در دسترس نیست</option>');
-			showStep(8);
 			return;
 		}
 
@@ -515,12 +409,10 @@
 					.text(weightInfo.weight + ' گرم')
 			);
 		});
-
-		showStep(8);
 	}
 
 	/**
-	 * Load extras based on binding selection
+	 * Load extras
 	 */
 	function loadExtras() {
 		showLoading();
@@ -547,8 +439,7 @@
 					populateExtras([]);
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error:', error);
+			error: function() {
 				hideLoading();
 				populateExtras([]);
 			}
@@ -556,20 +447,19 @@
 	}
 
 	/**
-	 * Populate extras checkboxes
+	 * Populate extras
 	 */
 	function populateExtras(extras) {
-		const $container = $('#extras_container_v2');
+		const $container = $('#extras_container_wizard');
 		$container.empty();
 
 		if (!extras || extras.length === 0) {
-			$container.append('<p class="no-extras">هیچ خدمت اضافی برای این نوع صحافی موجود نیست.</p>');
+			$container.append('<p class="loading-text">هیچ خدمت اضافی برای این نوع صحافی موجود نیست</p>');
 			return;
 		}
 
 		extras.forEach(function(extra) {
-			const $label = $('<label></label>')
-				.addClass('tabesh-checkbox-v2');
+			const $label = $('<label></label>').addClass('extra-option');
 			
 			const $checkbox = $('<input>')
 				.attr('type', 'checkbox')
@@ -578,33 +468,24 @@
 				.data('price', extra.price)
 				.data('type', extra.type);
 			
-			const $span = $('<span></span>').text(extra.name);
+			const $card = $('<span></span>').addClass('extra-card');
+			const $check = $('<span></span>').addClass('extra-check');
+			const $name = $('<span></span>').addClass('extra-name').text(extra.name);
 			
-			$label.append($checkbox).append($span);
+			$card.append($check).append($name);
+			$label.append($checkbox).append($card);
 			$container.append($label);
 		});
 	}
 
 	/**
-	 * Update extras state from checkboxes
+	 * Update extras state
 	 */
 	function updateExtrasState() {
 		formState.extras = [];
-		$('#extras_container_v2 input[type="checkbox"]:checked').each(function() {
+		$('#extras_container_wizard input[type="checkbox"]:checked').each(function() {
 			formState.extras.push($(this).val());
 		});
-		console.log('Extras updated:', formState.extras);
-	}
-
-	/**
-	 * Helper function to distribute page count based on print type
-	 * Returns object with page_count_color and page_count_bw
-	 */
-	function getPageCountDistribution(printType, pageCount) {
-		return {
-			page_count_color: printType === 'color' ? pageCount : 0,
-			page_count_bw: printType === 'bw' ? pageCount : 0
-		};
 	}
 
 	/**
@@ -614,27 +495,26 @@
 		showLoading();
 		updateExtrasState();
 
-		// Get page count distribution based on print type
-		const pageDistribution = getPageCountDistribution(formState.print_type, formState.page_count);
+		// Get page count distribution
+		const pageDistribution = {
+			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
+			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0
+		};
 
-		// Transform V2 form data to legacy format expected by pricing engine
 		const priceData = {
 			book_size: formState.book_size,
 			paper_type: formState.paper_type,
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
-			// Split page count based on print type
 			page_count_color: pageDistribution.page_count_color,
 			page_count_bw: pageDistribution.page_count_bw,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
-			license_type: 'دارم', // Default value for V2 form
+			license_type: 'دارم',
 			extras: formState.extras
 		};
-
-		console.log('Calculating price for:', priceData);
 
 		$.ajax({
 			url: tabeshOrderFormV2.apiUrl + '/calculate-price',
@@ -646,19 +526,18 @@
 			data: JSON.stringify(priceData),
 			success: function(response) {
 				hideLoading();
-				console.log('Price response:', response);
 
 				if (response.success && response.data) {
 					displayPrice(response.data);
-					$('#submit-order-v2').show();
+					formState.calculated_price = response.data;
+					showMessage('قیمت با موفقیت محاسبه شد', 'success');
 				} else {
-					showError(response.message || 'خطا در محاسبه قیمت');
+					showMessage(response.message || 'خطا در محاسبه قیمت', 'error');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Price calculation error:', error);
+			error: function() {
 				hideLoading();
-				showError('خطا در محاسبه قیمت. لطفاً دوباره تلاش کنید.');
+				showMessage('خطا در محاسبه قیمت', 'error');
 			}
 		});
 	}
@@ -671,84 +550,80 @@
 			return new Intl.NumberFormat('fa-IR').format(price) + ' تومان';
 		};
 
-		$('#price-per-book-v2').text(formatPrice(priceData.price_per_book));
-		$('#price-quantity-v2').text(priceData.quantity);
-		$('#price-total-v2').text(formatPrice(priceData.total_price));
-
-		// Store calculated price in formState for order submission
-		formState.calculated_price = priceData;
-
-		// Show breakdown if available
-		if (priceData.breakdown) {
-			displayPriceBreakdown(priceData.breakdown);
-		}
+		$('#price_per_book').text(formatPrice(priceData.price_per_book));
+		$('#price_quantity').text(priceData.quantity);
+		$('#price_total').text(formatPrice(priceData.total_price));
 	}
 
 	/**
-	 * Display price breakdown
+	 * Update order review
 	 */
-	function displayPriceBreakdown(breakdown) {
-		const $container = $('#breakdown-content-v2');
-		$container.empty();
+	function updateOrderReview() {
+		const $review = $('#order_review');
+		$review.empty();
 
-		const formatPrice = function(price) {
-			return new Intl.NumberFormat('fa-IR').format(price) + ' تومان';
-		};
+		const items = [
+			{ label: 'عنوان کتاب', value: formState.book_title },
+			{ label: 'قطع کتاب', value: formState.book_size },
+			{ label: 'نوع کاغذ', value: formState.paper_type },
+			{ label: 'گرماژ کاغذ', value: formState.paper_weight + ' گرم' },
+			{ label: 'نوع چاپ', value: formState.print_type === 'bw' ? 'سیاه و سفید' : 'رنگی' },
+			{ label: 'تعداد صفحات', value: formState.page_count },
+			{ label: 'تیراژ', value: formState.quantity },
+			{ label: 'نوع صحافی', value: formState.binding_type },
+			{ label: 'گرماژ جلد', value: formState.cover_weight + ' گرم' }
+		];
 
-		if (breakdown.page_cost) {
-			$container.append(`<div class="breakdown-row"><span>هزینه صفحات:</span><span>${formatPrice(breakdown.page_cost)}</span></div>`);
-		}
-		if (breakdown.binding_cost) {
-			$container.append(`<div class="breakdown-row"><span>هزینه صحافی:</span><span>${formatPrice(breakdown.binding_cost)}</span></div>`);
-		}
-		if (breakdown.extras_cost) {
-			$container.append(`<div class="breakdown-row"><span>هزینه خدمات اضافی:</span><span>${formatPrice(breakdown.extras_cost)}</span></div>`);
+		if (formState.extras.length > 0) {
+			items.push({ label: 'خدمات اضافی', value: formState.extras.join('، ') });
 		}
 
-		$('#price-breakdown-v2').show();
+		items.forEach(function(item) {
+			const $item = $('<div></div>').addClass('review-item');
+			$item.append($('<span></span>').addClass('review-label').text(item.label));
+			$item.append($('<span></span>').addClass('review-value').text(item.value));
+			$review.append($item);
+		});
 	}
 
 	/**
-	 * Submit order
+	 * Handle form submission
 	 */
-	function submitOrder() {
-		if (!validateForm()) {
+	function handleSubmit() {
+		if (!validateStep(4)) {
 			return;
 		}
 
-		// Check if price was calculated
 		if (!formState.calculated_price) {
-			showError('لطفاً ابتدا قیمت را محاسبه کنید.');
+			showMessage('لطفاً ابتدا قیمت را محاسبه کنید', 'error');
 			return;
 		}
 
 		showLoading();
-		updateExtrasState();
 
-		// Get page count distribution based on print type
-		const pageDistribution = getPageCountDistribution(formState.print_type, formState.page_count);
+		// Get page count distribution
+		const pageDistribution = {
+			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
+			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0
+		};
 
-		// Transform V2 form data to legacy format expected by submit_order
 		const orderData = {
-			book_title: formState.book_title || $('#book_title_v2').val(),
+			book_title: formState.book_title,
 			book_size: formState.book_size,
 			paper_type: formState.paper_type,
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
-			// Split page count based on print type
 			page_count_color: pageDistribution.page_count_color,
 			page_count_bw: pageDistribution.page_count_bw,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
-			license_type: 'دارم', // Default value for V2 form
-			lamination_type: 'براق', // Default value for V2 form
+			license_type: 'دارم',
+			lamination_type: 'براق',
 			extras: formState.extras,
-			notes: $('#notes_v2').val()
+			notes: formState.notes
 		};
-
-		console.log('Submitting order:', orderData);
 
 		$.ajax({
 			url: tabeshOrderFormV2.apiUrl + '/submit-order',
@@ -760,129 +635,57 @@
 			data: JSON.stringify(orderData),
 			success: function(response) {
 				hideLoading();
-				console.log('Order submission response:', response);
 
 				if (response.success) {
-					showSuccess('سفارش شما با موفقیت ثبت شد!');
-					// Redirect to user orders page after a short delay
+					showMessage('سفارش شما با موفقیت ثبت شد!', 'success');
 					setTimeout(function() {
-						// Try to find user orders page, fallback to homepage
 						const redirectUrl = response.data?.redirect_url || 
 							(typeof tabeshOrderFormV2.userOrdersUrl !== 'undefined' ? tabeshOrderFormV2.userOrdersUrl : window.location.origin);
 						window.location.href = redirectUrl;
 					}, 2000);
 				} else {
-					showError(response.message || 'خطا در ثبت سفارش');
+					showMessage(response.message || 'خطا در ثبت سفارش', 'error');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Order submission error:', error);
-				console.error('Response:', xhr.responseJSON);
+			error: function(xhr) {
 				hideLoading();
-				
-				// Try to extract error message from response
-				const errorMessage = xhr.responseJSON?.message || 'خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.';
-				showError(errorMessage);
+				const errorMessage = xhr.responseJSON?.message || 'خطا در ثبت سفارش';
+				showMessage(errorMessage, 'error');
 			}
 		});
-	}
-
-	/**
-	 * Validate form before submission
-	 */
-	function validateForm() {
-		const requiredFields = {
-			'book_title_v2': 'عنوان کتاب',
-			'book_size_v2': 'قطع کتاب',
-			'paper_type_v2': 'نوع کاغذ',
-			'paper_weight_v2': 'گرماژ کاغذ',
-			'print_type_v2': 'نوع چاپ',
-			'page_count_v2': 'تعداد صفحات',
-			'quantity_v2': 'تیراژ',
-			'binding_type_v2': 'نوع صحافی',
-			'cover_weight_v2': 'گرماژ جلد'
-		};
-
-		for (const [fieldId, fieldName] of Object.entries(requiredFields)) {
-			const $field = $('#' + fieldId);
-			if (!$field.val()) {
-				showError(`لطفاً ${fieldName} را وارد کنید.`);
-				$field.focus();
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Show step
-	 */
-	function showStep(stepNumber) {
-		$('[data-step="' + stepNumber + '"]').fadeIn(300);
-	}
-
-	/**
-	 * Hide steps after given step number
-	 */
-	function hideStepsAfter(stepNumber) {
-		$('[data-step]').each(function() {
-			const step = parseInt($(this).data('step'), 10);
-			if (step > stepNumber) {
-				$(this).hide();
-			}
-		});
-	}
-
-	/**
-	 * Enable price calculation button
-	 */
-	function enablePriceCalculation() {
-		$('#calculate-price-v2').prop('disabled', false);
-	}
-
-	/**
-	 * Populate options from cache
-	 */
-	function populateOptionsFromCache(data) {
-		populatePaperTypes(data.allowed_papers);
-		populateBindingTypes(data.allowed_bindings);
-		showStep(3);
 	}
 
 	/**
 	 * Show loading overlay
 	 */
 	function showLoading() {
-		$('#form-loading-v2').fadeIn(200);
+		$('#wizard-loading').fadeIn(200);
 	}
 
 	/**
 	 * Hide loading overlay
 	 */
 	function hideLoading() {
-		$('#form-loading-v2').fadeOut(200);
+		$('#wizard-loading').fadeOut(200);
 	}
 
 	/**
-	 * Show error message
+	 * Show message
 	 */
-	function showError(message) {
-		const $messages = $('#form-messages-v2');
-		$messages.html('<div class="tabesh-message error"><p>' + message + '</p></div>');
-		$messages.fadeIn(300);
+	function showMessage(message, type) {
+		const $messages = $('#wizard-messages');
+		const $message = $('<div></div>')
+			.addClass('wizard-message')
+			.addClass(type)
+			.text(message);
+		
+		$messages.append($message);
+
 		setTimeout(function() {
-			$messages.fadeOut(300);
+			$message.fadeOut(300, function() {
+				$(this).remove();
+			});
 		}, 5000);
 	}
 
-	/**
-	 * Show success message
-	 */
-	function showSuccess(message) {
-		const $messages = $('#form-messages-v2');
-		$messages.html('<div class="tabesh-message success"><p>' + message + '</p></div>');
-		$messages.fadeIn(300);
-	}
-
-})(jQuery);;
+})(jQuery);
