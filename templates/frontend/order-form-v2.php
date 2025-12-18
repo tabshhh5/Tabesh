@@ -24,10 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 try {
 	$constraint_manager = new Tabesh_Constraint_Manager();
 	$available_sizes    = $constraint_manager->get_available_book_sizes();
+	
+	// Log for debugging if WP_DEBUG is enabled
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( 'Tabesh Order Form V2: Available book sizes count: ' . count( $available_sizes ) );
+		if ( empty( $available_sizes ) ) {
+			error_log( 'Tabesh Order Form V2: WARNING - No book sizes configured in pricing matrix' );
+		}
+	}
 } catch ( Exception $e ) {
 	// Log the error for debugging.
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		error_log( 'Tabesh Order Form V2 Error: ' . $e->getMessage() );
+		error_log( 'Tabesh Order Form V2 Stack trace: ' . $e->getTraceAsString() );
 	}
 	// Set empty array to show error message in form.
 	$available_sizes = array();

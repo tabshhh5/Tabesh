@@ -1929,6 +1929,12 @@ final class Tabesh {
 		$book_size         = sanitize_text_field( $params['book_size'] ?? '' );
 		$current_selection = $params['current_selection'] ?? array();
 
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Tabesh V2 API: get_allowed_options called for book_size: ' . $book_size );
+			error_log( 'Tabesh V2 API: current_selection: ' . wp_json_encode( $current_selection ) );
+		}
+
 		if ( empty( $book_size ) ) {
 			return new WP_REST_Response(
 				array(
@@ -1942,6 +1948,9 @@ final class Tabesh {
 		// Check if V2 engine is enabled.
 		$pricing_engine = new Tabesh_Pricing_Engine();
 		if ( ! $pricing_engine->is_enabled() ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Tabesh V2 API: Pricing Engine V2 is NOT enabled' );
+			}
 			return new WP_REST_Response(
 				array(
 					'success' => false,
@@ -1964,6 +1973,12 @@ final class Tabesh {
 
 		$constraint_manager = new Tabesh_Constraint_Manager();
 		$options            = $constraint_manager->get_allowed_options( $current_selection, $book_size );
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Tabesh V2 API: Options returned - papers count: ' . count( $options['allowed_papers'] ?? array() ) );
+			error_log( 'Tabesh V2 API: Options returned - bindings count: ' . count( $options['allowed_bindings'] ?? array() ) );
+		}
 
 		if ( isset( $options['error'] ) && $options['error'] ) {
 			return new WP_REST_Response(
@@ -2373,9 +2388,10 @@ final class Tabesh {
 			'tabesh-order-form-v2',
 			'tabeshOrderFormV2',
 			array(
-				'apiUrl' => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'  => wp_create_nonce( 'wp_rest' ),
-				'i18n'   => array(
+				'apiUrl'         => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'userOrdersUrl'  => home_url( '/user-orders/' ), // Default redirect after order submission
+				'i18n'           => array(
 					'loading'       => __( 'در حال بارگذاری...', 'tabesh' ),
 					'calculating'   => __( 'در حال محاسبه قیمت...', 'tabesh' ),
 					'submitting'    => __( 'در حال ثبت سفارش...', 'tabesh' ),
