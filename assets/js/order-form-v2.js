@@ -23,7 +23,7 @@
 		extras: [],
 		book_title: '',
 		notes: '',
-		calculated_price: null  // Store calculated price for order submission
+		calculated_price: null  // Store complete price calculation response for order submission validation
 	};
 
 	// Cache for allowed options to reduce API calls
@@ -486,11 +486,25 @@
 	}
 
 	/**
+	 * Helper function to distribute page count based on print type
+	 * Returns object with page_count_color and page_count_bw
+	 */
+	function getPageCountDistribution(printType, pageCount) {
+		return {
+			page_count_color: printType === 'color' ? pageCount : 0,
+			page_count_bw: printType === 'bw' ? pageCount : 0
+		};
+	}
+
+	/**
 	 * Calculate price
 	 */
 	function calculatePrice() {
 		showLoading();
 		updateExtrasState();
+
+		// Get page count distribution based on print type
+		const pageDistribution = getPageCountDistribution(formState.print_type, formState.page_count);
 
 		// Transform V2 form data to legacy format expected by pricing engine
 		const priceData = {
@@ -499,8 +513,8 @@
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
 			// Split page count based on print type
-			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
-			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0,
+			page_count_color: pageDistribution.page_count_color,
+			page_count_bw: pageDistribution.page_count_bw,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
@@ -600,6 +614,9 @@
 		showLoading();
 		updateExtrasState();
 
+		// Get page count distribution based on print type
+		const pageDistribution = getPageCountDistribution(formState.print_type, formState.page_count);
+
 		// Transform V2 form data to legacy format expected by submit_order
 		const orderData = {
 			book_title: formState.book_title || $('#book_title_v2').val(),
@@ -608,8 +625,8 @@
 			paper_weight: formState.paper_weight,
 			print_type: formState.print_type,
 			// Split page count based on print type
-			page_count_color: formState.print_type === 'color' ? formState.page_count : 0,
-			page_count_bw: formState.print_type === 'bw' ? formState.page_count : 0,
+			page_count_color: pageDistribution.page_count_color,
+			page_count_bw: pageDistribution.page_count_bw,
 			quantity: formState.quantity,
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
