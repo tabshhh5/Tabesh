@@ -729,4 +729,4 @@
 		$messages.fadeIn(300);
 	}
 
-})(jQuery);
+})(jQuery);;
