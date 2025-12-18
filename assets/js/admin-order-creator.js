@@ -14,6 +14,7 @@
     let calculatedPrice = null;
     let selectedUserId = null;
     let calculatedUnitPriceTomans = null;
+    let priceCalculationRequest = null; // Store current AJAX request for cancellation
 
     $(document).ready(function() {
         initModal();
@@ -399,10 +400,17 @@
             return;
         }
 
+        // Cancel any pending price calculation request to prevent race conditions
+        if (priceCalculationRequest && priceCalculationRequest.abort) {
+            console.log('Tabesh Admin Order Creator: Cancelling previous price calculation request');
+            priceCalculationRequest.abort();
+            priceCalculationRequest = null;
+        }
+
         const $btn = $('#calculate-price-btn');
         $btn.prop('disabled', true).text(tabeshAdminOrderCreator.strings.calculating);
 
-        $.ajax({
+        priceCalculationRequest = $.ajax({
             url: tabeshAdminOrderCreator.restUrl + '/calculate-price',
             method: 'POST',
             contentType: 'application/json',
@@ -415,7 +423,13 @@
                     displayCalculatedPrice(response.data);
                 }
             },
-            error: function(xhr) {
+            error: function(xhr, status) {
+                // Ignore aborted requests (they are intentional cancellations)
+                if (status === 'abort') {
+                    console.log('Tabesh Admin Order Creator: Price calculation request was cancelled');
+                    return;
+                }
+                
                 const message = xhr.responseJSON && xhr.responseJSON.message 
                     ? xhr.responseJSON.message 
                     : 'خطا در محاسبه قیمت';
@@ -423,6 +437,7 @@
             },
             complete: function() {
                 $btn.prop('disabled', false).text('محاسبه قیمت');
+                priceCalculationRequest = null; // Clear the request reference
             }
         });
     }

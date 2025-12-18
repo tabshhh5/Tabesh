@@ -17,6 +17,7 @@
     let calculatedPrice = null;
     let selectedUserId = null;
     let calculatedUnitPriceTomans = null;
+    let priceCalculationRequest = null; // Store current AJAX request for cancellation
 
     /**
      * Initialize when document is ready
@@ -549,13 +550,20 @@
             return;
         }
 
+        // Cancel any pending price calculation request to prevent race conditions
+        if (priceCalculationRequest && priceCalculationRequest.abort) {
+            console.log('Tabesh Admin Order Form: Cancelling previous price calculation request');
+            priceCalculationRequest.abort();
+            priceCalculationRequest = null;
+        }
+
         const $btn = $('#aof-calculate-btn');
         $btn.prop('disabled', true).html(
             '<span class="dashicons dashicons-update spin"></span> ' +
             tabeshAdminOrderForm.strings.calculating
         );
 
-        $.ajax({
+        priceCalculationRequest = $.ajax({
             url: tabeshAdminOrderForm.restUrl + '/calculate-price',
             method: 'POST',
             contentType: 'application/json',
@@ -568,7 +576,13 @@
                     displayCalculatedPrice(response.data);
                 }
             },
-            error: function(xhr) {
+            error: function(xhr, status) {
+                // Ignore aborted requests (they are intentional cancellations)
+                if (status === 'abort') {
+                    console.log('Tabesh Admin Order Form: Price calculation request was cancelled');
+                    return;
+                }
+                
                 const message = xhr.responseJSON && xhr.responseJSON.message 
                     ? xhr.responseJSON.message 
                     : tabeshAdminOrderForm.strings.error;
@@ -579,6 +593,7 @@
                     '<span class="dashicons dashicons-calculator"></span> ' +
                     tabeshAdminOrderForm.strings.calculatePrice
                 );
+                priceCalculationRequest = null; // Clear the request reference
             }
         });
     }
