@@ -84,12 +84,24 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 					<select id="book_size_v2" name="book_size" required class="tabesh-select-v2">
 						<option value=""><?php echo esc_html__( 'انتخاب کنید...', 'tabesh' ); ?></option>
 						<?php foreach ( $available_sizes as $size_info ) : ?>
-							<option value="<?php echo esc_attr( $size_info['size'] ); ?>">
-								<?php echo esc_html( $size_info['size'] ); ?>
+							<option value="<?php echo esc_attr( $size_info['size'] ); ?>" 
+								<?php echo ! $size_info['enabled'] ? 'disabled' : ''; ?>>
+								<?php 
+								echo esc_html( $size_info['size'] );
+								if ( ! $size_info['enabled'] ) {
+									echo ' ' . esc_html__( '(قیمت‌گذاری نشده)', 'tabesh' );
+								}
+								?>
 							</option>
 						<?php endforeach; ?>
 					</select>
-					<p class="tabesh-field-hint"><?php echo esc_html__( 'پس از انتخاب قطع، گزینه‌های مجاز نمایش داده می‌شوند.', 'tabesh' ); ?></p>
+					<p class="tabesh-field-hint">
+						<?php echo esc_html__( 'پس از انتخاب قطع، گزینه‌های مجاز نمایش داده می‌شوند.', 'tabesh' ); ?>
+						<?php if ( count( array_filter( $available_sizes, function( $s ) { return ! $s['enabled']; } ) ) > 0 ) : ?>
+							<br><strong><?php echo esc_html__( 'توجه:', 'tabesh' ); ?></strong> 
+							<?php echo esc_html__( 'قطع‌های غیرفعال نیاز به قیمت‌گذاری در پنل مدیریت دارند.', 'tabesh' ); ?>
+						<?php endif; ?>
+					</p>
 				</div>
 			</div>
 

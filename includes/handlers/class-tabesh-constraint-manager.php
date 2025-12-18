@@ -447,27 +447,88 @@ class Tabesh_Constraint_Manager {
 	 * Get available book sizes with their allowed options
 	 *
 	 * This is useful for the initial form load to show all valid book sizes.
+	 * 
+	 * FIXED: Now returns ALL book sizes from product parameters, with pricing
+	 * status indicated. This prevents the form from only showing corrupted entries.
 	 *
-	 * @return array Array of book sizes with their basic constraints.
+	 * @return array Array of book sizes with their basic constraints and pricing status.
 	 */
 	public function get_available_book_sizes() {
+		// Get ALL book sizes from product parameters (source of truth)
+		$all_book_sizes = $this->get_book_sizes_from_product_parameters();
+		
+		// Get book sizes that have pricing configured
 		$configured_sizes = $this->pricing_engine->get_configured_book_sizes();
 
 		$result = array();
-		foreach ( $configured_sizes as $size ) {
-			$allowed_options = $this->get_allowed_options( array(), $size );
+		foreach ( $all_book_sizes as $size ) {
+			// Check if this size has pricing configured
+			$has_pricing = in_array( $size, $configured_sizes, true );
+			
+			if ( $has_pricing ) {
+				// Get allowed options for sizes with pricing
+				$allowed_options = $this->get_allowed_options( array(), $size );
 
-			if ( ! isset( $allowed_options['error'] ) ) {
+				if ( ! isset( $allowed_options['error'] ) ) {
+					$result[] = array(
+						'size'             => $size,
+						'slug'             => $this->slugify( $size ),
+						'paper_count'      => count( $allowed_options['allowed_papers'] ?? array() ),
+						'binding_count'    => count( $allowed_options['allowed_bindings'] ?? array() ),
+						'has_restrictions' => ! empty( $allowed_options['allowed_papers'] ) || ! empty( $allowed_options['allowed_bindings'] ),
+						'has_pricing'      => true,
+						'enabled'          => true,
+					);
+				}
+			} else {
+				// Include sizes without pricing but mark them as disabled
 				$result[] = array(
 					'size'             => $size,
 					'slug'             => $this->slugify( $size ),
-					'paper_count'      => count( $allowed_options['allowed_papers'] ?? array() ),
-					'binding_count'    => count( $allowed_options['allowed_bindings'] ?? array() ),
-					'has_restrictions' => ! empty( $allowed_options['allowed_papers'] ) || ! empty( $allowed_options['allowed_bindings'] ),
+					'paper_count'      => 0,
+					'binding_count'    => 0,
+					'has_restrictions' => false,
+					'has_pricing'      => false,
+					'enabled'          => false,
 				);
 			}
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get book sizes from product parameters (source of truth)
+	 * 
+	 * This is the authoritative source for which book sizes exist in the system.
+	 *
+	 * @return array Array of book size names.
+	 */
+	private function get_book_sizes_from_product_parameters() {
+		global $wpdb;
+		$table_settings = $wpdb->prefix . 'tabesh_settings';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+				'book_sizes'
+			)
+		);
+
+		$book_sizes = array();
+		if ( $result ) {
+			$decoded = json_decode( $result, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$book_sizes = $decoded;
+			}
+		}
+
+		// Return configured sizes or defaults if not configured
+		if ( empty( $book_sizes ) ) {
+			return array( 'A5', 'A4', 'B5', 'رقعی', 'وزیری', 'خشتی' );
+		}
+
+		return $book_sizes;
 	}
 }
