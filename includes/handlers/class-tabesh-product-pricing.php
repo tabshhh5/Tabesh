@@ -350,8 +350,11 @@ class Tabesh_Product_Pricing {
 			}
 		}
 
-		// Parse forbidden extras from inline toggles
-		// Format: restrictions[forbidden_extras][binding_type][extra_service] = "0" (checked = enabled)
+		// Parse forbidden extras from inline toggles.
+		// Format: restrictions[forbidden_extras][binding_type][extra_service] = "0"
+		// Logic: If checkbox is CHECKED, it's in POST data (enabled for that binding type).
+		// If checkbox is UNCHECKED, it's NOT in POST data (disabled/forbidden for that binding type).
+		// We track which combinations are enabled, then infer which are forbidden.
 		if ( isset( $data['forbidden_extras'] ) && is_array( $data['forbidden_extras'] ) ) {
 			$enabled_extras_combinations = array();
 
@@ -365,7 +368,8 @@ class Tabesh_Product_Pricing {
 				foreach ( $extras_data as $extra_service => $value ) {
 					$extra_service = sanitize_text_field( $extra_service );
 
-					// If checkbox exists in POST (value = "0"), it means it's ENABLED
+					// If checkbox exists in POST data, it means the checkbox was CHECKED (enabled).
+					// The value "0" is arbitrary - we only care that the key exists in POST.
 					if ( ! isset( $enabled_extras_combinations[ $binding_type ] ) ) {
 						$enabled_extras_combinations[ $binding_type ] = array();
 					}

@@ -373,7 +373,7 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 										<div class="binding-toggle-item">
 											<label class="binding-toggle-label">
 												<span class="binding-name"><?php echo esc_html( $binding_type ); ?></span>
-												<label class="toggle-switch-inline">
+												<span class="toggle-switch-inline">
 													<input type="checkbox" 
 															name="restrictions[forbidden_extras][<?php echo esc_attr( $binding_type ); ?>][<?php echo esc_attr( $service ); ?>]" 
 															value="0"
@@ -382,7 +382,7 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 															data-extra="<?php echo esc_attr( $service ); ?>"
 															<?php checked( ! $is_forbidden ); ?>>
 													<span class="toggle-slider-inline"></span>
-												</label>
+												</span>
 												<span class="status-badge <?php echo $is_forbidden ? 'status-disabled' : 'status-enabled'; ?>">
 													<?php echo $is_forbidden ? esc_html__( 'غیرفعال', 'tabesh' ) : esc_html__( 'فعال', 'tabesh' ); ?>
 												</span>
