@@ -105,6 +105,33 @@ class Tabesh_Product_Pricing {
 			return;
 		}
 
+		// CRITICAL FIX: Validate book size against product parameters (source of truth)
+		// This prevents random IDs from being saved to the database
+		$valid_book_sizes = $this->get_valid_book_sizes_from_settings();
+		if ( ! in_array( $book_size, $valid_book_sizes, true ) ) {
+			echo '<div class="tabesh-error">' . esc_html(
+				sprintf(
+					/* translators: 1: invalid book size, 2: comma-separated list of valid sizes */
+					__( 'خطا: قطع "%1$s" معتبر نیست. قطع‌های مجاز: %2$s', 'tabesh' ),
+					$book_size,
+					implode( '، ', $valid_book_sizes )
+				)
+			) . '</div>';
+
+			// Log this security issue
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log(
+					sprintf(
+						'Tabesh Security: Attempted to save invalid book_size "%s". Valid sizes: %s',
+						$book_size,
+						implode( ', ', $valid_book_sizes )
+					)
+				);
+			}
+
+			return;
+		}
+
 		// Build pricing matrix from POST data
 		$matrix = array(
 			'book_size'            => $book_size,
@@ -454,6 +481,26 @@ class Tabesh_Product_Pricing {
 		$configured_sizes = $this->pricing_engine->get_configured_book_sizes();
 
 		// Get default sizes from admin settings (main book_sizes setting)
+		$admin_sizes = $this->get_valid_book_sizes_from_settings();
+
+		// Default sizes if nothing configured
+		if ( empty( $configured_sizes ) && empty( $admin_sizes ) ) {
+			return array( 'A5', 'A4', 'B5', 'رقعی', 'وزیری', 'خشتی' );
+		}
+
+		// Merge configured V2 sizes and admin setting sizes
+		$all_sizes = array_unique( array_merge( $configured_sizes, $admin_sizes ) );
+
+		return $all_sizes;
+	}
+
+	/**
+	 * Get valid book sizes from product parameters (source of truth)
+	 * This is used for validation to prevent data corruption
+	 *
+	 * @return array Array of valid book sizes
+	 */
+	private function get_valid_book_sizes_from_settings() {
 		global $wpdb;
 		$table_settings = $wpdb->prefix . 'tabesh_settings';
 
@@ -473,15 +520,12 @@ class Tabesh_Product_Pricing {
 			}
 		}
 
-		// Default sizes if nothing configured
-		if ( empty( $configured_sizes ) && empty( $admin_sizes ) ) {
+		// Return admin sizes or default if not configured
+		if ( empty( $admin_sizes ) ) {
 			return array( 'A5', 'A4', 'B5', 'رقعی', 'وزیری', 'خشتی' );
 		}
 
-		// Merge configured V2 sizes and admin setting sizes
-		$all_sizes = array_unique( array_merge( $configured_sizes, $admin_sizes ) );
-
-		return $all_sizes;
+		return $admin_sizes;
 	}
 
 	/**
