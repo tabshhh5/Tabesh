@@ -37,6 +37,7 @@
             this.totalSteps = 12;
             this.formData = {};
             this.paperTypes = {};
+            this.priceCalculationRequest = null; // Store current AJAX request for cancellation
             
             this.init();
         }
@@ -466,6 +467,13 @@
                     return;
                 }
 
+                // Cancel any pending price calculation request to prevent race conditions
+                if (this.priceCalculationRequest && this.priceCalculationRequest.abort) {
+                    console.log('Tabesh: Cancelling previous price calculation request');
+                    this.priceCalculationRequest.abort();
+                    this.priceCalculationRequest = null;
+                }
+
                 // Show loading
                 this.$calculateBtn.prop('disabled', true).html('<span class="tabesh-loading"></span> در حال محاسبه...');
                 
@@ -476,8 +484,8 @@
                 console.log('Tabesh: Request data:', JSON.stringify(this.formData));
                 console.log('Tabesh: Extras in request:', this.formData.extras);
 
-                // Call API
-                $.ajax({
+                // Call API and store request for cancellation
+                this.priceCalculationRequest = $.ajax({
                     url: requestUrl,
                     method: 'POST',
                     contentType: 'application/json',
@@ -496,6 +504,12 @@
                         }
                     },
                     error: (xhr, status, error) => {
+                        // Ignore aborted requests (they are intentional cancellations)
+                        if (status === 'abort') {
+                            console.log('Tabesh: Price calculation request was cancelled');
+                            return;
+                        }
+                        
                         console.error('Tabesh AJAX error:', {xhr, status, error});
                         console.error('Response text:', xhr.responseText);
                         let errorMessage = 'خطا در برقراری ارتباط با سرور';
@@ -511,6 +525,7 @@
                     },
                     complete: () => {
                         this.$calculateBtn.prop('disabled', false).text('محاسبه قیمت');
+                        this.priceCalculationRequest = null; // Clear the request reference
                     }
                 });
             } catch (e) {

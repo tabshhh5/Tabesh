@@ -280,8 +280,17 @@ class Tabesh_Pricing_Engine {
 			);
 		}
 
-		// Step 1: Validate parameter combination is allowed
-		$validation = $this->validate_parameters( $book_size, $paper_type, $paper_weight, $print_type, $binding_type, $cover_weight );
+		// Step 1: Validate parameter combination is allowed and exists in matrix
+		$validation = $this->validate_parameters(
+			$book_size,
+			$paper_type,
+			$paper_weight,
+			$print_type,
+			$binding_type,
+			$cover_weight,
+			$page_count_bw,
+			$page_count_color
+		);
 		if ( ! $validation['allowed'] ) {
 			return array(
 				'error'   => true,
@@ -435,17 +444,24 @@ class Tabesh_Pricing_Engine {
 	}
 
 	/**
-	 * Validate that parameter combination is allowed for this book size
+	 * Validate that the complete parameter combination exists in pricing matrix
+	 * and is allowed for this book size.
 	 *
-	 * @param string $book_size Book size
-	 * @param string $paper_type Paper type
-	 * @param string $paper_weight Paper weight
-	 * @param string $print_type Print type
-	 * @param string $binding_type Binding type
-	 * @param string $cover_weight Cover paper weight (optional)
-	 * @return array Validation result with 'allowed' and 'message' keys
+	 * This method performs comprehensive validation in two stages:
+	 * 1. Check if combination is forbidden by restrictions.
+	 * 2. Check if combination exists in pricing matrix (has configured prices).
+	 *
+	 * @param string $book_size Book size.
+	 * @param string $paper_type Paper type.
+	 * @param string $paper_weight Paper weight.
+	 * @param string $print_type Print type (not currently used in V2, kept for future).
+	 * @param string $binding_type Binding type.
+	 * @param string $cover_weight Cover paper weight (optional).
+	 * @param int    $page_count_bw Black & white page count.
+	 * @param int    $page_count_color Color page count.
+	 * @return array Validation result with 'allowed' and 'message' keys.
 	 */
-	private function validate_parameters( $book_size, $paper_type, $paper_weight, $print_type, $binding_type, $cover_weight = '' ) {
+	private function validate_parameters( $book_size, $paper_type, $paper_weight, $print_type, $binding_type, $cover_weight = '', $page_count_bw = 0, $page_count_color = 0 ) {
 		$pricing_matrix = $this->get_pricing_matrix( $book_size );
 
 		if ( ! $pricing_matrix ) {
@@ -455,8 +471,7 @@ class Tabesh_Pricing_Engine {
 			);
 		}
 
-		// Check restrictions
-		$restrictions = $pricing_matrix['restrictions'] ?? array();
+		// Stage 1: Check restrictions (forbidden combinations).
 
 		// Check if this paper type is forbidden
 		$forbidden_papers = $restrictions['forbidden_paper_types'] ?? array();
@@ -490,7 +505,7 @@ class Tabesh_Pricing_Engine {
 			);
 		}
 
-		// Check if this cover weight is forbidden for this binding type
+		// Check if this cover weight is forbidden for this binding type.
 		if ( ! empty( $cover_weight ) ) {
 			$forbidden_cover_weights = $restrictions['forbidden_cover_weights'][ $binding_type ] ?? array();
 			if ( in_array( $cover_weight, $forbidden_cover_weights, true ) ) {
@@ -506,7 +521,141 @@ class Tabesh_Pricing_Engine {
 			}
 		}
 
+		// Stage 2: Validate combination exists in pricing matrix.
+		// This prevents returning zero price when configuration is missing.
+		$validation_result = $this->validate_combination_exists(
+			$pricing_matrix,
+			$book_size,
+			$paper_type,
+			$paper_weight,
+			$binding_type,
+			$cover_weight,
+			$page_count_bw,
+			$page_count_color
+		);
+
+		if ( ! $validation_result['exists'] ) {
+			return array(
+				'allowed' => false,
+				'message' => $validation_result['message'],
+			);
+		}
+
 		return array( 'allowed' => true );
+	}
+
+	/**
+	 * Validate that a specific combination exists in the pricing matrix.
+	 *
+	 * This method checks if all required pricing data is configured for the
+	 * requested combination. This prevents returning zero or incorrect prices
+	 * when parameters are missing from the matrix.
+	 *
+	 * @param array  $pricing_matrix Pricing matrix for book size.
+	 * @param string $book_size Book size.
+	 * @param string $paper_type Paper type.
+	 * @param string $paper_weight Paper weight.
+	 * @param string $binding_type Binding type.
+	 * @param string $cover_weight Cover weight (optional).
+	 * @param int    $page_count_bw Black & white page count.
+	 * @param int    $page_count_color Color page count.
+	 * @return array Result with 'exists' boolean and 'message' string.
+	 */
+	private function validate_combination_exists( $pricing_matrix, $book_size, $paper_type, $paper_weight, $binding_type, $cover_weight, $page_count_bw, $page_count_color ) {
+		$page_costs    = $pricing_matrix['page_costs'] ?? array();
+		$binding_costs = $pricing_matrix['binding_costs'] ?? array();
+
+		// Check if paper type exists in matrix.
+		if ( ! isset( $page_costs[ $paper_type ] ) ) {
+			return array(
+				'exists'  => false,
+				'message' => sprintf(
+					/* translators: 1: paper type, 2: book size */
+					__( 'نوع کاغذ "%1$s" برای قطع %2$s در سیستم قیمت‌گذاری تنظیم نشده است. لطفا با مدیر سیستم تماس بگیرید.', 'tabesh' ),
+					$paper_type,
+					$book_size
+				),
+			);
+		}
+
+		// Check if paper weight exists for this paper type.
+		if ( ! isset( $page_costs[ $paper_type ][ $paper_weight ] ) ) {
+			return array(
+				'exists'  => false,
+				'message' => sprintf(
+					/* translators: 1: paper weight, 2: paper type, 3: book size */
+					__( 'گرماژ %1$s برای کاغذ %2$s در قطع %3$s تنظیم نشده است. لطفا گرماژ دیگری را انتخاب کنید.', 'tabesh' ),
+					$paper_weight,
+					$paper_type,
+					$book_size
+				),
+			);
+		}
+
+		// Check if required print types (bw/color) are configured.
+		$weight_costs = $page_costs[ $paper_type ][ $paper_weight ];
+
+		if ( $page_count_bw > 0 && ! isset( $weight_costs['bw'] ) ) {
+			return array(
+				'exists'  => false,
+				'message' => sprintf(
+					/* translators: 1: paper type, 2: paper weight, 3: book size */
+					__( 'قیمت چاپ سیاه و سفید برای کاغذ %1$s گرماژ %2$s در قطع %3$s تنظیم نشده است.', 'tabesh' ),
+					$paper_type,
+					$paper_weight,
+					$book_size
+				),
+			);
+		}
+
+		if ( $page_count_color > 0 && ! isset( $weight_costs['color'] ) ) {
+			return array(
+				'exists'  => false,
+				'message' => sprintf(
+					/* translators: 1: paper type, 2: paper weight, 3: book size */
+					__( 'قیمت چاپ رنگی برای کاغذ %1$s گرماژ %2$s در قطع %3$s تنظیم نشده است.', 'tabesh' ),
+					$paper_type,
+					$paper_weight,
+					$book_size
+				),
+			);
+		}
+
+		// Check if binding type exists in matrix.
+		if ( ! isset( $binding_costs[ $binding_type ] ) ) {
+			return array(
+				'exists'  => false,
+				'message' => sprintf(
+					/* translators: 1: binding type, 2: book size */
+					__( 'نوع صحافی "%1$s" برای قطع %2$s در سیستم قیمت‌گذاری تنظیم نشده است. لطفا نوع صحافی دیگری را انتخاب کنید.', 'tabesh' ),
+					$binding_type,
+					$book_size
+				),
+			);
+		}
+
+		// For new structure with cover weights, check if the specific weight is configured.
+		$binding_data = $binding_costs[ $binding_type ];
+		if ( is_array( $binding_data ) && ! empty( $cover_weight ) ) {
+			if ( ! isset( $binding_data[ $cover_weight ] ) ) {
+				// Get available weights for helpful error message.
+				$available_weights = array_keys( $binding_data );
+				return array(
+					'exists'  => false,
+					'message' => sprintf(
+						/* translators: 1: cover weight, 2: binding type, 3: book size, 4: available weights */
+						__( 'گرماژ جلد %1$s برای صحافی %2$s در قطع %3$s تنظیم نشده است. گرماژهای موجود: %4$s', 'tabesh' ),
+						$cover_weight,
+						$binding_type,
+						$book_size,
+						implode( '، ', $available_weights )
+					),
+				);
+			}
+		}
+
+		// All validations passed.
+		return array( 'exists' => true );
 	}
 
 	/**
