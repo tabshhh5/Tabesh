@@ -1,21 +1,41 @@
 <?php
+<?php
 /**
  * Test script for Pricing Health Checker
  *
  * This script tests the health checker functionality and displays the results.
  * 
- * Usage: Place this file in your WordPress root and access via browser:
- * https://yoursite.com/test-health-checker.php
+ * SECURITY: This file should only be used in development/staging environments.
+ * Delete or move outside web root in production.
  *
  * @package Tabesh
  */
 
-// Load WordPress
-require_once __DIR__ . '/../../wp-load.php';
+// Security: Prevent direct execution
+if ( ! defined( 'ABSPATH' ) ) {
+	// Try to load WordPress
+	$wp_load_paths = array(
+		dirname( dirname( __DIR__ ) ) . '/wp-load.php', // Standard plugin location
+		dirname( dirname( dirname( dirname( __DIR__ ) ) ) ) . '/wp-load.php', // Alternative location
+	);
+
+	$loaded = false;
+	foreach ( $wp_load_paths as $wp_load ) {
+		if ( file_exists( $wp_load ) ) {
+			require_once $wp_load;
+			$loaded = true;
+			break;
+		}
+	}
+
+	if ( ! $loaded ) {
+		wp_die( 'Could not load WordPress. Please ensure this file is in the correct location.' );
+	}
+}
 
 // Check if user is admin
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( 'شما دسترسی به این صفحه را ندارید' );
+	wp_die( 'شما دسترسی به این صفحه را ندارید / You do not have access to this page.' );
 }
 
 ?>

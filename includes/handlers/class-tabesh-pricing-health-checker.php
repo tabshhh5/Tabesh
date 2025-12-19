@@ -741,7 +741,7 @@ class Tabesh_Pricing_Health_Checker {
 		if ( empty( $book_sizes ) ) {
 			return array(
 				'status'  => true,
-				'message' => __( 'بررسی اکتمال لغو شد: قطعی تعریف نشده', 'tabesh' ),
+				'message' => __( 'بررسی اکمال لغو شد: قطعی تعریف نشده', 'tabesh' ),
 				'level'   => 'success',
 			);
 		}
