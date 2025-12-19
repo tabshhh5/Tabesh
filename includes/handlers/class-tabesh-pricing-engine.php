@@ -52,28 +52,28 @@ class Tabesh_Pricing_Engine {
 
 	/**
 	 * Decode book size key from database-safe format
-	 * 
+	 *
 	 * Handles both base64-encoded keys (new format) and legacy keys.
 	 * Validates the decoded result to ensure it's a reasonable book size string.
-	 * 
+	 *
 	 * @param string $safe_key The database key with pricing_matrix_ prefix removed.
 	 * @return string The original book size name.
 	 */
 	private function decode_book_size_key( $safe_key ) {
 		// Try base64 decoding first (new format).
 		$decoded = base64_decode( $safe_key, true );
-		
+
 		// Validate decoded result.
 		if ( false !== $decoded && $this->is_valid_book_size_string( $decoded ) ) {
 			return $decoded;
 		}
-		
+
 		// Legacy key format - not base64 encoded.
 		// Still validate it's reasonable.
 		if ( $this->is_valid_book_size_string( $safe_key ) ) {
 			return $safe_key;
 		}
-		
+
 		// If neither format is valid, log warning and return as-is.
 		// This allows system to continue functioning even with unexpected keys.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -84,13 +84,13 @@ class Tabesh_Pricing_Engine {
 				)
 			);
 		}
-		
+
 		return $safe_key;
 	}
 
 	/**
 	 * Validate that a string looks like a reasonable book size name
-	 * 
+	 *
 	 * @param string $str The string to validate.
 	 * @return bool True if valid, false otherwise.
 	 */
@@ -110,6 +110,60 @@ class Tabesh_Pricing_Engine {
 			strlen( $str ) <= 50 && // Reasonable max length.
 			preg_match( '/^[\p{L}\p{N}\s\-_.()]+$/u', $str )
 		);
+	}
+
+	/**
+	 * Normalize book size name for consistent key generation
+	 *
+	 * Removes descriptions and dimensions in parentheses to ensure
+	 * consistent matching between product parameters and pricing matrices.
+	 *
+	 * Examples:
+	 * - "رقعی (14×20)" → "رقعی"
+	 * - "وزیری (توضیحات)" → "وزیری"
+	 * - "A5 (148×210)" → "A5"
+	 * - "B5" → "B5" (no change)
+	 *
+	 * @param string $book_size Raw book size name (may include descriptions).
+	 * @return string Normalized book size name (without parenthetical content).
+	 */
+	public function normalize_book_size_key( $book_size ) {
+		// Remove anything in parentheses including the parentheses
+		// Pattern: \s*\([^)]*\) matches space + opening paren + non-closing-paren content + closing paren
+		// Note: This handles simple parentheses. Nested parentheses are not expected in book size names.
+		// If nested parentheses are found, only the outermost will be removed in one pass.
+		$normalized = preg_replace( '/\s*\([^)]*\)/', '', $book_size );
+
+		// Trim any leading/trailing whitespace
+		$normalized = trim( $normalized );
+
+		// Validate result is not empty
+		if ( empty( $normalized ) ) {
+			// If normalization results in empty string, return original
+			// This prevents data loss from malformed input like "(description only)"
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log(
+					sprintf(
+						'Tabesh WARNING: Normalization resulted in empty string for "%s", returning original',
+						$book_size
+					)
+				);
+			}
+			return $book_size;
+		}
+
+		// Log transformation if different
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $normalized !== $book_size ) {
+			error_log(
+				sprintf(
+					'Tabesh: Normalized book_size key - Original: "%s" → Normalized: "%s"',
+					$book_size,
+					$normalized
+				)
+			);
+		}
+
+		return $normalized;
 	}
 
 	/**
@@ -958,16 +1012,16 @@ class Tabesh_Pricing_Engine {
 			// Extract book size from key: pricing_matrix_<base64> -> <original>.
 			$key      = $row['setting_key'];
 			$safe_key = str_replace( 'pricing_matrix_', '', $key );
-			
+
 			// Decode base64-encoded book size to get original Persian text.
 			$size = $this->decode_book_size_key( $safe_key );
-			
+
 			$value   = $row['setting_value'];
 			$decoded = json_decode( $value, true );
 
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
 				self::$pricing_matrix_cache[ $size ] = $decoded;
-				
+
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log(
 						sprintf(
@@ -1173,10 +1227,14 @@ class Tabesh_Pricing_Engine {
 		global $wpdb;
 		$table_settings = $wpdb->prefix . 'tabesh_settings';
 
-		// CRITICAL FIX: Do NOT use sanitize_key() for book_size as it corrupts Persian text
-		// Instead, create a safe key by base64 encoding the book_size
-		// This preserves the original value while ensuring database safety
-		$safe_key      = base64_encode( $book_size );
+		// CRITICAL FIX: Normalize book_size key to remove descriptions/dimensions
+		// This ensures consistency between product parameters (e.g., "رقعی") and
+		// pricing matrices that may have been saved with descriptions (e.g., "رقعی (14×20)")
+		$normalized_book_size = $this->normalize_book_size_key( $book_size );
+
+		// Create safe database key by base64 encoding the NORMALIZED book_size
+		// Do NOT use sanitize_key() as it corrupts Persian text
+		$safe_key      = base64_encode( $normalized_book_size );
 		$setting_key   = 'pricing_matrix_' . $safe_key;
 		$setting_value = wp_json_encode( $matrix );
 
@@ -1184,10 +1242,10 @@ class Tabesh_Pricing_Engine {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log(
 				sprintf(
-					'Tabesh: Saving pricing matrix - Original book_size: "%s", Safe key: "%s", Full setting_key: "%s"',
+					'Tabesh: Saving pricing matrix - Original: "%s", Normalized: "%s", Base64 key: "%s"',
 					$book_size,
-					$safe_key,
-					$setting_key
+					$normalized_book_size,
+					$safe_key
 				)
 			);
 		}
@@ -1220,12 +1278,12 @@ class Tabesh_Pricing_Engine {
 
 		if ( false !== $result ) {
 			self::clear_cache();
-			
+
 			// Only run cleanup if this is the first save or if corruption is suspected.
 			// Use a transient to track last cleanup time to avoid running on every save.
-			$last_cleanup = get_transient( 'tabesh_pricing_last_cleanup' );
+			$last_cleanup   = get_transient( 'tabesh_pricing_last_cleanup' );
 			$should_cleanup = false === $last_cleanup; // First save after transient expired.
-			
+
 			if ( $should_cleanup ) {
 				$removed = $this->cleanup_corrupted_matrices();
 				if ( $removed > 0 ) {
@@ -1236,7 +1294,7 @@ class Tabesh_Pricing_Engine {
 					set_transient( 'tabesh_pricing_last_cleanup', time(), DAY_IN_SECONDS );
 				}
 			}
-			
+
 			return true;
 		}
 
@@ -1245,19 +1303,19 @@ class Tabesh_Pricing_Engine {
 
 	/**
 	 * Clean up corrupted pricing matrices
-	 * 
+	 *
 	 * Removes any pricing matrix entries that don't correspond to valid book sizes
 	 * from the product parameters. Uses bulk delete for efficiency.
-	 * 
+	 *
 	 * This is a private method called internally by save_pricing_matrix().
-	 * 
+	 *
 	 * @since 2.0.0
 	 * @return int Number of corrupted entries removed
 	 */
 	private function cleanup_corrupted_matrices() {
 		global $wpdb;
 		$table_settings = $wpdb->prefix . 'tabesh_settings';
-		
+
 		// Get valid book sizes from product parameters (source of truth).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$valid_sizes_result = $wpdb->get_var(
@@ -1266,7 +1324,7 @@ class Tabesh_Pricing_Engine {
 				'book_sizes'
 			)
 		);
-		
+
 		$valid_sizes = array();
 		if ( $valid_sizes_result ) {
 			$decoded = json_decode( $valid_sizes_result, true );
@@ -1274,7 +1332,7 @@ class Tabesh_Pricing_Engine {
 				$valid_sizes = $decoded;
 			}
 		}
-		
+
 		if ( empty( $valid_sizes ) ) {
 			// No valid sizes configured, cannot clean up.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -1282,7 +1340,7 @@ class Tabesh_Pricing_Engine {
 			}
 			return 0;
 		}
-		
+
 		// Get all pricing matrix entries.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$all_matrices = $wpdb->get_results(
@@ -1292,22 +1350,22 @@ class Tabesh_Pricing_Engine {
 			),
 			ARRAY_A
 		);
-		
+
 		// Collect corrupted keys for bulk delete.
 		$corrupted_keys = array();
-		
+
 		foreach ( $all_matrices as $row ) {
 			$setting_key = $row['setting_key'];
 			$safe_key    = str_replace( 'pricing_matrix_', '', $setting_key );
-			
+
 			// Decode book size using helper method.
 			$book_size = $this->decode_book_size_key( $safe_key );
-			
+
 			// Check if this book size is valid.
 			if ( ! in_array( $book_size, $valid_sizes, true ) ) {
 				// This is a corrupted entry - mark for deletion.
 				$corrupted_keys[] = $setting_key;
-				
+
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log(
 						sprintf(
@@ -1319,12 +1377,12 @@ class Tabesh_Pricing_Engine {
 				}
 			}
 		}
-		
+
 		// Perform bulk delete if corrupted entries found.
 		$removed_count = 0;
 		if ( ! empty( $corrupted_keys ) ) {
 			$placeholders = implode( ', ', array_fill( 0, count( $corrupted_keys ), '%s' ) );
-			
+
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$deleted = $wpdb->query(
 				$wpdb->prepare(
@@ -1332,11 +1390,11 @@ class Tabesh_Pricing_Engine {
 					...$corrupted_keys
 				)
 			);
-			
+
 			if ( false !== $deleted ) {
 				$removed_count = $deleted;
 				self::clear_cache();
-				
+
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log(
 						sprintf(
@@ -1348,7 +1406,7 @@ class Tabesh_Pricing_Engine {
 				}
 			}
 		}
-		
+
 		return $removed_count;
 	}
 
@@ -1374,10 +1432,10 @@ class Tabesh_Pricing_Engine {
 		foreach ( $results as $row ) {
 			$setting_key = $row['setting_key'];
 			$safe_key    = str_replace( 'pricing_matrix_', '', $setting_key );
-			
+
 			// Decode base64-encoded book size to get original Persian text.
 			$size = $this->decode_book_size_key( $safe_key );
-			
+
 			$sizes[] = $size;
 		}
 
@@ -1387,5 +1445,212 @@ class Tabesh_Pricing_Engine {
 		}
 
 		return $sizes;
+	}
+
+	/**
+	 * Migrate old pricing matrices with descriptive keys to normalized keys
+	 *
+	 * This method detects pricing matrices saved with book size descriptions
+	 * (e.g., "رقعی (14×20)") and merges them into normalized keys (e.g., "رقعی").
+	 * This fixes the critical issue where matrices exist but aren't recognized
+	 * because the product parameter has the clean name without parenthetical content.
+	 *
+	 * Example migration:
+	 * - Old key: pricing_matrix_<base64("رقعی (14×20)")> → Merged into pricing_matrix_<base64("رقعی")>
+	 * - Old key: pricing_matrix_<base64("A5 (148×210)")> → Merged into pricing_matrix_<base64("A5")>
+	 *
+	 * @return array Migration statistics with 'merged', 'deleted', 'activated' counts
+	 */
+	public function migrate_mismatched_book_size_keys() {
+		global $wpdb;
+		$table_settings = $wpdb->prefix . 'tabesh_settings';
+
+		$stats = array(
+			'merged'    => 0,
+			'deleted'   => 0,
+			'activated' => 0,
+			'errors'    => array(),
+		);
+
+		// Get valid book sizes from product parameters (source of truth)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$valid_sizes_result = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+				'book_sizes'
+			)
+		);
+
+		$valid_sizes = array();
+		if ( $valid_sizes_result ) {
+			$decoded = json_decode( $valid_sizes_result, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$valid_sizes = $decoded;
+			}
+		}
+
+		if ( empty( $valid_sizes ) ) {
+			$stats['errors'][] = __( 'هیچ قطع کتابی در تنظیمات محصول تعریف نشده', 'tabesh' );
+			return $stats;
+		}
+
+		// Get all pricing matrices with their data
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$all_matrices = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT setting_key, setting_value FROM {$table_settings} WHERE setting_key LIKE %s",
+				'pricing_matrix_%'
+			),
+			ARRAY_A
+		);
+
+		if ( empty( $all_matrices ) ) {
+			return $stats;
+		}
+
+		// Group matrices by normalized book size
+		$grouped_by_normalized = array();
+		$keys_to_delete        = array();
+
+		foreach ( $all_matrices as $row ) {
+			$setting_key = $row['setting_key'];
+			$safe_key    = str_replace( 'pricing_matrix_', '', $setting_key );
+
+			// Decode book size
+			$book_size = $this->decode_book_size_key( $safe_key );
+
+			// Normalize the book size (remove parenthetical content)
+			$normalized = $this->normalize_book_size_key( $book_size );
+
+			// Check if this normalized size is in valid sizes
+			if ( ! in_array( $normalized, $valid_sizes, true ) ) {
+				// This is an orphaned matrix - mark for deletion
+				$keys_to_delete[] = $setting_key;
+				continue;
+			}
+
+			// Add to grouped array
+			if ( ! isset( $grouped_by_normalized[ $normalized ] ) ) {
+				$grouped_by_normalized[ $normalized ] = array();
+			}
+
+			$grouped_by_normalized[ $normalized ][] = array(
+				'key'           => $setting_key,
+				'original_size' => $book_size,
+				'data'          => $row['setting_value'],
+			);
+		}
+
+		// Process each group - merge if multiple matrices for same normalized size
+		foreach ( $grouped_by_normalized as $normalized_size => $matrices ) {
+			if ( count( $matrices ) > 1 ) {
+				// Multiple matrices for same normalized size - need to merge
+				$normalized_key     = 'pricing_matrix_' . base64_encode( $normalized_size );
+				$has_normalized_key = false;
+				$merged_data        = null;
+
+				// Check if normalized key already exists
+				foreach ( $matrices as $matrix_info ) {
+					if ( $matrix_info['key'] === $normalized_key ) {
+						$has_normalized_key = true;
+						$merged_data        = json_decode( $matrix_info['data'], true );
+						break;
+					}
+				}
+
+				// If no normalized key exists, use the first matrix as base
+				if ( ! $has_normalized_key && ! empty( $matrices ) ) {
+					$merged_data = json_decode( $matrices[0]['data'], true );
+				}
+
+				// Merge data from all matrices
+				foreach ( $matrices as $matrix_info ) {
+					if ( $matrix_info['key'] !== $normalized_key ) {
+						$matrix_data = json_decode( $matrix_info['data'], true );
+
+						if ( is_array( $matrix_data ) && is_array( $merged_data ) ) {
+							// Merge page_costs - preserve all unique combinations
+							// array_merge will overwrite duplicate keys, which is acceptable here
+							// as we want the most recent pricing data for each paper/weight/print combination
+							if ( isset( $matrix_data['page_costs'] ) && is_array( $matrix_data['page_costs'] ) ) {
+								if ( ! isset( $merged_data['page_costs'] ) ) {
+									$merged_data['page_costs'] = array();
+								}
+								// Use array_replace_recursive to preserve nested structure and prefer newer data
+								$merged_data['page_costs'] = array_replace_recursive( $merged_data['page_costs'], $matrix_data['page_costs'] );
+							}
+
+							// Merge binding_costs - preserve all unique combinations
+							if ( isset( $matrix_data['binding_costs'] ) && is_array( $matrix_data['binding_costs'] ) ) {
+								if ( ! isset( $merged_data['binding_costs'] ) ) {
+									$merged_data['binding_costs'] = array();
+								}
+								// Use array_replace_recursive to preserve nested structure and prefer newer data
+								$merged_data['binding_costs'] = array_replace_recursive( $merged_data['binding_costs'], $matrix_data['binding_costs'] );
+							}
+
+							// Merge extras_costs - preserve all unique extras
+							if ( isset( $matrix_data['extras_costs'] ) && is_array( $matrix_data['extras_costs'] ) ) {
+								if ( ! isset( $merged_data['extras_costs'] ) ) {
+									$merged_data['extras_costs'] = array();
+								}
+								$merged_data['extras_costs'] = array_merge( $merged_data['extras_costs'], $matrix_data['extras_costs'] );
+							}
+						}
+
+						// Mark old key for deletion
+						$keys_to_delete[] = $matrix_info['key'];
+
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log(
+								sprintf(
+									'Tabesh Migration: Merging "%s" into normalized key for "%s"',
+									$matrix_info['original_size'],
+									$normalized_size
+								)
+							);
+						}
+					}
+				}
+
+				// Save merged data to normalized key
+				if ( $merged_data ) {
+					$this->save_pricing_matrix( $normalized_size, $merged_data );
+					++$stats['merged'];
+					++$stats['activated'];
+				}
+			}
+		}
+
+		// Delete old keys
+		if ( ! empty( $keys_to_delete ) ) {
+			$placeholders = implode( ', ', array_fill( 0, count( $keys_to_delete ), '%s' ) );
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$deleted = $wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$table_settings} WHERE setting_key IN ($placeholders)",
+					...$keys_to_delete
+				)
+			);
+
+			if ( false !== $deleted ) {
+				$stats['deleted'] = $deleted;
+				self::clear_cache();
+			}
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log(
+				sprintf(
+					'Tabesh Migration Complete: %d merged, %d deleted, %d activated',
+					$stats['merged'],
+					$stats['deleted'],
+					$stats['activated']
+				)
+			);
+		}
+
+		return $stats;
 	}
 }

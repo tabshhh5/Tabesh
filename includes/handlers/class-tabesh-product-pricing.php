@@ -59,6 +59,45 @@ class Tabesh_Product_Pricing {
 		// This ensures data integrity between product parameters and pricing matrices
 		$this->cleanup_orphaned_pricing_matrices();
 
+		// CRITICAL FIX: Migrate mismatched book_size keys on form load
+		// This fixes the issue where matrices saved with descriptions (e.g., "رقعی (14×20)")
+		// don't match product parameters (e.g., "رقعی"), causing critical failures
+		$migration_stats = $this->pricing_engine->migrate_mismatched_book_size_keys();
+
+		// Display migration results if any fixes were applied
+		if ( $migration_stats['merged'] > 0 || $migration_stats['deleted'] > 0 ) {
+			echo '<div class="tabesh-success">';
+			echo '<strong>' . esc_html__( '✓ اصلاح خودکار ماتریس‌های قیمت', 'tabesh' ) . '</strong><br>';
+			if ( $migration_stats['merged'] > 0 ) {
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of merged matrices */
+						__( '• %d ماتریس با کلیدهای قدیمی ادغام شد', 'tabesh' ),
+						$migration_stats['merged']
+					)
+				) . '<br>';
+			}
+			if ( $migration_stats['deleted'] > 0 ) {
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of deleted keys */
+						__( '• %d کلید قدیمی حذف شد', 'tabesh' ),
+						$migration_stats['deleted']
+					)
+				) . '<br>';
+			}
+			if ( $migration_stats['activated'] > 0 ) {
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of activated sizes */
+						__( '• %d قطع فعال شد', 'tabesh' ),
+						$migration_stats['activated']
+					)
+				) . '<br>';
+			}
+			echo '</div>';
+		}
+
 		// Handle engine toggle - verify nonce first before sanitization
 		if ( isset( $_POST['tabesh_toggle_nonce'] ) && isset( $_POST['action'] ) ) {
 			// Verify nonce with raw value

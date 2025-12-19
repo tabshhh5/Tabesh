@@ -142,7 +142,20 @@ class Tabesh_Pricing_Health_Checker {
 			}
 		}
 
-		// Check 9: Cache status
+		// Check 9: Mismatched book_size keys (NEW)
+		$key_mismatch_check                          = self::check_book_size_key_mismatch();
+		$results['checks']['book_size_key_mismatch'] = $key_mismatch_check;
+		if ( $key_mismatch_check['count'] > 0 ) {
+			$results['warnings'][] = $key_mismatch_check['message'];
+			if ( 'healthy' === $results['overall_status'] ) {
+				$results['overall_status'] = 'warning';
+			}
+			if ( ! empty( $key_mismatch_check['recommendations'] ) ) {
+				$results['recommendations'] = array_merge( $results['recommendations'], $key_mismatch_check['recommendations'] );
+			}
+		}
+
+		// Check 10: Cache status
 		$cache_check                = self::check_cache_status();
 		$results['checks']['cache'] = $cache_check;
 		if ( $cache_check['stale'] ) {
@@ -556,6 +569,110 @@ class Tabesh_Pricing_Health_Checker {
 				'level'   => 'critical',
 			);
 		}
+	}
+
+	/**
+	 * Check for mismatched book_size keys
+	 *
+	 * Detects pricing matrices saved with descriptive keys (e.g., "رقعی (14×20)")
+	 * that don't match the normalized keys in product parameters (e.g., "رقعی").
+	 * This mismatch prevents matrices from being recognized and causes critical failures.
+	 *
+	 * @return array Check result with count and recommendations
+	 */
+	private static function check_book_size_key_mismatch() {
+		global $wpdb;
+		$table_settings = $wpdb->prefix . 'tabesh_settings';
+
+		// Get valid book sizes from product parameters
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$book_sizes_raw = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT setting_value FROM $table_settings WHERE setting_key = %s",
+				'book_sizes'
+			)
+		);
+
+		$valid_sizes = array();
+		if ( $book_sizes_raw ) {
+			$decoded = json_decode( $book_sizes_raw, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$valid_sizes = $decoded;
+			}
+		}
+
+		if ( empty( $valid_sizes ) ) {
+			return array(
+				'count'           => 0,
+				'message'         => __( 'بررسی کلیدها لغو شد: قطعی تعریف نشده', 'tabesh' ),
+				'level'           => 'success',
+				'recommendations' => array(),
+			);
+		}
+
+		// Get all pricing matrices
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$all_matrices = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT setting_key FROM $table_settings WHERE setting_key LIKE %s",
+				'pricing_matrix_%'
+			),
+			ARRAY_A
+		);
+
+		$mismatched_count = 0;
+		$mismatched_sizes = array();
+		$pricing_engine   = new Tabesh_Pricing_Engine();
+
+		foreach ( $all_matrices as $row ) {
+			$setting_key = $row['setting_key'];
+			$safe_key    = str_replace( 'pricing_matrix_', '', $setting_key );
+
+			// Decode book size with strict validation
+			$decoded = base64_decode( $safe_key, true );
+			// Use strict comparison: false for decode failure, empty string check for invalid result
+			if ( false === $decoded || '' === $decoded ) {
+				continue;
+			}
+
+			$book_size  = $decoded;
+			$normalized = $pricing_engine->normalize_book_size_key( $book_size );
+
+			// Check if book size has description that doesn't match product parameters
+			if ( $book_size !== $normalized ) {
+				// This is a mismatched key
+				if ( in_array( $normalized, $valid_sizes, true ) ) {
+					// Normalized version exists in product parameters
+					++$mismatched_count;
+					$mismatched_sizes[] = sprintf( '%s → %s', $book_size, $normalized );
+				}
+			}
+		}
+
+		if ( $mismatched_count > 0 ) {
+			return array(
+				'count'           => $mismatched_count,
+				'message'         => sprintf(
+					/* translators: 1: number of mismatched keys, 2: examples of mismatches */
+					__( '%1$d ماتریس با کلید قدیمی شناسایی شد: %2$s', 'tabesh' ),
+					$mismatched_count,
+					implode( '، ', array_slice( $mismatched_sizes, 0, 3 ) )
+				),
+				'level'           => 'warning',
+				'data'            => $mismatched_sizes,
+				'recommendations' => array(
+					__( 'این ماتریس‌ها به صورت خودکار در بارگذاری بعدی فرم ثبت قیمت اصلاح و ادغام می‌شوند', 'tabesh' ),
+					__( 'برای اعمال فوری، از فرم ثبت قیمت بازدید کنید', 'tabesh' ),
+				),
+			);
+		}
+
+		return array(
+			'count'           => 0,
+			'message'         => __( 'هیچ کلید نامطابقی یافت نشد', 'tabesh' ),
+			'level'           => 'success',
+			'recommendations' => array(),
+		);
 	}
 
 	/**
@@ -1076,15 +1193,16 @@ class Tabesh_Pricing_Health_Checker {
 					<h4><?php echo esc_html__( '📊 جزئیات بررسی‌ها', 'tabesh' ); ?></h4>
 					<?php
 					$check_labels = array(
-						'database'              => __( 'دیتابیس', 'tabesh' ),
-						'product_parameters'    => __( 'پارامترهای محصول', 'tabesh' ),
-						'pricing_engine'        => __( 'موتور قیمت‌گذاری V2', 'tabesh' ),
-						'pricing_matrices'      => __( 'ماتریس‌های قیمت', 'tabesh' ),
-						'orphaned_matrices'     => __( 'ماتریس‌های یتیم', 'tabesh' ),
-						'parameter_consistency' => __( 'سازگاری پارامترها', 'tabesh' ),
-						'matrix_completeness'   => __( 'کامل بودن ماتریس‌ها', 'tabesh' ),
-						'order_form'            => __( 'فرم سفارش', 'tabesh' ),
-						'cache'                 => __( 'کش', 'tabesh' ),
+						'database'               => __( 'دیتابیس', 'tabesh' ),
+						'product_parameters'     => __( 'پارامترهای محصول', 'tabesh' ),
+						'pricing_engine'         => __( 'موتور قیمت‌گذاری V2', 'tabesh' ),
+						'pricing_matrices'       => __( 'ماتریس‌های قیمت', 'tabesh' ),
+						'orphaned_matrices'      => __( 'ماتریس‌های یتیم', 'tabesh' ),
+						'parameter_consistency'  => __( 'سازگاری پارامترها', 'tabesh' ),
+						'matrix_completeness'    => __( 'کامل بودن ماتریس‌ها', 'tabesh' ),
+						'order_form'             => __( 'فرم سفارش', 'tabesh' ),
+						'book_size_key_mismatch' => __( 'کلیدهای book_size', 'tabesh' ),
+						'cache'                  => __( 'کش', 'tabesh' ),
 					);
 
 					foreach ( $health['checks'] as $check_key => $check_data ) :
