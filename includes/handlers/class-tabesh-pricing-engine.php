@@ -984,13 +984,42 @@ class Tabesh_Pricing_Engine {
 	/**
 	 * Get pricing matrix for a specific book size
 	 *
-	 * @param string $book_size Book size identifier.
+	 * CRITICAL FIX: Normalizes book_size before lookup to ensure consistency.
+	 * This allows retrieval to work even if the input has descriptions.
+	 *
+	 * @param string $book_size Book size identifier (may contain descriptions).
 	 * @return array|null Pricing matrix or null if not found.
 	 */
 	public function get_pricing_matrix( $book_size ) {
-		// Return cached matrix if available
+		// CRITICAL FIX: Normalize the input book_size first
+		// This ensures "رقعی (14×20)" matches matrices saved as "رقعی"
+		$normalized_book_size = $this->normalize_book_size_key( $book_size );
+
+		// Return cached matrix if available (using normalized key)
 		if ( null !== self::$pricing_matrix_cache ) {
-			return self::$pricing_matrix_cache[ $book_size ] ?? null;
+			$result = self::$pricing_matrix_cache[ $normalized_book_size ] ?? null;
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				if ( $result ) {
+					error_log(
+						sprintf(
+							'Tabesh Pricing Engine V2: Cache HIT for "%s" (normalized: "%s")',
+							$book_size,
+							$normalized_book_size
+						)
+					);
+				} else {
+					error_log(
+						sprintf(
+							'Tabesh Pricing Engine V2: Cache MISS for "%s" (normalized: "%s")',
+							$book_size,
+							$normalized_book_size
+						)
+					);
+				}
+			}
+
+			return $result;
 		}
 
 		global $wpdb;
@@ -1016,18 +1045,24 @@ class Tabesh_Pricing_Engine {
 			// Decode base64-encoded book size to get original Persian text.
 			$size = $this->decode_book_size_key( $safe_key );
 
+			// CRITICAL FIX: Normalize the decoded book_size before caching
+			// This ensures cache keys are consistent with normalized product parameters
+			$normalized_size = $this->normalize_book_size_key( $size );
+
 			$value   = $row['setting_value'];
 			$decoded = json_decode( $value, true );
 
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
-				self::$pricing_matrix_cache[ $size ] = $decoded;
+				// Store in cache using NORMALIZED key
+				self::$pricing_matrix_cache[ $normalized_size ] = $decoded;
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log(
 						sprintf(
-							'Tabesh: Loaded pricing matrix - Safe key: "%s", Decoded book_size: "%s"',
+							'Tabesh: Loaded pricing matrix - DB key: "%s", Decoded: "%s", Normalized (cache key): "%s"',
 							$safe_key,
-							$size
+							$size,
+							$normalized_size
 						)
 					);
 				}
@@ -1039,7 +1074,8 @@ class Tabesh_Pricing_Engine {
 			error_log( 'Tabesh Pricing Engine V2: get_pricing_matrix loaded ' . count( self::$pricing_matrix_cache ) . ' matrices from database' );
 		}
 
-		return self::$pricing_matrix_cache[ $book_size ] ?? null;
+		// Return using normalized key
+		return self::$pricing_matrix_cache[ $normalized_book_size ] ?? null;
 	}
 
 	/**
@@ -1412,7 +1448,12 @@ class Tabesh_Pricing_Engine {
 	/**
 	 * Get list of all configured book sizes
 	 *
-	 * @return array Array of book size identifiers
+	 * CRITICAL FIX: Normalizes decoded book_size keys to ensure consistency
+	 * with product parameters. This prevents mismatches when product params
+	 * have clean names like "رقعی" but old matrices might be stored with
+	 * descriptions like "رقعی (14×20)".
+	 *
+	 * @return array Array of normalized book size identifiers
 	 */
 	public function get_configured_book_sizes() {
 		global $wpdb;
@@ -1435,12 +1476,16 @@ class Tabesh_Pricing_Engine {
 			// Decode base64-encoded book size to get original Persian text.
 			$size = $this->decode_book_size_key( $safe_key );
 
-			$sizes[] = $size;
+			// CRITICAL FIX: Normalize the decoded key to match product parameters
+			// This ensures "رقعی (14×20)" from old matrices matches "رقعی" in product params
+			$normalized_size = $this->normalize_book_size_key( $size );
+
+			$sizes[] = $normalized_size;
 		}
 
 		// Debug logging if WP_DEBUG is enabled
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Tabesh Pricing Engine V2: get_configured_book_sizes found ' . count( $sizes ) . ' book sizes: ' . implode( ', ', $sizes ) );
+			error_log( 'Tabesh Pricing Engine V2: get_configured_book_sizes found ' . count( $sizes ) . ' book sizes (normalized): ' . implode( ', ', $sizes ) );
 		}
 
 		return $sizes;

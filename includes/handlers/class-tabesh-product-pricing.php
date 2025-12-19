@@ -637,10 +637,24 @@ class Tabesh_Product_Pricing {
 		global $wpdb;
 		$table_settings = $wpdb->prefix . 'tabesh_settings';
 
-		// CRITICAL FIX: Use base64_encode to match save_pricing_matrix() method
-		// This preserves Persian characters and ensures key consistency
-		$safe_key    = base64_encode( $book_size );
-		$setting_key = 'pricing_matrix_' . $safe_key;
+		// CRITICAL FIX: Normalize book_size BEFORE base64_encode to match save_pricing_matrix()
+		// This ensures retrieval works even if product parameters contain descriptions
+		// like "رقعی (14×20)" while matrix was saved as "رقعی"
+		$normalized_book_size = $this->pricing_engine->normalize_book_size_key( $book_size );
+		$safe_key             = base64_encode( $normalized_book_size );
+		$setting_key          = 'pricing_matrix_' . $safe_key;
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $book_size !== $normalized_book_size ) {
+			error_log(
+				sprintf(
+					'Tabesh Product Pricing: get_pricing_matrix_for_size - Original: "%s", Normalized: "%s", Key: "%s"',
+					$book_size,
+					$normalized_book_size,
+					$setting_key
+				)
+			);
+		}
 
 		$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
@@ -652,8 +666,28 @@ class Tabesh_Product_Pricing {
 		if ( $result ) {
 			$decoded = json_decode( $result, true );
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log(
+						sprintf(
+							'Tabesh Product Pricing: Successfully retrieved pricing matrix for "%s" (normalized: "%s")',
+							$book_size,
+							$normalized_book_size
+						)
+					);
+				}
 				return $decoded;
 			}
+		}
+
+		// Log if matrix not found
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log(
+				sprintf(
+					'Tabesh Product Pricing: No pricing matrix found for "%s" (normalized: "%s"), returning default',
+					$book_size,
+					$normalized_book_size
+				)
+			);
 		}
 
 		// Return default matrix if not configured

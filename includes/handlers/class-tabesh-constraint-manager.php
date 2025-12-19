@@ -467,7 +467,7 @@ class Tabesh_Constraint_Manager {
 		// Get ALL book sizes from product parameters (source of truth)
 		$all_book_sizes = $this->get_book_sizes_from_product_parameters();
 
-		// Get book sizes that have pricing configured
+		// Get book sizes that have pricing configured (already normalized in that method)
 		$configured_sizes = $this->pricing_engine->get_configured_book_sizes();
 
 		// Log for debugging
@@ -483,11 +483,15 @@ class Tabesh_Constraint_Manager {
 
 		$result = array();
 		foreach ( $all_book_sizes as $size ) {
-			// Check if this size has pricing configured
-			$has_pricing = in_array( $size, $configured_sizes, true );
+			// CRITICAL FIX: Normalize BOTH sides before comparison
+			// Product parameters might have "رقعی (14×20)" while configured_sizes has "رقعی"
+			$normalized_size = $this->pricing_engine->normalize_book_size_key( $size );
+
+			// Check if this size has pricing configured (compare normalized versions)
+			$has_pricing = in_array( $normalized_size, $configured_sizes, true );
 
 			if ( $has_pricing ) {
-				// Get allowed options for sizes with pricing.
+				// Get allowed options for sizes with pricing (pass original size, it will be normalized internally)
 				$allowed_options = $this->get_allowed_options( array(), $size );
 
 				if ( ! isset( $allowed_options['error'] ) ) {
@@ -512,8 +516,9 @@ class Tabesh_Constraint_Manager {
 						if ( $is_usable ) {
 							error_log(
 								sprintf(
-									'Tabesh: Size "%s" is USABLE and ENABLED - %d papers, %d bindings',
+									'Tabesh: Size "%s" (normalized: "%s") is USABLE and ENABLED - %d papers, %d bindings',
 									$size,
+									$normalized_size,
 									$paper_count,
 									$binding_count
 								)
@@ -521,8 +526,9 @@ class Tabesh_Constraint_Manager {
 						} else {
 							error_log(
 								sprintf(
-									'Tabesh: Size "%s" has pricing matrix but is INCOMPLETE (papers: %d, bindings: %d) - marking as DISABLED',
+									'Tabesh: Size "%s" (normalized: "%s") has pricing matrix but is INCOMPLETE (papers: %d, bindings: %d) - marking as DISABLED',
 									$size,
+									$normalized_size,
 									$paper_count,
 									$binding_count
 								)
@@ -532,8 +538,9 @@ class Tabesh_Constraint_Manager {
 				} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log(
 						sprintf(
-							'Tabesh: Size "%s" has pricing but returned error: %s',
+							'Tabesh: Size "%s" (normalized: "%s") has pricing but returned error: %s',
 							$size,
+							$normalized_size,
 							$allowed_options['message'] ?? 'unknown error'
 						)
 					);
