@@ -147,11 +147,40 @@ class Tabesh_Product_Pricing {
 			'quantity_constraints' => $this->parse_quantity_constraints( $_POST['quantity_constraints'] ?? array() ),
 		);
 
-		// Save to database
+		// CRITICAL VALIDATION: Check if pricing matrix has required data
+		// A size is only usable if it has BOTH paper costs and binding costs
+		$has_papers   = ! empty( $matrix['page_costs'] );
+		$has_bindings = ! empty( $matrix['binding_costs'] );
+
+		if ( ! $has_papers || ! $has_bindings ) {
+			$missing = array();
+			if ( ! $has_papers ) {
+				$missing[] = __( 'قیمت صفحات (کاغذ + چاپ)', 'tabesh' );
+			}
+			if ( ! $has_bindings ) {
+				$missing[] = __( 'قیمت صحافی', 'tabesh' );
+			}
+
+			echo '<div class="tabesh-error">' . esc_html(
+				sprintf(
+					/* translators: %s: comma-separated list of missing items */
+					__( '⚠️ هشدار: ماتریس قیمت ناقص است! موارد زیر تنظیم نشده‌اند: %s. این قطع در فرم سفارش نمایش داده نخواهد شد.', 'tabesh' ),
+					implode( '، ', $missing )
+				)
+			) . '</div>';
+		}
+
+		// Save to database even if incomplete (admin might want to save draft)
 		$success = $this->pricing_engine->save_pricing_matrix( $book_size, $matrix );
 
 		if ( $success ) {
-			echo '<div class="tabesh-success">' . esc_html__( 'تنظیمات قیمت‌گذاری با موفقیت ذخیره شد', 'tabesh' ) . '</div>';
+			if ( $has_papers && $has_bindings ) {
+				echo '<div class="tabesh-success">' . esc_html__( '✓ تنظیمات قیمت‌گذاری با موفقیت ذخیره شد', 'tabesh' ) . '</div>';
+			} else {
+				echo '<div class="tabesh-success" style="background: #fff3cd; border-color: #ffc107; color: #856404;">' .
+					esc_html__( '✓ ماتریس قیمت ذخیره شد، اما تا تکمیل تنظیمات در فرم سفارش نمایش داده نخواهد شد', 'tabesh' ) .
+					'</div>';
+			}
 		} else {
 			echo '<div class="tabesh-error">' . esc_html__( 'خطا در ذخیره تنظیمات', 'tabesh' ) . '</div>';
 		}

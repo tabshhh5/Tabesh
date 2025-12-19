@@ -487,29 +487,47 @@ class Tabesh_Constraint_Manager {
 			$has_pricing = in_array( $size, $configured_sizes, true );
 
 			if ( $has_pricing ) {
-				// Get allowed options for sizes with pricing
+				// Get allowed options for sizes with pricing.
 				$allowed_options = $this->get_allowed_options( array(), $size );
 
 				if ( ! isset( $allowed_options['error'] ) ) {
+					$paper_count   = count( $allowed_options['allowed_papers'] ?? array() );
+					$binding_count = count( $allowed_options['allowed_bindings'] ?? array() );
+
+					// CRITICAL FIX: Only enable size if it has BOTH papers and bindings configured.
+					// A pricing matrix might exist but be empty/incomplete - don't show these in order form.
+					$is_usable = ( $paper_count > 0 && $binding_count > 0 );
+
 					$result[] = array(
 						'size'             => $size,
 						'slug'             => $this->slugify( $size ),
-						'paper_count'      => count( $allowed_options['allowed_papers'] ?? array() ),
-						'binding_count'    => count( $allowed_options['allowed_bindings'] ?? array() ),
+						'paper_count'      => $paper_count,
+						'binding_count'    => $binding_count,
 						'has_restrictions' => ! empty( $allowed_options['allowed_papers'] ) || ! empty( $allowed_options['allowed_bindings'] ),
 						'has_pricing'      => true,
-						'enabled'          => true,
+						'enabled'          => $is_usable,
 					);
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log(
-							sprintf(
-								'Tabesh: Size "%s" is available - %d papers, %d bindings',
-								$size,
-								count( $allowed_options['allowed_papers'] ?? array() ),
-								count( $allowed_options['allowed_bindings'] ?? array() )
-							)
-						);
+						if ( $is_usable ) {
+							error_log(
+								sprintf(
+									'Tabesh: Size "%s" is USABLE and ENABLED - %d papers, %d bindings',
+									$size,
+									$paper_count,
+									$binding_count
+								)
+							);
+						} else {
+							error_log(
+								sprintf(
+									'Tabesh: Size "%s" has pricing matrix but is INCOMPLETE (papers: %d, bindings: %d) - marking as DISABLED',
+									$size,
+									$paper_count,
+									$binding_count
+								)
+							);
+						}
 					}
 				} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						error_log(
@@ -521,8 +539,8 @@ class Tabesh_Constraint_Manager {
 						);
 				}
 			} else {
-				// Include sizes without pricing but mark them as disabled
-				// This helps admin see which sizes need configuration
+				// Include sizes without pricing but mark them as disabled.
+				// This helps admin see which sizes need configuration.
 				$result[] = array(
 					'size'             => $size,
 					'slug'             => $this->slugify( $size ),
