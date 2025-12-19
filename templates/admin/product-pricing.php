@@ -13,6 +13,53 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// CRITICAL CHECK: Ensure book sizes are configured before allowing access
+if ( empty( $book_sizes ) ) {
+	?>
+	<div class="tabesh-product-pricing-wrapper">
+		<div class="tabesh-setup-required" style="padding: 30px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; margin: 20px 0;">
+			<div style="text-align: center; margin-bottom: 20px;">
+				<span style="font-size: 48px;">⚠️</span>
+			</div>
+			<h2 style="color: #856404; margin-top: 0;"><?php esc_html_e( 'تنظیمات اولیه مورد نیاز است', 'tabesh' ); ?></h2>
+			<p style="font-size: 16px; line-height: 1.8;">
+				<?php esc_html_e( 'برای استفاده از سیستم قیمت‌گذاری، ابتدا باید قطع‌های کتاب را در تنظیمات محصول پیکربندی کنید.', 'tabesh' ); ?>
+			</p>
+			
+			<div style="background: white; padding: 20px; border-radius: 6px; margin: 20px 0;">
+				<h3 style="margin-top: 0;"><?php esc_html_e( 'مراحل تنظیمات:', 'tabesh' ); ?></h3>
+				<ol style="text-align: right; line-height: 2;">
+					<li><?php esc_html_e( 'به صفحه', 'tabesh' ); ?> 
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-settings' ) ); ?>" style="font-weight: bold; color: #0073aa;">
+							<?php esc_html_e( 'تنظیمات محصول', 'tabesh' ); ?>
+						</a> 
+						<?php esc_html_e( 'بروید', 'tabesh' ); ?>
+					</li>
+					<li><?php esc_html_e( 'بخش "قطع‌های کتاب" را پیدا کنید', 'tabesh' ); ?></li>
+					<li><?php esc_html_e( 'قطع‌های مورد نیاز خود را اضافه کنید (مثلاً: A5، A4، رقعی، وزیری)', 'tabesh' ); ?></li>
+					<li><?php esc_html_e( 'تنظیمات را ذخیره کنید', 'tabesh' ); ?></li>
+					<li><?php esc_html_e( 'به این صفحه برگردید و برای هر قطع، قیمت‌گذاری را تنظیم کنید', 'tabesh' ); ?></li>
+				</ol>
+			</div>
+			
+			<div style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+				<strong><?php esc_html_e( '💡 چرا این مهم است؟', 'tabesh' ); ?></strong>
+				<p style="margin: 10px 0 0 0;">
+					<?php esc_html_e( 'تنظیمات محصول "منبع اصلی" (Source of Truth) برای تمام سیستم هستند. این تضمین می‌کند که همه بخش‌های افزونه از یک مجموعه یکسان قطع‌های کتاب استفاده کنند و هیچ تداخل یا ناسازگاری در داده‌ها رخ ندهد.', 'tabesh' ); ?>
+				</p>
+			</div>
+			
+			<div style="text-align: center; margin-top: 30px;">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-settings' ) ); ?>" class="button button-primary button-large">
+					<?php esc_html_e( 'رفتن به تنظیمات محصول', 'tabesh' ); ?>
+				</a>
+			</div>
+		</div>
+	</div>
+	<?php
+	return; // Stop rendering the rest of the template
+}
+
 // Get current book size from query param or default to first available.
 // CRITICAL: Validate that the book size is in the allowed list to prevent data corruption.
 $requested_book_size = isset( $_GET['book_size'] ) ? sanitize_text_field( wp_unslash( $_GET['book_size'] ) ) : '';

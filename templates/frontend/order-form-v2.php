@@ -48,23 +48,41 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 			<?php if ( current_user_can( 'manage_woocommerce' ) ) : ?>
 				<div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
 					<h4 style="margin: 0 0 10px 0;"><?php echo esc_html__( 'راهنمای مدیر سیستم:', 'tabesh' ); ?></h4>
-					<ol style="text-align: right; margin: 10px 0;">
-						<li><?php echo esc_html__( 'به', 'tabesh' ); ?> 
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-product-pricing' ) ); ?>" class="error-link">
-								<?php echo esc_html__( 'تنظیمات قیمت‌گذاری محصول', 'tabesh' ); ?>
+					<p style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+						<strong><?php echo esc_html__( '📌 مهم: ترتیب انجام مراحل حیاتی است!', 'tabesh' ); ?></strong>
+					</p>
+					<ol style="text-align: right; margin: 10px 0; line-height: 1.8;">
+						<li style="margin-bottom: 10px;">
+							<strong><?php echo esc_html__( 'مرحله اول:', 'tabesh' ); ?></strong>
+							<?php echo esc_html__( 'ابتدا به', 'tabesh' ); ?> 
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-settings' ) ); ?>" style="font-weight: bold;">
+								<?php echo esc_html__( 'تنظیمات محصول', 'tabesh' ); ?>
+							</a>
+							<?php echo esc_html__( 'بروید و قطع‌های کتاب را تعریف کنید (A5، A4، رقعی و ...)', 'tabesh' ); ?>
+						</li>
+						<li style="margin-bottom: 10px;">
+							<strong><?php echo esc_html__( 'مرحله دوم:', 'tabesh' ); ?></strong>
+							<?php echo esc_html__( 'سپس به', 'tabesh' ); ?> 
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-product-pricing' ) ); ?>" class="error-link" style="font-weight: bold;">
+								<?php echo esc_html__( 'مدیریت قیمت‌گذاری محصولات', 'tabesh' ); ?>
 							</a> 
 							<?php echo esc_html__( 'بروید', 'tabesh' ); ?>
 						</li>
-						<li><?php echo esc_html__( 'موتور قیمت‌گذاری V2 را فعال کنید', 'tabesh' ); ?></li>
-						<li><?php echo esc_html__( 'برای هر قطع کتاب (A5، A4، رقعی و ...) ماتریس قیمت را تنظیم و ذخیره کنید', 'tabesh' ); ?></li>
-						<li><?php echo esc_html__( 'مطمئن شوید که قطع‌های کتاب در', 'tabesh' ); ?> 
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-settings' ) ); ?>">
-								<?php echo esc_html__( 'تنظیمات محصول', 'tabesh' ); ?>
-							</a>
-							<?php echo esc_html__( 'تعریف شده‌اند', 'tabesh' ); ?>
+						<li style="margin-bottom: 10px;">
+							<strong><?php echo esc_html__( 'مرحله سوم:', 'tabesh' ); ?></strong>
+							<?php echo esc_html__( 'موتور قیمت‌گذاری V2 را فعال کنید', 'tabesh' ); ?>
+						</li>
+						<li style="margin-bottom: 10px;">
+							<strong><?php echo esc_html__( 'مرحله چهارم:', 'tabesh' ); ?></strong>
+							<?php echo esc_html__( 'برای هر قطع کتاب، ماتریس قیمت کامل را تنظیم و ذخیره کنید', 'tabesh' ); ?>
 						</li>
 					</ol>
-					<p><strong><?php echo esc_html__( 'نکته:', 'tabesh' ); ?></strong> <?php echo esc_html__( 'فقط قطع‌هایی که هم در تنظیمات محصول تعریف شده‌اند و هم ماتریس قیمت دارند، در فرم سفارش نمایش داده می‌شوند.', 'tabesh' ); ?></p>
+					<div style="background: #e3f2fd; padding: 12px; border-radius: 4px; margin: 15px 0;">
+						<strong><?php echo esc_html__( '💡 نکته کلیدی:', 'tabesh' ); ?></strong>
+						<p style="margin: 8px 0 0 0;">
+							<?php echo esc_html__( 'تنظیمات محصول "منبع اصلی" هستند. فقط قطع‌هایی که هم در تنظیمات محصول تعریف شده‌اند و هم ماتریس قیمت دارند، در فرم سفارش نمایش داده می‌شوند.', 'tabesh' ); ?>
+						</p>
+					</div>
 				</div>
 			<?php else : ?>
 				<p><?php echo esc_html__( 'لطفاً با مدیر سیستم تماس بگیرید.', 'tabesh' ); ?></p>

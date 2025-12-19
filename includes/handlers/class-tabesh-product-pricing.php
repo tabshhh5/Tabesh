@@ -527,22 +527,34 @@ class Tabesh_Product_Pricing {
 			}
 		}
 
-		// Return admin sizes or default if not configured
-		if ( empty( $admin_sizes ) ) {
-			return array( 'A5', 'A4', 'B5', 'رقعی', 'وزیری', 'خشتی' );
+		// CRITICAL FIX: Do NOT return defaults!
+		// Returning defaults when product parameters are empty causes the "unknown book size" problem.
+		// This was the root cause of the broken pricing cycle.
+		// Admin must explicitly configure book sizes in product settings FIRST.
+		// This ensures:
+		// 1. Single source of truth (product parameters).
+		// 2. No orphaned pricing matrices.
+		// 3. Clear error messages when setup is incomplete.
+		// 4. Predictable system behavior.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( empty( $admin_sizes ) ) {
+				error_log( 'Tabesh Product Pricing: WARNING - No book sizes configured in product parameters! Returning empty array.' );
+			} else {
+				error_log( 'Tabesh Product Pricing: Found ' . count( $admin_sizes ) . ' book sizes in product parameters: ' . implode( ', ', $admin_sizes ) );
+			}
 		}
 
 		return $admin_sizes;
 	}
 
 	/**
-	 * Get pricing matrix for a specific book size
+	 * Get pricing matrix for a specific book size.
 	 *
 	 * CRITICAL FIX: Must use base64_encode() to match how save_pricing_matrix() stores keys.
 	 * DO NOT use sanitize_key() as it corrupts Persian text and causes key mismatch.
 	 *
-	 * @param string $book_size Book size identifier
-	 * @return array Pricing matrix
+	 * @param string $book_size Book size identifier.
+	 * @return array Pricing matrix.
 	 */
 	public function get_pricing_matrix_for_size( $book_size ) {
 		global $wpdb;
