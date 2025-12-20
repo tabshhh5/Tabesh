@@ -435,7 +435,7 @@ class Tabesh_Product_Pricing {
 		// Parse forbidden cover weights from inline toggles.
 		// Format: restrictions[forbidden_cover_weights][binding_type][cover_weight] = "0" (checked = enabled).
 
-		// CRITICAL FIX: Get ALL configured binding types and cover weights.
+		// CRITICAL FIX: Get ALL configured binding types and cover weights
 		// to properly handle disabled toggles.
 		$all_binding_types = $this->get_configured_binding_types();
 		$all_cover_weights = $this->get_configured_cover_weights();
@@ -473,7 +473,7 @@ class Tabesh_Product_Pricing {
 		// Process ALL binding types, not just ones in POST data.
 		foreach ( $all_binding_types as $binding_type ) {
 			$forbidden_for_binding = array();
-			$enabled_weights       = $enabled_cover_combinations[ $binding_type ] ?? array();
+			$enabled_weights       = $enabled_cover_combinations[ $binding_type ];
 
 			foreach ( $all_cover_weights as $weight ) {
 				if ( ! isset( $enabled_weights[ $weight ] ) ) {
@@ -493,7 +493,7 @@ class Tabesh_Product_Pricing {
 		// If checkbox is UNCHECKED, it's NOT in POST data (disabled/forbidden for that binding type).
 		// We track which combinations are enabled, then infer which are forbidden.
 
-		// CRITICAL FIX: Get ALL configured binding types and extra services.
+		// CRITICAL FIX: Get ALL configured binding types and extra services
 		// to properly handle disabled toggles (reusing $all_binding_types from above).
 		$all_extras = $this->get_configured_extra_services();
 
@@ -531,7 +531,7 @@ class Tabesh_Product_Pricing {
 		// Process ALL binding types, not just ones in POST data.
 		foreach ( $all_binding_types as $binding_type ) {
 			$forbidden_for_binding = array();
-			$enabled_extras        = $enabled_extras_combinations[ $binding_type ] ?? array();
+			$enabled_extras        = $enabled_extras_combinations[ $binding_type ];
 
 			foreach ( $all_extras as $extra_service ) {
 				if ( ! isset( $enabled_extras[ $extra_service ] ) ) {
