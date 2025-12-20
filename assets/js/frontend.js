@@ -57,6 +57,13 @@
             console.log('Tabesh: Form found, binding events');
             this.bindEvents();
             this.loadPaperTypes();
+            
+            // Initialize page count field visibility based on default print type.
+            const initialPrintType = this.$form.find('#print_type').val();
+            if (initialPrintType) {
+                this.updatePageCountFields(initialPrintType);
+            }
+            
             console.log('Tabesh: Initialization complete');
         }
 
@@ -79,10 +86,13 @@
             this.$editBtn.on('click', () => this.editOrder());
             this.$submitBtn.on('click', () => this.submitOrder());
             
-            // Paper type change
+            // Paper type change.
             this.$form.find('#paper_type').on('change', (e) => this.updatePaperWeights(e.target.value));
             
-            // Book size change - update all parameters if V2 is enabled, otherwise just quantity constraints
+            // Print type change - show/hide appropriate page count fields.
+            this.$form.find('#print_type').on('change', (e) => this.updatePageCountFields(e.target.value));
+            
+            // Book size change - update all parameters if V2 is enabled, otherwise just quantity constraints.
             this.$form.find('#book_size').on('change', (e) => {
                 const bookSize = e.target.value;
                 if (tabeshData.v2Enabled) {
@@ -92,10 +102,10 @@
                 }
             });
             
-            // License type change
+            // License type change.
             this.$form.find('#license_type').on('change', (e) => this.toggleLicenseUpload(e.target.value));
             
-            // Quantity auto-correct
+            // Quantity auto-correct.
             this.$form.find('#quantity').on('change', (e) => this.correctQuantity(e));
         }
 
@@ -239,6 +249,46 @@
                 });
             } else {
                 $weightSelect.append('<option value="">هیچ گرماژی برای این کاغذ تعریف نشده است</option>');
+            }
+        }
+
+        /**
+         * Update page count fields visibility based on print type.
+         * - For 'سیاه و سفید' (BW): Show only BW field.
+         * - For 'رنگی' (Color): Show only color field.
+         * - For 'ترکیبی' (Hybrid): Show both fields.
+         */
+        updatePageCountFields(printType) {
+            const $bwField = this.$form.find('#page_count_bw').closest('.tabesh-form-group');
+            const $colorField = this.$form.find('#page_count_color').closest('.tabesh-form-group');
+            
+            // Hide all fields first.
+            $bwField.hide();
+            $colorField.hide();
+            
+            // Clear required attribute.
+            this.$form.find('#page_count_bw').removeAttr('required');
+            this.$form.find('#page_count_color').removeAttr('required');
+            
+            if (printType === 'سیاه و سفید') {
+                // BW only: Show BW field, reset color to 0.
+                $bwField.show();
+                this.$form.find('#page_count_bw').attr('required', 'required');
+                this.$form.find('#page_count_color').val(0);
+            } else if (printType === 'رنگی') {
+                // Color only: Show color field, reset BW to 0.
+                $colorField.show();
+                this.$form.find('#page_count_color').attr('required', 'required');
+                this.$form.find('#page_count_bw').val(0);
+            } else if (printType === 'ترکیبی') {
+                // Hybrid: Show both fields.
+                // Note: At least one must have a value - validated during price calculation.
+                $bwField.show();
+                $colorField.show();
+            } else {
+                // Unknown print type: Show both for safety.
+                $bwField.show();
+                $colorField.show();
             }
         }
 

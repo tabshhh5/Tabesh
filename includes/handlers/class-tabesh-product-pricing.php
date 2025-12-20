@@ -358,16 +358,35 @@ class Tabesh_Product_Pricing {
 			return $restrictions;
 		}
 
-		// Parse forbidden print types from inline toggles
-		// New format: restrictions[forbidden_print_types][paper_type][weight][print_type] = "0" (checked = enabled)
-		// If checkbox is NOT checked (disabled), the value won't be in POST data
-		if ( isset( $data['forbidden_print_types'] ) && is_array( $data['forbidden_print_types'] ) ) {
-			// Get all paper types and their weights to check which ones are disabled
-			// First, collect all enabled combinations
-			$enabled_combinations = array();
+		// Parse forbidden print types from inline toggles.
+		// New format: restrictions[forbidden_print_types][paper_type][weight][print_type] = "0" (checked = enabled).
+		// If checkbox is NOT checked (disabled), the value won't be in POST data.
 
+		// CRITICAL FIX: Get ALL configured paper types to properly handle disabled toggles.
+		// Previously, we only processed paper types that appeared in POST data,
+		// which meant paper types with BOTH toggles disabled were completely missed.
+		$all_paper_types = $this->get_configured_paper_types();
+
+		// Track which print types are enabled for each paper type.
+		$enabled_combinations = array();
+
+		// Initialize all paper types as having no enabled print types.
+		foreach ( array_keys( $all_paper_types ) as $paper_type ) {
+			$enabled_combinations[ $paper_type ] = array(
+				'bw'    => false,
+				'color' => false,
+			);
+		}
+
+		// Process POST data to mark enabled combinations.
+		if ( isset( $data['forbidden_print_types'] ) && is_array( $data['forbidden_print_types'] ) ) {
 			foreach ( $data['forbidden_print_types'] as $paper_type => $weights_data ) {
 				$paper_type = sanitize_text_field( $paper_type );
+
+				// Skip paper types that aren't in our configured list.
+				if ( ! isset( $all_paper_types[ $paper_type ] ) ) {
+					continue;
+				}
 
 				if ( ! is_array( $weights_data ) ) {
 					continue;
@@ -381,47 +400,61 @@ class Tabesh_Product_Pricing {
 					foreach ( $print_types_data as $print_type => $value ) {
 						$print_type = sanitize_text_field( $print_type );
 
-						// If checkbox exists in POST (value = "0"), it means it's ENABLED
-						// So we track enabled combinations
-						if ( ! isset( $enabled_combinations[ $paper_type ] ) ) {
-							$enabled_combinations[ $paper_type ] = array();
+						// If checkbox exists in POST (value = "0"), it means it's ENABLED.
+						// Mark this print type as enabled for this paper type.
+						if ( in_array( $print_type, array( 'bw', 'color' ), true ) ) {
+							$enabled_combinations[ $paper_type ][ $print_type ] = true;
 						}
-						$enabled_combinations[ $paper_type ][ $print_type ] = true;
 					}
-				}
-			}
-
-			// Now determine which print types are forbidden for each paper type
-			// If BOTH bw and color are disabled for a paper type, we mark it as forbidden
-			// Otherwise, we mark specific print types as forbidden
-			foreach ( $enabled_combinations as $paper_type => $enabled_prints ) {
-				$bw_enabled    = isset( $enabled_prints['bw'] );
-				$color_enabled = isset( $enabled_prints['color'] );
-
-				// Build the forbidden list for this paper type
-				$forbidden_for_paper = array();
-
-				if ( ! $bw_enabled ) {
-					$forbidden_for_paper[] = 'bw';
-				}
-				if ( ! $color_enabled ) {
-					$forbidden_for_paper[] = 'color';
-				}
-
-				// Only add to restrictions if there are forbidden types
-				if ( ! empty( $forbidden_for_paper ) ) {
-					$restrictions['forbidden_print_types'][ $paper_type ] = $forbidden_for_paper;
 				}
 			}
 		}
 
-		// Parse forbidden cover weights from inline toggles
-		// Format: restrictions[forbidden_cover_weights][binding_type][cover_weight] = "0" (checked = enabled)
-		if ( isset( $data['forbidden_cover_weights'] ) && is_array( $data['forbidden_cover_weights'] ) ) {
-			$enabled_cover_combinations = array();
+		// Now determine which print types are forbidden for each paper type.
+		// Process ALL paper types, not just ones in POST data.
+		foreach ( $enabled_combinations as $paper_type => $enabled_prints ) {
+			$bw_enabled    = $enabled_prints['bw'];
+			$color_enabled = $enabled_prints['color'];
 
+			// Build the forbidden list for this paper type.
+			$forbidden_for_paper = array();
+
+			if ( ! $bw_enabled ) {
+				$forbidden_for_paper[] = 'bw';
+			}
+			if ( ! $color_enabled ) {
+				$forbidden_for_paper[] = 'color';
+			}
+
+			// Only add to restrictions if there are forbidden types.
+			if ( ! empty( $forbidden_for_paper ) ) {
+				$restrictions['forbidden_print_types'][ $paper_type ] = $forbidden_for_paper;
+			}
+		}
+
+		// Parse forbidden cover weights from inline toggles.
+		// Format: restrictions[forbidden_cover_weights][binding_type][cover_weight] = "0" (checked = enabled).
+
+		// CRITICAL FIX: Get ALL configured binding types and cover weights
+		// to properly handle disabled toggles.
+		$all_binding_types = $this->get_configured_binding_types();
+		$all_cover_weights = $this->get_configured_cover_weights();
+
+		// Initialize all binding types with all weights as disabled.
+		$enabled_cover_combinations = array();
+		foreach ( $all_binding_types as $binding_type ) {
+			$enabled_cover_combinations[ $binding_type ] = array();
+		}
+
+		// Process POST data to mark enabled combinations.
+		if ( isset( $data['forbidden_cover_weights'] ) && is_array( $data['forbidden_cover_weights'] ) ) {
 			foreach ( $data['forbidden_cover_weights'] as $binding_type => $weights_data ) {
 				$binding_type = sanitize_text_field( $binding_type );
+
+				// Skip binding types that aren't in our configured list.
+				if ( ! in_array( $binding_type, $all_binding_types, true ) ) {
+					continue;
+				}
 
 				if ( ! is_array( $weights_data ) ) {
 					continue;
@@ -430,31 +463,27 @@ class Tabesh_Product_Pricing {
 				foreach ( $weights_data as $cover_weight => $value ) {
 					$cover_weight = sanitize_text_field( $cover_weight );
 
-					// If checkbox exists in POST (value = "0"), it means it's ENABLED
-					if ( ! isset( $enabled_cover_combinations[ $binding_type ] ) ) {
-						$enabled_cover_combinations[ $binding_type ] = array();
-					}
+					// If checkbox exists in POST (value = "0"), it means it's ENABLED.
 					$enabled_cover_combinations[ $binding_type ][ $cover_weight ] = true;
 				}
 			}
+		}
 
-			// Determine forbidden cover weights for each binding type
-			// We need to get all cover weights to know which ones are disabled
-			$all_cover_weights = $this->get_configured_cover_weights();
+		// Determine forbidden cover weights for each binding type.
+		// Process ALL binding types, not just ones in POST data.
+		foreach ( $all_binding_types as $binding_type ) {
+			$forbidden_for_binding = array();
+			$enabled_weights       = $enabled_cover_combinations[ $binding_type ];
 
-			foreach ( $enabled_cover_combinations as $binding_type => $enabled_weights ) {
-				$forbidden_for_binding = array();
-
-				foreach ( $all_cover_weights as $weight ) {
-					if ( ! isset( $enabled_weights[ $weight ] ) ) {
-						$forbidden_for_binding[] = $weight;
-					}
+			foreach ( $all_cover_weights as $weight ) {
+				if ( ! isset( $enabled_weights[ $weight ] ) ) {
+					$forbidden_for_binding[] = $weight;
 				}
+			}
 
-				// Only add to restrictions if there are forbidden weights
-				if ( ! empty( $forbidden_for_binding ) ) {
-					$restrictions['forbidden_cover_weights'][ $binding_type ] = $forbidden_for_binding;
-				}
+			// Only add to restrictions if there are forbidden weights.
+			if ( ! empty( $forbidden_for_binding ) ) {
+				$restrictions['forbidden_cover_weights'][ $binding_type ] = $forbidden_for_binding;
 			}
 		}
 
@@ -463,11 +492,26 @@ class Tabesh_Product_Pricing {
 		// Logic: If checkbox is CHECKED, it's in POST data (enabled for that binding type).
 		// If checkbox is UNCHECKED, it's NOT in POST data (disabled/forbidden for that binding type).
 		// We track which combinations are enabled, then infer which are forbidden.
-		if ( isset( $data['forbidden_extras'] ) && is_array( $data['forbidden_extras'] ) ) {
-			$enabled_extras_combinations = array();
 
+		// CRITICAL FIX: Get ALL configured binding types and extra services
+		// to properly handle disabled toggles (reusing $all_binding_types from above).
+		$all_extras = $this->get_configured_extra_services();
+
+		// Initialize all binding types with empty enabled extras.
+		$enabled_extras_combinations = array();
+		foreach ( $all_binding_types as $binding_type ) {
+			$enabled_extras_combinations[ $binding_type ] = array();
+		}
+
+		// Process POST data to mark enabled combinations.
+		if ( isset( $data['forbidden_extras'] ) && is_array( $data['forbidden_extras'] ) ) {
 			foreach ( $data['forbidden_extras'] as $binding_type => $extras_data ) {
 				$binding_type = sanitize_text_field( $binding_type );
+
+				// Skip binding types that aren't in our configured list.
+				if ( ! in_array( $binding_type, $all_binding_types, true ) ) {
+					continue;
+				}
 
 				if ( ! is_array( $extras_data ) ) {
 					continue;
@@ -478,30 +522,26 @@ class Tabesh_Product_Pricing {
 
 					// If checkbox exists in POST data, it means the checkbox was CHECKED (enabled).
 					// The value "0" is arbitrary - we only care that the key exists in POST.
-					if ( ! isset( $enabled_extras_combinations[ $binding_type ] ) ) {
-						$enabled_extras_combinations[ $binding_type ] = array();
-					}
 					$enabled_extras_combinations[ $binding_type ][ $extra_service ] = true;
 				}
 			}
+		}
 
-			// Determine forbidden extras for each binding type
-			// We need to get all extra services to know which ones are disabled
-			$all_extras = $this->get_configured_extra_services();
+		// Determine forbidden extras for each binding type.
+		// Process ALL binding types, not just ones in POST data.
+		foreach ( $all_binding_types as $binding_type ) {
+			$forbidden_for_binding = array();
+			$enabled_extras        = $enabled_extras_combinations[ $binding_type ];
 
-			foreach ( $enabled_extras_combinations as $binding_type => $enabled_extras ) {
-				$forbidden_for_binding = array();
-
-				foreach ( $all_extras as $extra_service ) {
-					if ( ! isset( $enabled_extras[ $extra_service ] ) ) {
-						$forbidden_for_binding[] = $extra_service;
-					}
+			foreach ( $all_extras as $extra_service ) {
+				if ( ! isset( $enabled_extras[ $extra_service ] ) ) {
+					$forbidden_for_binding[] = $extra_service;
 				}
+			}
 
-				// Only add to restrictions if there are forbidden extras
-				if ( ! empty( $forbidden_for_binding ) ) {
-					$restrictions['forbidden_extras'][ $binding_type ] = $forbidden_for_binding;
-				}
+			// Only add to restrictions if there are forbidden extras.
+			if ( ! empty( $forbidden_for_binding ) ) {
+				$restrictions['forbidden_extras'][ $binding_type ] = $forbidden_for_binding;
 			}
 		}
 
