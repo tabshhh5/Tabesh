@@ -362,20 +362,23 @@ class Tabesh_Product_Pricing {
 		// New format: restrictions[forbidden_print_types][paper_type][weight][print_type] = "0" (checked = enabled).
 		// If checkbox is NOT checked (disabled), the value won't be in POST data.
 
-		// CRITICAL FIX: Get ALL configured paper types to properly handle disabled toggles.
-		// Previously, we only processed paper types that appeared in POST data,
-		// which meant paper types with BOTH toggles disabled were completely missed.
+		// CRITICAL FIX: Get ALL configured paper types AND their weights to properly handle disabled toggles per weight.
+		// This fixes the bug where disabling one weight of a paper type would re-enable after refresh.
 		$all_paper_types = $this->get_configured_paper_types();
 
-		// Track which print types are enabled for each paper type.
+		// Track which print types are enabled for each paper type AND weight combination.
+		// Structure: $enabled_combinations[paper_type][weight] = ['bw' => bool, 'color' => bool]
 		$enabled_combinations = array();
 
-		// Initialize all paper types as having no enabled print types.
-		foreach ( array_keys( $all_paper_types ) as $paper_type ) {
-			$enabled_combinations[ $paper_type ] = array(
-				'bw'    => false,
-				'color' => false,
-			);
+		// Initialize all paper types and their weights as having no enabled print types.
+		foreach ( $all_paper_types as $paper_type => $weights ) {
+			$enabled_combinations[ $paper_type ] = array();
+			foreach ( $weights as $weight ) {
+				$enabled_combinations[ $paper_type ][ $weight ] = array(
+					'bw'    => false,
+					'color' => false,
+				);
+			}
 		}
 
 		// Process POST data to mark enabled combinations.
@@ -393,6 +396,8 @@ class Tabesh_Product_Pricing {
 				}
 
 				foreach ( $weights_data as $weight => $print_types_data ) {
+					$weight = sanitize_text_field( $weight );
+
 					if ( ! is_array( $print_types_data ) ) {
 						continue;
 					}
@@ -401,34 +406,48 @@ class Tabesh_Product_Pricing {
 						$print_type = sanitize_text_field( $print_type );
 
 						// If checkbox exists in POST (value = "0"), it means it's ENABLED.
-						// Mark this print type as enabled for this paper type.
+						// Mark this print type as enabled for this specific paper type + weight combination.
 						if ( in_array( $print_type, array( 'bw', 'color' ), true ) ) {
-							$enabled_combinations[ $paper_type ][ $print_type ] = true;
+							$enabled_combinations[ $paper_type ][ $weight ][ $print_type ] = true;
 						}
 					}
 				}
 			}
 		}
 
-		// Now determine which print types are forbidden for each paper type.
-		// Process ALL paper types, not just ones in POST data.
-		foreach ( $enabled_combinations as $paper_type => $enabled_prints ) {
-			$bw_enabled    = $enabled_prints['bw'];
-			$color_enabled = $enabled_prints['color'];
+		// Now determine which print types are forbidden for each paper type AND weight.
+		// Process ALL paper types and ALL weights, not just ones in POST data.
+		foreach ( $all_paper_types as $paper_type => $weights ) {
+			$restrictions['forbidden_print_types'][ $paper_type ] = array();
 
-			// Build the forbidden list for this paper type.
-			$forbidden_for_paper = array();
+			foreach ( $weights as $weight ) {
+				$enabled_prints = $enabled_combinations[ $paper_type ][ $weight ] ?? array(
+					'bw'    => false,
+					'color' => false,
+				);
 
-			if ( ! $bw_enabled ) {
-				$forbidden_for_paper[] = 'bw';
+				$bw_enabled    = $enabled_prints['bw'] ?? false;
+				$color_enabled = $enabled_prints['color'] ?? false;
+
+				// Build the forbidden list for this specific weight.
+				$forbidden_for_weight = array();
+
+				if ( ! $bw_enabled ) {
+					$forbidden_for_weight[] = 'bw';
+				}
+				if ( ! $color_enabled ) {
+					$forbidden_for_weight[] = 'color';
+				}
+
+				// Only add to restrictions if there are forbidden types for this weight.
+				if ( ! empty( $forbidden_for_weight ) ) {
+					$restrictions['forbidden_print_types'][ $paper_type ][ $weight ] = $forbidden_for_weight;
+				}
 			}
-			if ( ! $color_enabled ) {
-				$forbidden_for_paper[] = 'color';
-			}
 
-			// Only add to restrictions if there are forbidden types.
-			if ( ! empty( $forbidden_for_paper ) ) {
-				$restrictions['forbidden_print_types'][ $paper_type ] = $forbidden_for_paper;
+			// Clean up empty paper type arrays
+			if ( empty( $restrictions['forbidden_print_types'][ $paper_type ] ) ) {
+				unset( $restrictions['forbidden_print_types'][ $paper_type ] );
 			}
 		}
 

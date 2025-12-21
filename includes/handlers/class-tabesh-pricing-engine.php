@@ -608,15 +608,17 @@ class Tabesh_Pricing_Engine {
 			);
 		}
 
-		// Check if this print type is forbidden for this paper
-		$forbidden_print_for_paper = $restrictions['forbidden_print_types'][ $paper_type ] ?? array();
-		if ( in_array( $print_type, $forbidden_print_for_paper, true ) ) {
+		// Check if this print type is forbidden for this paper weight.
+		// CRITICAL FIX: Check at the per-weight level, not per-paper-type level.
+		$forbidden_print_for_weight = $restrictions['forbidden_print_types'][ $paper_type ][ $paper_weight ] ?? array();
+		if ( in_array( $print_type, $forbidden_print_for_weight, true ) ) {
 			return array(
 				'allowed' => false,
 				'message' => sprintf(
-					__( 'چاپ %1$s برای کاغذ %2$s در قطع %3$s مجاز نیست', 'tabesh' ),
+					__( 'چاپ %1$s برای کاغذ %2$s (%3$s گرم) در قطع %4$s مجاز نیست', 'tabesh' ),
 					$print_type,
 					$paper_type,
+					$paper_weight,
 					$book_size
 				),
 			);
@@ -1212,22 +1214,37 @@ class Tabesh_Pricing_Engine {
 				continue;
 			}
 
-			// Check which print types are allowed for this paper.
-			$forbidden_prints = $restrictions['forbidden_print_types'][ $paper_type ] ?? array();
-			$allowed_prints   = array();
+			// With per-weight restrictions, we need to check each weight individually.
+			// Build a list of weights that have at least one allowed print type.
+			$available_weights = array();
+			$paper_allowed_prints = array(); // Track which print types are allowed across all weights
 
-			if ( ! in_array( 'bw', $forbidden_prints, true ) ) {
-				$allowed_prints[] = 'bw';
-			}
-			if ( ! in_array( 'color', $forbidden_prints, true ) ) {
-				$allowed_prints[] = 'color';
+			foreach ( $weights as $weight => $print_types ) {
+				// Check which print types are allowed for this specific weight.
+				$forbidden_prints_for_weight = $restrictions['forbidden_print_types'][ $paper_type ][ $weight ] ?? array();
+				
+				$weight_has_bw = ! in_array( 'bw', $forbidden_prints_for_weight, true ) && isset( $print_types['bw'] ) && $print_types['bw'] > 0;
+				$weight_has_color = ! in_array( 'color', $forbidden_prints_for_weight, true ) && isset( $print_types['color'] ) && $print_types['color'] > 0;
+
+				// Only include this weight if it has at least one allowed print type with a price.
+				if ( $weight_has_bw || $weight_has_color ) {
+					$available_weights[] = $weight;
+					
+					// Track which print types are available across all weights
+					if ( $weight_has_bw && ! in_array( 'bw', $paper_allowed_prints, true ) ) {
+						$paper_allowed_prints[] = 'bw';
+					}
+					if ( $weight_has_color && ! in_array( 'color', $paper_allowed_prints, true ) ) {
+						$paper_allowed_prints[] = 'color';
+					}
+				}
 			}
 
-			// Only include papers that have at least one allowed print type.
-			if ( ! empty( $allowed_prints ) ) {
+			// Only include papers that have at least one available weight.
+			if ( ! empty( $available_weights ) ) {
 				$available_papers[ $paper_type ] = array(
-					'weights'        => array_keys( $weights ),
-					'allowed_prints' => $allowed_prints,
+					'weights'        => $available_weights,
+					'allowed_prints' => $paper_allowed_prints,
 				);
 			}
 		}

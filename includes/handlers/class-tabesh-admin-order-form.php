@@ -204,16 +204,27 @@ class Tabesh_Admin_Order_Form {
 									continue;
 								}
 
-								// Get forbidden print types for this paper
-								$forbidden_for_paper = $forbidden_print_types[ $paper_type ] ?? array();
+								// CRITICAL FIX: With per-weight restrictions, we need to check each weight individually.
+								// Only include weights that have at least one allowed print type.
+								$available_weights = array();
+								
+								foreach ( array_keys( $weights_data ) as $weight ) {
+									// Get forbidden print types for this specific weight
+									$forbidden_for_weight = $forbidden_print_types[ $paper_type ][ $weight ] ?? array();
 
-								// Check if both bw and color are forbidden for this paper
-								$bw_forbidden    = in_array( 'bw', $forbidden_for_paper, true );
-								$color_forbidden = in_array( 'color', $forbidden_for_paper, true );
+									// Check if both bw and color are forbidden for this weight
+									$bw_forbidden    = in_array( 'bw', $forbidden_for_weight, true );
+									$color_forbidden = in_array( 'color', $forbidden_for_weight, true );
 
-								// Only include this paper type if at least one print type is allowed
-								if ( ! ( $bw_forbidden && $color_forbidden ) ) {
-									$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = array_keys( $weights_data );
+									// Only include this weight if at least one print type is allowed
+									if ( ! ( $bw_forbidden && $color_forbidden ) ) {
+										$available_weights[] = $weight;
+									}
+								}
+								
+								// Only include this paper type if it has at least one available weight
+								if ( ! empty( $available_weights ) ) {
+									$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = $available_weights;
 								}
 							}
 						}

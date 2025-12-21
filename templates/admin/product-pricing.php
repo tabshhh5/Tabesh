@@ -191,10 +191,11 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 										$bw_cost    = $pricing_matrix['page_costs'][ $paper_type ][ $weight ]['bw'] ?? 0;
 										$color_cost = $pricing_matrix['page_costs'][ $paper_type ][ $weight ]['color'] ?? 0;
 
-										// Check if this combination is forbidden.
-										$forbidden_prints = $pricing_matrix['restrictions']['forbidden_print_types'][ $paper_type ] ?? array();
-										$bw_forbidden     = in_array( 'bw', $forbidden_prints, true );
-										$color_forbidden  = in_array( 'color', $forbidden_prints, true );
+										// Check if this specific weight combination is forbidden.
+										// CRITICAL FIX: Check at the per-weight level, not per-paper-type level.
+										$forbidden_prints_for_weight = $pricing_matrix['restrictions']['forbidden_print_types'][ $paper_type ][ $weight ] ?? array();
+										$bw_forbidden                = in_array( 'bw', $forbidden_prints_for_weight, true );
+										$color_forbidden             = in_array( 'color', $forbidden_prints_for_weight, true );
 										?>
 										<tr>
 											<td class="weight-cell">
