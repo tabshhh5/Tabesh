@@ -490,14 +490,20 @@ class Tabesh_Pricing_Engine {
 			}
 		}
 
-		// Step 6: Calculate extras cost (no change from old system)
-		$extras_cost = $this->calculate_extras_cost( $pricing_matrix, $extras, $quantity, $page_count_total );
+		// Step 6: Calculate extras cost with proper separation
+		// Returns array with 'fixed' (applied once) and 'variable' (already accounts for quantity)
+		$extras_costs_breakdown = $this->calculate_extras_cost( $pricing_matrix, $extras, $quantity, $page_count_total );
+		$fixed_extras_cost      = $extras_costs_breakdown['fixed'];
+		$variable_extras_cost   = $extras_costs_breakdown['variable'];
 
-		// Step 7: Calculate production cost per book
-		$production_cost_per_book = $total_pages_cost + $cover_cost + $binding_cost + $extras_cost;
+		// Step 7: Calculate production cost per book (WITHOUT variable extras)
+		// Variable extras are already calculated for total quantity, so they're added separately
+		$production_cost_per_book = $total_pages_cost + $cover_cost + $binding_cost;
 
-		// Step 8: Calculate subtotal (quantity multiplication)
-		$subtotal = $production_cost_per_book * $quantity;
+		// Step 8: Calculate subtotal (quantity multiplication + extras)
+		// First multiply per-book cost by quantity, then add fixed and variable extras
+		$subtotal_before_extras = $production_cost_per_book * $quantity;
+		$subtotal               = $subtotal_before_extras + $fixed_extras_cost + $variable_extras_cost;
 
 		// Step 9: Apply quantity discounts
 		$discount_info        = $this->calculate_discount( $quantity, $subtotal );
@@ -546,15 +552,17 @@ class Tabesh_Pricing_Engine {
 			'pricing_engine'        => 'v2_matrix',
 			// Detailed breakdown for transparency
 			'breakdown'             => array(
-				'book_size'           => $book_size,
-				'pages_cost_bw'       => $pages_cost_bw,
-				'pages_cost_color'    => $pages_cost_color,
-				'total_pages_cost'    => $total_pages_cost,
-				'cover_cost'          => $cover_cost,
-				'binding_cost'        => $binding_cost,
-				'extras_cost'         => $extras_cost,
-				'per_page_cost_bw'    => $per_page_cost_bw,
-				'per_page_cost_color' => $per_page_cost_color,
+				'book_size'            => $book_size,
+				'pages_cost_bw'        => $pages_cost_bw,
+				'pages_cost_color'     => $pages_cost_color,
+				'total_pages_cost'     => $total_pages_cost,
+				'cover_cost'           => $cover_cost,
+				'binding_cost'         => $binding_cost,
+				'fixed_extras_cost'    => $fixed_extras_cost,
+				'variable_extras_cost' => $variable_extras_cost,
+				'total_extras_cost'    => $fixed_extras_cost + $variable_extras_cost,
+				'per_page_cost_bw'     => $per_page_cost_bw,
+				'per_page_cost_color'  => $per_page_cost_color,
 			),
 		);
 	}
@@ -884,15 +892,21 @@ class Tabesh_Pricing_Engine {
 	/**
 	 * Calculate extras cost
 	 *
+	 * This method correctly handles three types of additional services:
+	 * 1. Fixed: Applied once to the entire invoice (not per book)
+	 * 2. Per Unit: Multiplied by quantity (number of books)
+	 * 3. Page-Based: Based on total pages with minimum 1 unit guarantee
+	 *
 	 * @param array $pricing_matrix Pricing matrix
 	 * @param array $extras Array of extra services
 	 * @param int   $quantity Quantity
-	 * @param int   $page_count_total Total page count
-	 * @return float Total extras cost
+	 * @param int   $page_count_total Total page count per book
+	 * @return array Array with 'fixed' and 'variable' costs separated
 	 */
 	private function calculate_extras_cost( $pricing_matrix, $extras, $quantity, $page_count_total ) {
 		$extras_config = $pricing_matrix['extras_costs'] ?? array();
-		$total_cost    = 0;
+		$fixed_cost    = 0;  // Applied once (not multiplied by quantity)
+		$variable_cost = 0;  // Already accounts for quantity
 
 		foreach ( $extras as $extra ) {
 			if ( isset( $extras_config[ $extra ] ) ) {
@@ -903,30 +917,59 @@ class Tabesh_Pricing_Engine {
 
 				switch ( $type ) {
 					case 'fixed':
-						$extra_cost = $price;
+						// Fixed cost - applied once to the entire invoice
+						$extra_cost  = $price;
+						$fixed_cost += $extra_cost;
 						break;
+
 					case 'per_unit':
-						$extra_cost = $price * $quantity;
+						// Per unit cost - price multiplied by quantity
+						$extra_cost     = $price * $quantity;
+						$variable_cost += $extra_cost;
 						break;
+
 					case 'page_based':
+						// Page-based cost calculation
 						// Step represents: price is per X pages
-						// For example, step=100 means price per 100 pages
+						// For example, step=4000 means price per 4000 pages
 						// Default to 100 if not set (price per 100 pages)
 						$step = intval( $config['step'] ?? 100 );
 						if ( $step <= 0 ) {
 							$step = 100; // Fallback to prevent division by zero
 						}
+
+						// Calculate total pages across all books
 						$total_pages = $page_count_total * $quantity;
-						$units       = ceil( $total_pages / $step );
-						$extra_cost  = $price * $units;
+
+						// CRITICAL FIX: Ensure minimum 1 unit even if pages < step
+						// Example: If step=4000 and total_pages=2000, should charge for 1 full unit
+						// Example: If step=4000 and total_pages=4500, should charge for 2 units (ceil)
+						$units = max( 1, ceil( $total_pages / $step ) );
+
+						$extra_cost     = $price * $units;
+						$variable_cost += $extra_cost;
 						break;
 				}
 
-				$total_cost += $extra_cost;
+				// Debug logging if WP_DEBUG is enabled
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log(
+						sprintf(
+							'Tabesh Pricing Engine V2: Extra service "%s" - Type: %s, Price: %s, Cost: %s',
+							$extra,
+							$type,
+							$price,
+							$extra_cost
+						)
+					);
+				}
 			}
 		}
 
-		return $total_cost;
+		return array(
+			'fixed'    => $fixed_cost,
+			'variable' => $variable_cost,
+		);
 	}
 
 	/**
@@ -1216,20 +1259,20 @@ class Tabesh_Pricing_Engine {
 
 			// With per-weight restrictions, we need to check each weight individually.
 			// Build a list of weights that have at least one allowed print type.
-			$available_weights = array();
+			$available_weights    = array();
 			$paper_allowed_prints = array(); // Track which print types are allowed across all weights
 
 			foreach ( $weights as $weight => $print_types ) {
 				// Check which print types are allowed for this specific weight.
 				$forbidden_prints_for_weight = $restrictions['forbidden_print_types'][ $paper_type ][ $weight ] ?? array();
-				
-				$weight_has_bw = ! in_array( 'bw', $forbidden_prints_for_weight, true ) && isset( $print_types['bw'] ) && $print_types['bw'] > 0;
+
+				$weight_has_bw    = ! in_array( 'bw', $forbidden_prints_for_weight, true ) && isset( $print_types['bw'] ) && $print_types['bw'] > 0;
 				$weight_has_color = ! in_array( 'color', $forbidden_prints_for_weight, true ) && isset( $print_types['color'] ) && $print_types['color'] > 0;
 
 				// Only include this weight if it has at least one allowed print type with a price.
 				if ( $weight_has_bw || $weight_has_color ) {
 					$available_weights[] = $weight;
-					
+
 					// Track which print types are available across all weights
 					if ( $weight_has_bw && ! in_array( 'bw', $paper_allowed_prints, true ) ) {
 						$paper_allowed_prints[] = 'bw';

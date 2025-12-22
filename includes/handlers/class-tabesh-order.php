@@ -304,9 +304,10 @@ class Tabesh_Order {
 					case 'page_based':
 						// Page-based (per page) cost - Formula: Price_per_page × TotalPages
 						// Calculate total pages across all volumes and apply step-based pricing
+						// CRITICAL FIX: Ensure minimum 1 unit even if pages < step
 						if ( $option_step > 0 ) {
 							$total_pages = $page_count_total * $quantity;
-							$units       = ceil( $total_pages / $option_step );
+							$units       = max( 1, ceil( $total_pages / $option_step ) );
 							$extra_cost  = $option_price * $units;
 						} else {
 							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
