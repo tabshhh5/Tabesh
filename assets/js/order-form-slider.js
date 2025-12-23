@@ -22,6 +22,7 @@
 		binding_type: '',
 		cover_weight: '',
 		extras: [],
+		extras_names: [], // Store names for display
 		notes: '',
 		calculated_price: null,
 		step: 1
@@ -159,6 +160,7 @@
 				binding_type: formState.binding_type,
 				cover_weight: formState.cover_weight,
 				extras: formState.extras.slice(), // Copy array
+				extras_names: formState.extras_names.slice(), // Copy array
 				notes: formState.notes,
 				calculated_price: formState.calculated_price,
 				current_step: currentStep
@@ -538,6 +540,7 @@
 				.append(
 					$('<input type="checkbox" name="extras[]">')
 						.val(extraValue)
+						.attr('data-extra-name', extraName)
 						.attr('data-event-field', 'extras')
 				)
 				.append(
@@ -553,10 +556,13 @@
 	 */
 	function updateExtrasState() {
 		const selectedExtras = [];
+		const selectedExtrasNames = [];
 		$('#slider_extras_container input[type="checkbox"]:checked').each(function() {
 			selectedExtras.push($(this).val());
+			selectedExtrasNames.push($(this).attr('data-extra-name') || $(this).val());
 		});
 		formState.extras = selectedExtras;
+		formState.extras_names = selectedExtrasNames;
 	}
 
 	/**
@@ -653,8 +659,8 @@
 			{ label: 'گرماژ جلد', value: formState.cover_weight }
 		];
 
-		if (formState.extras.length > 0) {
-			summaryItems.push({ label: 'خدمات اضافی', value: formState.extras.join('، ') });
+		if (formState.extras_names && formState.extras_names.length > 0) {
+			summaryItems.push({ label: 'خدمات اضافی', value: formState.extras_names.join('، ') });
 		}
 
 		summaryItems.forEach(function(item) {
