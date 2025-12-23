@@ -376,6 +376,13 @@
             return;
         }
 
+        // Mapping of print type values to their internal identifiers
+        const printTypeMap = {
+            'bw': ['سیاه و سفید', 'bw'],
+            'color': ['رنگی', 'color'],
+            'mixed': ['ترکیبی', 'mixed']
+        };
+
         // Get all print type options
         const $printTypeSelect = $('#aof-print-type');
         const $options = $printTypeSelect.find('option');
@@ -386,27 +393,18 @@
                 return; // Skip empty option
             }
 
-            // Check if this print type is available for the selected weight
-            if (value === 'سیاه و سفید' || value === 'bw') {
-                if (!availablePrints.includes('bw')) {
-                    $(this).prop('disabled', true);
-                } else {
-                    $(this).prop('disabled', false);
-                }
-            } else if (value === 'رنگی' || value === 'color') {
-                if (!availablePrints.includes('color')) {
-                    $(this).prop('disabled', true);
-                } else {
-                    $(this).prop('disabled', false);
-                }
-            } else if (value === 'ترکیبی' || value === 'mixed') {
+            // Check which type this option represents
+            let isAllowed = true;
+            if (printTypeMap.bw.includes(value)) {
+                isAllowed = availablePrints.includes('bw');
+            } else if (printTypeMap.color.includes(value)) {
+                isAllowed = availablePrints.includes('color');
+            } else if (printTypeMap.mixed.includes(value)) {
                 // Mixed requires both to be available
-                if (!availablePrints.includes('bw') || !availablePrints.includes('color')) {
-                    $(this).prop('disabled', true);
-                } else {
-                    $(this).prop('disabled', false);
-                }
+                isAllowed = availablePrints.includes('bw') && availablePrints.includes('color');
             }
+
+            $(this).prop('disabled', !isAllowed);
         });
 
         // Clear selection if current selection is now disabled
@@ -466,9 +464,16 @@
             return;
         }
 
-        // Get list of allowed extra names
+        // Normalize allowed extra names - handle both string and object formats
         const allowedNames = allowedExtras.map(function(extra) {
-            return extra.name || extra;
+            if (typeof extra === 'string') {
+                return extra;
+            } else if (typeof extra === 'object' && extra !== null) {
+                return extra.name || '';
+            }
+            return '';
+        }).filter(function(name) {
+            return name !== '';
         });
 
         // Update each checkbox
@@ -606,11 +611,9 @@
         // Get stored allowed options from book size selection
         const allowedOptions = $('#aof-book-size').data('allowedOptions');
         if (!allowedOptions || !allowedOptions.allowed_papers) {
-            console.warn('Tabesh: No allowed options data found, fetching from API');
-            const bookSize = $('#aof-book-size').val();
-            if (bookSize) {
-                updateFormParametersForBookSize(bookSize);
-            }
+            // No data available, but don't fetch automatically to avoid race conditions
+            // User should select book size first
+            console.warn('Tabesh: No allowed options data found. Please select a book size first.');
             return;
         }
 
