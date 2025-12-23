@@ -1,488 +1,409 @@
 <?php
 /**
- * Admin Order Form Template - Matrix-Based Pricing with Customer Selection
- *
- * Modern admin order form with V2 pricing engine integration
- * Includes customer search/creation and optional SMS sending
+ * Admin Order Form Template - Redesigned Compact Horizontal Layout
+ * 
+ * قالب فرم ثبت سفارش ویژه مدیر - بازطراحی چیدمان افقی فشرده
+ * Template for admin order form shortcode with modern compact horizontal UI
+ * Designed to fit on 1366x768 screens without scrolling
  *
  * @package Tabesh
+ * @since 1.0.4
  */
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+// Exit if accessed directly / در صورت دسترسی مستقیم خارج شود
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-// Get constraint manager to fetch available book sizes.
-try {
-	$constraint_manager = new Tabesh_Constraint_Manager();
-	$available_sizes    = $constraint_manager->get_available_book_sizes();
+// Get settings / دریافت تنظیمات
+$book_sizes          = Tabesh()->get_setting('book_sizes', array());
+$paper_types         = Tabesh()->get_setting('paper_types', array());
+$print_types         = Tabesh()->get_setting('print_types', array());
+$binding_types       = Tabesh()->get_setting('binding_types', array());
+$license_types       = Tabesh()->get_setting('license_types', array());
+$cover_paper_weights = Tabesh()->get_setting('cover_paper_weights', array());
+$lamination_types    = Tabesh()->get_setting('lamination_types', array());
+$extras              = Tabesh()->get_setting('extras', array());
 
-	// Log for debugging if WP_DEBUG is enabled.
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Tabesh Admin Order Form V2: Available book sizes count: ' . count( $available_sizes ) );
-		if ( empty( $available_sizes ) ) {
-			error_log( 'Tabesh Admin Order Form V2: WARNING - No book sizes configured in pricing matrix' );
-		}
-	}
-} catch ( Exception $e ) {
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Tabesh Admin Order Form V2 Error: ' . $e->getMessage() );
-	}
-	$available_sizes = array();
-}
+// Ensure all are arrays / اطمینان از آرایه بودن
+$book_sizes          = is_array($book_sizes) ? $book_sizes : array();
+$paper_types         = is_array($paper_types) ? $paper_types : array();
+$print_types         = is_array($print_types) ? $print_types : array();
+$binding_types       = is_array($binding_types) ? $binding_types : array();
+$license_types       = is_array($license_types) ? $license_types : array();
+$cover_paper_weights = is_array($cover_paper_weights) ? $cover_paper_weights : array();
+$lamination_types    = is_array($lamination_types) ? $lamination_types : array();
+$extras              = is_array($extras) ? $extras : array();
 
-// Scalar settings.
-$min_quantity  = Tabesh()->get_setting( 'min_quantity', 10 );
-$max_quantity  = Tabesh()->get_setting( 'max_quantity', 10000 );
-$quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
+// Sanitize extras / پاکسازی آپشن‌های اضافی
+$extras = array_filter(
+    array_map(
+        function ($extra) {
+            $extra = is_scalar($extra) ? trim(strval($extra)) : '';
+            return (!empty($extra) && $extra !== 'on') ? $extra : null;
+        },
+        $extras
+    )
+);
 
-// Get title from attributes.
-$form_title = isset( $atts['title'] ) ? $atts['title'] : __( 'ثبت سفارش جدید (ویژه مدیر)', 'tabesh' );
+// Get quantity settings / دریافت تنظیمات تیراژ
+$min_quantity  = Tabesh()->get_setting('min_quantity', 10);
+$max_quantity  = Tabesh()->get_setting('max_quantity', 10000);
+$quantity_step = Tabesh()->get_setting('quantity_step', 10);
+
+// Get title from attributes / دریافت عنوان از پارامترها
+$form_title = isset($atts['title']) ? $atts['title'] : __('ثبت سفارش جدید', 'tabesh');
 ?>
 
-<div class="tabesh-admin-wizard-container" dir="rtl">
-	<?php if ( empty( $available_sizes ) ) : ?>
-		<div class="tabesh-wizard-error">
-			<div class="error-icon">⚠️</div>
-			<h3><?php echo esc_html__( 'خطا در بارگذاری فرم', 'tabesh' ); ?></h3>
-			<p><?php echo esc_html__( 'هیچ قطع کتابی با قیمت‌گذاری فعال در سیستم یافت نشد.', 'tabesh' ); ?></p>
-			
-			<?php if ( current_user_can( 'manage_woocommerce' ) ) : ?>
-				<div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-					<h4 style="margin: 0 0 10px 0;"><?php echo esc_html__( 'راهنمای مدیر سیستم:', 'tabesh' ); ?></h4>
-					<p>
-						<?php echo esc_html__( 'لطفاً ابتدا به', 'tabesh' ); ?> 
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-product-pricing' ) ); ?>" class="error-link" style="font-weight: bold;">
-							<?php echo esc_html__( 'مدیریت قیمت‌گذاری محصولات', 'tabesh' ); ?>
-						</a> 
-						<?php echo esc_html__( 'بروید و ماتریس قیمت را برای قطع‌های کتاب تنظیم کنید.', 'tabesh' ); ?>
-					</p>
-				</div>
-			<?php else : ?>
-				<p><?php echo esc_html__( 'لطفاً با مدیر سیستم تماس بگیرید.', 'tabesh' ); ?></p>
-			<?php endif; ?>
-		</div>
-	<?php else : ?>
+<div class="tabesh-aof-wrapper" dir="rtl">
+    <!-- 
+        Sticky Header / هدر ثابت
+        Compact header that stays at top
+        هدر فشرده که در بالا ثابت می‌ماند
+    -->
+    <header class="tabesh-aof-header">
+        <div class="tabesh-aof-header-content">
+            <h2 class="tabesh-aof-title">
+                <span class="dashicons dashicons-cart"></span>
+                <?php echo esc_html($form_title); ?>
+            </h2>
+            <span class="tabesh-aof-subtitle"><?php echo esc_html__('ثبت سفارش به نام مشتری', 'tabesh'); ?></span>
+        </div>
+        <div class="tabesh-aof-header-hint">
+            <kbd>Ctrl</kbd>+<kbd>Enter</kbd> <?php echo esc_html__('ثبت سریع', 'tabesh'); ?>
+        </div>
+    </header>
 
-	<!-- Header -->
-	<div class="admin-wizard-header">
-		<h2 class="admin-wizard-title">
-			<span class="dashicons dashicons-cart"></span>
-			<?php echo esc_html( $form_title ); ?>
-		</h2>
-		<p class="admin-wizard-subtitle">
-			<?php echo esc_html__( 'ثبت سفارش به نام مشتری با موتور قیمت‌گذاری V2', 'tabesh' ); ?>
-		</p>
-	</div>
+    <!-- 
+        Main Form Container / کانتینر اصلی فرم
+        Compact no-scroll layout for desktop
+        چیدمان فشرده بدون اسکرول برای دسکتاپ
+    -->
+    <form id="tabesh-admin-order-form-main" class="tabesh-aof-form">
+        <!-- 
+            Customer Section - Inline / بخش مشتری - خطی
+            Compact inline customer selection
+            انتخاب مشتری فشرده خطی
+        -->
+        <section class="tabesh-aof-section tabesh-aof-section-customer">
+            <div class="tabesh-aof-section-header">
+                <span class="section-badge">۱</span>
+                <span class="section-label"><?php echo esc_html__('مشتری', 'tabesh'); ?></span>
+            </div>
+            
+            <div class="tabesh-aof-customer-row">
+                <!-- Radio toggle / تغییر رادیو -->
+                <div class="tabesh-aof-toggle-group">
+                    <label class="tabesh-aof-toggle">
+                        <input type="radio" name="customer_type" value="existing" checked>
+                        <span class="toggle-text"><?php echo esc_html__('موجود', 'tabesh'); ?></span>
+                    </label>
+                    <label class="tabesh-aof-toggle">
+                        <input type="radio" name="customer_type" value="new">
+                        <span class="toggle-text"><?php echo esc_html__('جدید', 'tabesh'); ?></span>
+                    </label>
+                </div>
 
-	<!-- Progress Bar -->
-	<div class="wizard-progress">
-		<div class="progress-bar">
-			<div class="progress-fill" id="adminProgressBar"></div>
-		</div>
-		<div class="progress-steps">
-			<div class="progress-step active" data-step="1">
-				<div class="step-circle">1</div>
-				<span class="step-label"><?php echo esc_html__( 'مشتری', 'tabesh' ); ?></span>
-			</div>
-			<div class="progress-step" data-step="2">
-				<div class="step-circle">2</div>
-				<span class="step-label"><?php echo esc_html__( 'عنوان و قطع', 'tabesh' ); ?></span>
-			</div>
-			<div class="progress-step" data-step="3">
-				<div class="step-circle">3</div>
-				<span class="step-label"><?php echo esc_html__( 'کاغذ و چاپ', 'tabesh' ); ?></span>
-			</div>
-			<div class="progress-step" data-step="4">
-				<div class="step-circle">4</div>
-				<span class="step-label"><?php echo esc_html__( 'صحافی', 'tabesh' ); ?></span>
-			</div>
-			<div class="progress-step" data-step="5">
-				<div class="step-circle">5</div>
-				<span class="step-label"><?php echo esc_html__( 'تکمیل', 'tabesh' ); ?></span>
-			</div>
-		</div>
-	</div>
+                <!-- Existing user search / جستجوی کاربر موجود -->
+                <div id="aof-existing-user-section" class="tabesh-aof-customer-fields">
+                    <div class="tabesh-aof-search-box">
+                        <span class="search-icon dashicons dashicons-search"></span>
+                        <input type="text" 
+                               id="aof-user-search" 
+                               class="tabesh-aof-input" 
+                               placeholder="<?php echo esc_attr__('جستجوی نام، موبایل یا ایمیل...', 'tabesh'); ?>"
+                               autocomplete="off">
+                        <div id="aof-user-search-results" class="tabesh-aof-search-results"></div>
+                    </div>
+                    <input type="hidden" id="aof-selected-user-id" name="user_id" value="">
+                    <div id="aof-selected-user-display" class="tabesh-aof-selected-user"></div>
+                </div>
 
-	<!-- Wizard Form -->
-	<div class="wizard-form-wrapper">
-		<form id="tabesh-admin-wizard-form" class="wizard-form">
+                <!-- New user fields / فیلدهای کاربر جدید -->
+                <div id="aof-new-user-section" class="tabesh-aof-customer-fields" style="display: none;">
+                    <div class="tabesh-aof-inline-fields">
+                        <input type="text" 
+                               id="aof-new-mobile" 
+                               class="tabesh-aof-input" 
+                               placeholder="<?php echo esc_attr__('09xxxxxxxxx', 'tabesh'); ?>" 
+                               pattern="09[0-9]{9}"
+                               dir="ltr">
+                        <input type="text" 
+                               id="aof-new-first-name" 
+                               class="tabesh-aof-input" 
+                               placeholder="<?php echo esc_attr__('نام', 'tabesh'); ?>">
+                        <input type="text" 
+                               id="aof-new-last-name" 
+                               class="tabesh-aof-input" 
+                               placeholder="<?php echo esc_attr__('نام خانوادگی', 'tabesh'); ?>">
+                        <button type="button" id="aof-create-user-btn" class="tabesh-aof-btn tabesh-aof-btn-sm">
+                            <span class="dashicons dashicons-plus"></span>
+                            <?php echo esc_html__('ایجاد', 'tabesh'); ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-			<!-- Step 1: Customer Selection -->
-			<div class="wizard-step active" data-step="1">
-				<div class="step-header">
-					<h2 class="step-title">
-						<span class="step-icon">👤</span>
-						<?php echo esc_html__( 'انتخاب مشتری', 'tabesh' ); ?>
-					</h2>
-					<p class="step-description">
-						<?php echo esc_html__( 'ابتدا مشتری را جستجو کنید یا کاربر جدید ایجاد کنید', 'tabesh' ); ?>
-					</p>
-				</div>
-				<div class="step-content">
-					<!-- Customer Type Selection -->
-					<div class="form-group">
-						<label class="form-label">
-							<?php echo esc_html__( 'نوع مشتری', 'tabesh' ); ?>
-							<span class="required">*</span>
-						</label>
-						<div class="customer-type-toggle">
-							<label class="toggle-option">
-								<input type="radio" name="customer_type" value="existing" checked>
-								<span><?php echo esc_html__( 'مشتری موجود', 'tabesh' ); ?></span>
-							</label>
-							<label class="toggle-option">
-								<input type="radio" name="customer_type" value="new">
-								<span><?php echo esc_html__( 'مشتری جدید', 'tabesh' ); ?></span>
-							</label>
-						</div>
-					</div>
+        <!-- 
+            Order Details Section - Grid / بخش مشخصات سفارش - گرید
+            3-column grid layout for order fields
+            چیدمان گرید ۳ ستونه برای فیلدهای سفارش
+        -->
+        <section class="tabesh-aof-section tabesh-aof-section-order">
+            <div class="tabesh-aof-section-header">
+                <span class="section-badge">۲</span>
+                <span class="section-label"><?php echo esc_html__('مشخصات سفارش', 'tabesh'); ?></span>
+            </div>
+            
+            <!-- Book title - full width / عنوان کتاب - تمام عرض -->
+            <div class="tabesh-aof-field tabesh-aof-field-full">
+                <label for="aof-book-title"><?php echo esc_html__('عنوان کتاب', 'tabesh'); ?> <span class="req">*</span></label>
+                <input type="text" 
+                       id="aof-book-title" 
+                       name="book_title" 
+                       class="tabesh-aof-input" 
+                       required
+                       placeholder="<?php echo esc_attr__('عنوان کتاب را وارد کنید', 'tabesh'); ?>">
+            </div>
 
-					<!-- Existing Customer Search -->
-					<div id="existing-customer-section" class="customer-section">
-						<div class="form-group">
-							<label for="customer_search" class="form-label">
-								<?php echo esc_html__( 'جستجوی مشتری', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<input 
-								type="text" 
-								id="customer_search" 
-								class="form-control"
-								placeholder="<?php echo esc_attr__( 'نام، موبایل یا ایمیل مشتری را وارد کنید...', 'tabesh' ); ?>"
-							>
-							<div id="customer_search_results" class="search-results"></div>
-							<input type="hidden" id="selected_customer_id" name="customer_id">
-						</div>
-						<div id="selected_customer_display" class="selected-customer"></div>
-					</div>
+            <!-- Grid row 1 / ردیف گرید ۱ -->
+            <div class="tabesh-aof-grid">
+                <div class="tabesh-aof-field">
+                    <label for="aof-book-size"><?php echo esc_html__('قطع', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-book-size" name="book_size" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('انتخاب...', 'tabesh'); ?></option>
+                        <?php foreach ($book_sizes as $size) : ?>
+                            <option value="<?php echo esc_attr($size); ?>"><?php echo esc_html($size); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-					<!-- New Customer Form -->
-					<div id="new-customer-section" class="customer-section" style="display: none;">
-						<div class="form-row">
-							<div class="form-group">
-								<label for="new_customer_name" class="form-label">
-									<?php echo esc_html__( 'نام و نام خانوادگی', 'tabesh' ); ?>
-									<span class="required">*</span>
-								</label>
-								<input 
-									type="text" 
-									id="new_customer_name" 
-									name="new_customer_name"
-									class="form-control"
-									placeholder="<?php echo esc_attr__( 'نام کامل مشتری', 'tabesh' ); ?>"
-								>
-							</div>
-							<div class="form-group">
-								<label for="new_customer_mobile" class="form-label">
-									<?php echo esc_html__( 'موبایل', 'tabesh' ); ?>
-									<span class="required">*</span>
-								</label>
-								<input 
-									type="tel" 
-									id="new_customer_mobile" 
-									name="new_customer_mobile"
-									class="form-control"
-									placeholder="<?php echo esc_attr__( '09123456789', 'tabesh' ); ?>"
-									pattern="09[0-9]{9}"
-								>
-							</div>
-						</div>
-						<div class="form-group">
-							<label for="new_customer_email" class="form-label">
-								<?php echo esc_html__( 'ایمیل', 'tabesh' ); ?>
-							</label>
-							<input 
-								type="email" 
-								id="new_customer_email" 
-								name="new_customer_email"
-								class="form-control"
-								placeholder="<?php echo esc_attr__( 'example@email.com', 'tabesh' ); ?>"
-							>
-						</div>
-						<button type="button" id="create_customer_btn" class="button button-secondary">
-							<?php echo esc_html__( 'ایجاد مشتری', 'tabesh' ); ?>
-						</button>
-					</div>
-				</div>
-			</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-paper-type"><?php echo esc_html__('نوع کاغذ', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-paper-type" name="paper_type" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('انتخاب...', 'tabesh'); ?></option>
+                        <?php foreach ($paper_types as $paper_type_key => $weights) : ?>
+                            <option value="<?php echo esc_attr($paper_type_key); ?>"><?php echo esc_html($paper_type_key); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-			<!-- Step 2: Book Title & Size -->
-			<div class="wizard-step" data-step="2">
-				<div class="step-header">
-					<h2 class="step-title">
-						<span class="step-icon">📖</span>
-						<?php echo esc_html__( 'اطلاعات اولیه کتاب', 'tabesh' ); ?>
-					</h2>
-					<p class="step-description">
-						<?php echo esc_html__( 'عنوان کتاب و قطع مورد نظر را انتخاب کنید', 'tabesh' ); ?>
-					</p>
-				</div>
-				<div class="step-content">
-					<div class="form-group">
-						<label for="book_title_admin" class="form-label">
-							<?php echo esc_html__( 'عنوان کتاب', 'tabesh' ); ?>
-							<span class="required">*</span>
-						</label>
-						<input 
-							type="text" 
-							id="book_title_admin" 
-							name="book_title" 
-							class="form-control"
-							placeholder="<?php echo esc_attr__( 'نام کتابی که می‌خواهید چاپ کنید...', 'tabesh' ); ?>"
-							required
-						>
-					</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-paper-weight"><?php echo esc_html__('گرماژ', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-paper-weight" name="paper_weight" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('ابتدا نوع کاغذ', 'tabesh'); ?></option>
+                    </select>
+                </div>
 
-					<div class="form-group">
-						<label class="form-label">
-							<?php echo esc_html__( 'قطع کتاب', 'tabesh' ); ?>
-							<span class="required">*</span>
-						</label>
-						<div class="book-size-grid">
-							<?php foreach ( $available_sizes as $size_info ) : ?>
-								<?php if ( $size_info['enabled'] ) : ?>
-								<label class="size-option">
-									<input 
-										type="radio" 
-										name="book_size" 
-										value="<?php echo esc_attr( $size_info['size'] ); ?>"
-										data-size="<?php echo esc_attr( $size_info['size'] ); ?>"
-										required
-									>
-									<span class="size-card">
-										<span class="size-name"><?php echo esc_html( $size_info['size'] ); ?></span>
-										<span class="size-info">
-											<?php echo esc_html( $size_info['paper_count'] ); ?> نوع کاغذ
-										</span>
-									</span>
-								</label>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						</div>
-					</div>
-				</div>
-			</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-print-type"><?php echo esc_html__('نوع چاپ', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-print-type" name="print_type" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('انتخاب...', 'tabesh'); ?></option>
+                        <?php foreach ($print_types as $print_type_item) : ?>
+                            <option value="<?php echo esc_attr($print_type_item); ?>"><?php echo esc_html($print_type_item); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-			<!-- Step 3: Paper & Print Specifications -->
-			<div class="wizard-step" data-step="3">
-				<div class="step-header">
-					<h2 class="step-title">
-						<span class="step-icon">📄</span>
-						<?php echo esc_html__( 'مشخصات کاغذ و چاپ', 'tabesh' ); ?>
-					</h2>
-					<p class="step-description">
-						<?php echo esc_html__( 'نوع کاغذ، گرماژ و نوع چاپ را انتخاب کنید', 'tabesh' ); ?>
-					</p>
-				</div>
-				<div class="step-content">
-					<div class="form-row">
-						<div class="form-group">
-							<label for="paper_type_admin" class="form-label">
-								<?php echo esc_html__( 'نوع کاغذ', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<select id="paper_type_admin" name="paper_type" class="form-control" required>
-								<option value=""><?php echo esc_html__( 'انتخاب کنید...', 'tabesh' ); ?></option>
-							</select>
-						</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-binding-type"><?php echo esc_html__('صحافی', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-binding-type" name="binding_type" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('انتخاب...', 'tabesh'); ?></option>
+                        <?php foreach ($binding_types as $binding_type_item) : ?>
+                            <option value="<?php echo esc_attr($binding_type_item); ?>"><?php echo esc_html($binding_type_item); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-						<div class="form-group">
-							<label for="paper_weight_admin" class="form-label">
-								<?php echo esc_html__( 'گرماژ کاغذ', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<select id="paper_weight_admin" name="paper_weight" class="form-control" required disabled>
-								<option value=""><?php echo esc_html__( 'ابتدا نوع کاغذ را انتخاب کنید', 'tabesh' ); ?></option>
-							</select>
-						</div>
-					</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-license-type"><?php echo esc_html__('مجوز', 'tabesh'); ?> <span class="req">*</span></label>
+                    <select id="aof-license-type" name="license_type" class="tabesh-aof-select" required>
+                        <option value=""><?php echo esc_html__('انتخاب...', 'tabesh'); ?></option>
+                        <?php foreach ($license_types as $license_type_item) : ?>
+                            <option value="<?php echo esc_attr($license_type_item); ?>"><?php echo esc_html($license_type_item); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
 
-					<div class="form-group">
-						<label class="form-label">
-							<?php echo esc_html__( 'نوع چاپ', 'tabesh' ); ?>
-							<span class="required">*</span>
-						</label>
-						<div class="print-type-grid" id="print_type_container_admin">
-							<p class="form-hint"><?php echo esc_html__( 'ابتدا نوع و گرماژ کاغذ را انتخاب کنید', 'tabesh' ); ?></p>
-						</div>
-					</div>
+            <!-- Grid row 2 / ردیف گرید ۲ -->
+            <div class="tabesh-aof-grid">
+                <div class="tabesh-aof-field">
+                    <label for="aof-quantity"><?php echo esc_html__('تیراژ', 'tabesh'); ?> <span class="req">*</span></label>
+                    <input type="number" 
+                           id="aof-quantity" 
+                           name="quantity" 
+                           class="tabesh-aof-input" 
+                           min="<?php echo esc_attr($min_quantity); ?>" 
+                           max="<?php echo esc_attr($max_quantity); ?>" 
+                           step="<?php echo esc_attr($quantity_step); ?>" 
+                           value="<?php echo esc_attr($min_quantity); ?>" 
+                           required>
+                </div>
 
-					<div class="form-row">
-						<div class="form-group">
-							<label for="page_count_admin" class="form-label">
-								<?php echo esc_html__( 'تعداد صفحات', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<input 
-								type="number" 
-								id="page_count_admin" 
-								name="page_count" 
-								class="form-control"
-								min="4"
-								max="5000"
-								step="4"
-								value="100"
-								required
-							>
-							<span class="form-hint"><?php echo esc_html__( 'باید مضرب ۴ باشد', 'tabesh' ); ?></span>
-						</div>
+                <!-- Dynamic page count fields / فیلدهای پویای تعداد صفحات -->
+                <div class="tabesh-aof-field" id="aof-page-count-total-group">
+                    <label for="aof-page-count-total"><?php echo esc_html__('تعداد صفحات', 'tabesh'); ?> <span class="req">*</span></label>
+                    <input type="number" 
+                           id="aof-page-count-total" 
+                           name="page_count_total" 
+                           class="tabesh-aof-input" 
+                           min="1" 
+                           value="">
+                </div>
 
-						<div class="form-group">
-							<label for="quantity_admin" class="form-label">
-								<?php echo esc_html__( 'تیراژ (تعداد)', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<input 
-								type="number" 
-								id="quantity_admin" 
-								name="quantity" 
-								class="form-control"
-								min="<?php echo esc_attr( $min_quantity ); ?>"
-								max="<?php echo esc_attr( $max_quantity ); ?>"
-								step="<?php echo esc_attr( $quantity_step ); ?>"
-								value="<?php echo esc_attr( $min_quantity ); ?>"
-								required
-							>
-							<span class="form-hint">
-								<?php
-								/* translators: 1: minimum quantity, 2: maximum quantity */
-								echo esc_html( sprintf( __( 'حداقل %1$d، حداکثر %2$d', 'tabesh' ), $min_quantity, $max_quantity ) );
-								?>
-							</span>
-						</div>
-					</div>
-				</div>
-			</div>
+                <div class="tabesh-aof-field" id="aof-page-count-color-group" style="display: none;">
+                    <label for="aof-page-count-color"><?php echo esc_html__('صفحات رنگی', 'tabesh'); ?> <span class="req">*</span></label>
+                    <input type="number" 
+                           id="aof-page-count-color" 
+                           name="page_count_color" 
+                           class="tabesh-aof-input" 
+                           min="0" 
+                           value="0">
+                </div>
 
-			<!-- Step 4: Binding & Cover -->
-			<div class="wizard-step" data-step="4">
-				<div class="step-header">
-					<h2 class="step-title">
-						<span class="step-icon">📘</span>
-						<?php echo esc_html__( 'صحافی و جلد', 'tabesh' ); ?>
-					</h2>
-					<p class="step-description">
-						<?php echo esc_html__( 'نوع صحافی، گرماژ جلد و خدمات اضافی را انتخاب کنید', 'tabesh' ); ?>
-					</p>
-				</div>
-				<div class="step-content">
-					<div class="form-row">
-						<div class="form-group">
-							<label for="binding_type_admin" class="form-label">
-								<?php echo esc_html__( 'نوع صحافی', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<select id="binding_type_admin" name="binding_type" class="form-control" required>
-								<option value=""><?php echo esc_html__( 'انتخاب کنید...', 'tabesh' ); ?></option>
-							</select>
-						</div>
+                <div class="tabesh-aof-field" id="aof-page-count-bw-group" style="display: none;">
+                    <label for="aof-page-count-bw"><?php echo esc_html__('صفحات سیاه‌وسفید', 'tabesh'); ?> <span class="req">*</span></label>
+                    <input type="number" 
+                           id="aof-page-count-bw" 
+                           name="page_count_bw" 
+                           class="tabesh-aof-input" 
+                           min="0" 
+                           value="0">
+                </div>
 
-						<div class="form-group">
-							<label for="cover_weight_admin" class="form-label">
-								<?php echo esc_html__( 'گرماژ جلد', 'tabesh' ); ?>
-								<span class="required">*</span>
-							</label>
-							<select id="cover_weight_admin" name="cover_weight" class="form-control" required disabled>
-								<option value=""><?php echo esc_html__( 'ابتدا نوع صحافی را انتخاب کنید', 'tabesh' ); ?></option>
-							</select>
-						</div>
-					</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-cover-paper-weight"><?php echo esc_html__('گرماژ جلد', 'tabesh'); ?></label>
+                    <select id="aof-cover-paper-weight" name="cover_paper_weight" class="tabesh-aof-select">
+                        <?php foreach ($cover_paper_weights as $weight) : ?>
+                            <option value="<?php echo esc_attr($weight); ?>"><?php echo esc_html($weight); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-					<div class="form-group">
-						<label class="form-label">
-							<?php echo esc_html__( 'خدمات اضافی', 'tabesh' ); ?>
-						</label>
-						<div id="extras_container_admin" class="extras-grid">
-							<p class="form-hint"><?php echo esc_html__( 'در حال بارگذاری...', 'tabesh' ); ?></p>
-						</div>
-					</div>
-				</div>
-			</div>
+                <div class="tabesh-aof-field">
+                    <label for="aof-lamination-type"><?php echo esc_html__('سلفون', 'tabesh'); ?></label>
+                    <select id="aof-lamination-type" name="lamination_type" class="tabesh-aof-select">
+                        <?php foreach ($lamination_types as $lamination_type_item) : ?>
+                            <option value="<?php echo esc_attr($lamination_type_item); ?>"><?php echo esc_html($lamination_type_item); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
 
-			<!-- Step 5: Review & Submit -->
-			<div class="wizard-step" data-step="5">
-				<div class="step-header">
-					<h2 class="step-title">
-						<span class="step-icon">✅</span>
-						<?php echo esc_html__( 'بررسی و تکمیل سفارش', 'tabesh' ); ?>
-					</h2>
-					<p class="step-description">
-						<?php echo esc_html__( 'مشخصات سفارش را بررسی کرده و سفارش را ثبت نهایی کنید', 'tabesh' ); ?>
-					</p>
-				</div>
-				<div class="step-content">
-					<!-- Order Review -->
-					<div class="order-review-section">
-						<h3><?php echo esc_html__( 'خلاصه سفارش', 'tabesh' ); ?></h3>
-						<div id="order_review_content" class="review-content">
-							<!-- Will be populated by JS -->
-						</div>
-					</div>
+            <!-- Extras and Notes Row / ردیف آپشن‌ها و یادداشت -->
+            <div class="tabesh-aof-extras-row">
+                <?php if (!empty($extras)) : ?>
+                <div class="tabesh-aof-extras">
+                    <span class="extras-label"><?php echo esc_html__('آپشن‌ها:', 'tabesh'); ?></span>
+                    <div class="tabesh-aof-checkbox-group">
+                        <?php foreach ($extras as $extra) : ?>
+                            <label class="tabesh-aof-chip">
+                                <input type="checkbox" name="extras[]" value="<?php echo esc_attr($extra); ?>">
+                                <span class="chip-text"><?php echo esc_html($extra); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <div class="tabesh-aof-notes">
+                    <textarea id="aof-notes" 
+                              name="notes" 
+                              class="tabesh-aof-textarea" 
+                              placeholder="<?php echo esc_attr__('یادداشت (اختیاری)...', 'tabesh'); ?>"></textarea>
+                </div>
+            </div>
 
-					<!-- Price Display -->
-					<div class="price-section">
-						<button type="button" id="calculate_price_admin_btn" class="button button-secondary">
-							<?php echo esc_html__( 'محاسبه قیمت', 'tabesh' ); ?>
-						</button>
-						<div id="price_display_admin" class="price-display">
-							<!-- Will be populated after calculation -->
-						</div>
-					</div>
+            <!-- SMS Options Section -->
+            <div class="tabesh-aof-field-group tabesh-aof-sms-options" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 14px; font-weight: 600;">
+                    <?php echo esc_html__( 'ارسال پیامک', 'tabesh' ); ?>
+                </h4>
+                <div class="tabesh-aof-checkbox-group">
+                    <label id="aof-registration-sms-label" style="display: none; margin-bottom: 10px;">
+                        <input type="checkbox" id="aof-send-registration-sms" name="send_registration_sms" value="1" checked>
+                        <?php echo esc_html__( 'ارسال پیامک ثبت‌نام به کاربر جدید', 'tabesh' ); ?>
+                    </label>
+                    <label style="display: block;">
+                        <input type="checkbox" id="aof-send-order-sms" name="send_order_sms" value="1" checked>
+                        <?php echo esc_html__( 'ارسال پیامک ثبت سفارش به مشتری', 'tabesh' ); ?>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </form>
 
-					<!-- Notes -->
-					<div class="form-group">
-						<label for="notes_admin" class="form-label">
-							<?php echo esc_html__( 'توضیحات سفارش', 'tabesh' ); ?>
-						</label>
-						<textarea 
-							id="notes_admin" 
-							name="notes" 
-							class="form-control"
-							rows="4"
-							placeholder="<?php echo esc_attr__( 'توضیحات اضافی در مورد سفارش...', 'tabesh' ); ?>"
-						></textarea>
-					</div>
+    <!-- 
+        Sticky Footer / فوتر ثابت
+        Action bar with price and buttons - always visible
+        نوار عملیات با قیمت و دکمه‌ها - همیشه قابل مشاهده
+    -->
+    <footer class="tabesh-aof-footer">
+        <div class="tabesh-aof-price-bar">
+            <!-- Unit Price / قیمت تک جلد -->
+            <div class="tabesh-aof-price-item tabesh-aof-price-unit">
+                <span class="price-label"><?php echo esc_html__('تک جلد:', 'tabesh'); ?></span>
+                <span class="price-value" id="aof-unit-price">---</span>
+                <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+            </div>
 
-					<!-- SMS Option -->
-					<div class="form-group">
-						<label class="checkbox-label">
-							<input type="checkbox" id="send_sms_admin" name="send_sms" value="1">
-							<span><?php echo esc_html__( 'ارسال پیامک به مشتری', 'tabesh' ); ?></span>
-						</label>
-						<p class="form-hint">
-							<?php echo esc_html__( 'در صورت فعال بودن، پیامک تأیید سفارش برای مشتری ارسال می‌شود', 'tabesh' ); ?>
-						</p>
-					</div>
-				</div>
-			</div>
+            <!-- Calculated Total Price / قیمت کل محاسبه شده -->
+            <div class="tabesh-aof-price-item tabesh-aof-price-calculated">
+                <span class="price-label"><?php echo esc_html__('کل محاسبه:', 'tabesh'); ?></span>
+                <span class="price-value" id="aof-calculated-price">---</span>
+                <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+            </div>
 
-		</form>
-	</div>
+            <!-- Final Price / قیمت نهایی -->
+            <div class="tabesh-aof-price-item tabesh-aof-price-final">
+                <span class="price-label"><?php echo esc_html__('نهایی:', 'tabesh'); ?></span>
+                <div class="price-breakdown">
+                    <div>
+                        <span class="price-sublabel"><?php echo esc_html__('تک جلد:', 'tabesh'); ?></span>
+                        <span class="price-value" id="aof-unit-price-final">---</span>
+                        <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+                    </div>
+                    <div>
+                        <span class="price-sublabel"><?php echo esc_html__('کل:', 'tabesh'); ?></span>
+                        <span class="price-value" id="aof-final-price">---</span>
+                        <span class="price-unit"><?php echo esc_html__('تومان', 'tabesh'); ?></span>
+                    </div>
+                </div>
+            </div>
 
-	<!-- Navigation Buttons -->
-	<div class="wizard-navigation">
-		<button type="button" id="adminPrevBtn" class="button button-secondary" style="display: none;">
-			<?php echo esc_html__( 'مرحله قبل', 'tabesh' ); ?>
-		</button>
-		<button type="button" id="adminNextBtn" class="button button-primary">
-			<?php echo esc_html__( 'مرحله بعد', 'tabesh' ); ?>
-		</button>
-		<button type="button" id="adminSubmitBtn" class="button button-primary" style="display: none;">
-			<?php echo esc_html__( 'ثبت سفارش', 'tabesh' ); ?>
-		</button>
-	</div>
+            <!-- Override Unit Price / قیمت دستی تک جلد -->
+            <div class="tabesh-aof-override">
+                <label class="tabesh-aof-override-toggle">
+                    <input type="checkbox" id="aof-override-price-check">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label"><?php echo esc_html__('قیمت تک جلد دلخواه', 'tabesh'); ?></span>
+                </label>
+                <input type="number" 
+                       id="aof-override-unit-price" 
+                       name="override_unit_price" 
+                       class="tabesh-aof-input tabesh-aof-input-sm" 
+                       placeholder="<?php echo esc_attr__('تومان', 'tabesh'); ?>" 
+                       min="0" 
+                       step="100" 
+                       disabled>
+                <small class="price-helper"><?php echo esc_html__('قیمت کل = تک جلد × تیراژ', 'tabesh'); ?></small>
+            </div>
+        </div>
 
-	<!-- Success Message (Hidden by default) -->
-	<div id="success_message_admin" class="success-message" style="display: none;">
-		<div class="success-icon">✓</div>
-		<h3><?php echo esc_html__( 'سفارش با موفقیت ثبت شد!', 'tabesh' ); ?></h3>
-		<p id="success_order_link"></p>
-		<button type="button" id="create_another_order_btn" class="button button-primary">
-			<?php echo esc_html__( 'ثبت سفارش جدید', 'tabesh' ); ?>
-		</button>
-	</div>
-
-	<?php endif; ?>
+        <div class="tabesh-aof-actions">
+            <button type="button" id="aof-calculate-btn" class="tabesh-aof-btn tabesh-aof-btn-calc" form="tabesh-admin-order-form-main">
+                <span class="dashicons dashicons-calculator"></span>
+                <?php echo esc_html__('محاسبه', 'tabesh'); ?>
+            </button>
+            <button type="submit" id="aof-submit-btn" class="tabesh-aof-btn tabesh-aof-btn-submit" form="tabesh-admin-order-form-main">
+                <span class="dashicons dashicons-yes-alt"></span>
+                <?php echo esc_html__('ثبت سفارش', 'tabesh'); ?>
+            </button>
+        </div>
+    </footer>
 </div>
+
+<!-- Toast Container for Notifications / کانتینر توست برای اعلان‌ها -->
+<div id="tabesh-aof-toast-container" class="tabesh-aof-toast-container"></div>

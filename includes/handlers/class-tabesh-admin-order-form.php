@@ -1,22 +1,19 @@
 <?php
 /**
- * Admin Order Form - Matrix-Based Pricing
+ * Admin Order Form Shortcode Handler
  *
- * کلاس مدیریت فرم ثبت سفارش ویژه مدیر
- * Class for managing admin order form with V2 pricing engine integration
+ * کلاس مدیریت شورتکد فرم ثبت سفارش ویژه مدیر
+ * Class for managing admin order form shortcode with access control
  *
- * This version uses:
- * - V2 matrix-based pricing engine.
- * - Constraint manager for cascading filters.
- * - Modern wizard UI.
- * - Customer search and creation.
- * - Optional SMS sending.
+ * Provides a dedicated shortcode [tabesh_admin_order_form] for administrators
+ * and authorized users to create orders on behalf of customers directly
+ * on the frontend with modern UI and customer search functionality.
  *
  * @package Tabesh
- * @since 1.1.0
+ * @since 1.0.3
  */
 
-// Exit if accessed directly.
+// Exit if accessed directly / در صورت دسترسی مستقیم خارج شود
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -25,17 +22,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Tabesh Admin Order Form Class
  *
  * کلاس فرم سفارش ویژه مدیر تابش
- * Handles the admin order form shortcode with V2 pricing engine
+ * Handles the admin order form shortcode with advanced access control
  *
  * Features:
- * - Access control via user roles.
- * - V2 matrix-based pricing engine.
- * - Constraint manager integration.
- * - Modern wizard-style UI.
- * - Customer search and creation.
- * - Optional SMS notification.
+ * - Access control via user roles (administrator, etc.)
+ * - Access control via allowed users list
+ * - Modern UI with customer search/autocomplete
+ * - Full form validation
+ * - Price calculation and override
  *
- * @since 1.1.0
+ * @since 1.0.3
  */
 class Tabesh_Admin_Order_Form {
 
@@ -68,7 +64,7 @@ class Tabesh_Admin_Order_Form {
 	 * سازنده
 	 */
 	public function __construct() {
-		// Enqueue assets.
+		// Enqueue assets / بارگذاری فایل‌ها
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -77,24 +73,26 @@ class Tabesh_Admin_Order_Form {
 	 * بارگذاری فایل‌های CSS و JavaScript برای فرانت‌اند
 	 */
 	public function enqueue_assets() {
-		// Only enqueue on pages with admin order form V2 shortcode or admin dashboard shortcode.
+		// Only enqueue on pages with admin order form shortcode or admin dashboard shortcode (which includes the form via modal)
+		// فقط در صفحاتی که شورتکد دارند بارگذاری شود (شامل داشبورد مدیر که فرم را در مودال نمایش می‌دهد)
 		global $post;
 		if ( ! is_a( $post, 'WP_Post' ) ) {
 			return;
 		}
 
-		// Check for direct shortcode usage or admin dashboard shortcode.
+		// Check for direct shortcode usage or admin dashboard shortcode (which uses the form in a modal)
 		if ( ! has_shortcode( $post->post_content, 'tabesh_admin_order_form' ) &&
 			! has_shortcode( $post->post_content, 'tabesh_admin_dashboard' ) ) {
 			return;
 		}
 
-		// Check if user has access before loading assets.
+		// Check if user has access before loading assets
+		// بررسی دسترسی کاربر قبل از بارگذاری فایل‌ها
 		if ( ! $this->user_has_access() ) {
 			return;
 		}
 
-		// Get file version for cache busting.
+		// Get file version for cache busting
 		$get_file_version = function ( $file_path ) {
 			if ( WP_DEBUG && file_exists( $file_path ) ) {
 				$mtime = @filemtime( $file_path );
@@ -103,7 +101,8 @@ class Tabesh_Admin_Order_Form {
 			return TABESH_VERSION;
 		};
 
-		// Enqueue CSS.
+		// Enqueue CSS
+		// بارگذاری CSS
 		wp_enqueue_style(
 			'tabesh-admin-order-form',
 			TABESH_PLUGIN_URL . 'assets/css/admin-order-form.css',
@@ -111,7 +110,8 @@ class Tabesh_Admin_Order_Form {
 			$get_file_version( TABESH_PLUGIN_DIR . 'assets/css/admin-order-form.css' )
 		);
 
-		// Enqueue JS.
+		// Enqueue JS
+		// بارگذاری جاوااسکریپت
 		wp_enqueue_script(
 			'tabesh-admin-order-form',
 			TABESH_PLUGIN_URL . 'assets/js/admin-order-form.js',
@@ -120,57 +120,182 @@ class Tabesh_Admin_Order_Form {
 			true
 		);
 
-		// Get constraint manager for available book sizes.
-		$constraint_manager = new Tabesh_Constraint_Manager();
-		$available_sizes    = $constraint_manager->get_available_book_sizes();
+		// Get settings for frontend
+		// دریافت تنظیمات برای فرانت‌اند
+		$paper_types         = Tabesh()->get_setting( 'paper_types', array() );
+		$book_sizes          = Tabesh()->get_setting( 'book_sizes', array() );
+		$print_types         = Tabesh()->get_setting( 'print_types', array() );
+		$binding_types       = Tabesh()->get_setting( 'binding_types', array() );
+		$license_types       = Tabesh()->get_setting( 'license_types', array() );
+		$cover_paper_weights = Tabesh()->get_setting( 'cover_paper_weights', array() );
+		$lamination_types    = Tabesh()->get_setting( 'lamination_types', array() );
+		$extras              = Tabesh()->get_setting( 'extras', array() );
 
-		// Get scalar settings.
-		$min_quantity  = Tabesh()->get_setting( 'min_quantity', 10 );
-		$max_quantity  = Tabesh()->get_setting( 'max_quantity', 10000 );
-		$quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
+		// Sanitize extras
+		// پاکسازی آپشن‌های اضافی
+		$extras = is_array( $extras ) ? array_values(
+			array_filter(
+				array_map(
+					function ( $extra ) {
+						$extra = is_scalar( $extra ) ? trim( strval( $extra ) ) : '';
+						return ( ! empty( $extra ) && $extra !== 'on' ) ? $extra : null;
+					},
+					$extras
+				)
+			)
+		) : array();
 
-		// Localize script with necessary data.
+		// Get V2 pricing engine data if enabled
+		$pricing_engine       = new Tabesh_Pricing_Engine();
+		$v2_enabled           = $pricing_engine->is_enabled();
+		$quantity_constraints = array();
+		$v2_pricing_matrices  = array();
+
+		if ( $v2_enabled ) {
+			global $wpdb;
+			$table_settings   = $wpdb->prefix . 'tabesh_settings';
+			$configured_sizes = $pricing_engine->get_configured_book_sizes();
+
+			foreach ( $configured_sizes as $book_size ) {
+				// CRITICAL FIX: Use base64_encode to match save_pricing_matrix() method
+				$safe_key    = base64_encode( $book_size );
+				$setting_key = 'pricing_matrix_' . $safe_key;
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$result = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT setting_value FROM {$table_settings} WHERE setting_key = %s",
+						$setting_key
+					)
+				);
+
+				if ( $result ) {
+					$matrix = json_decode( $result, true );
+					if ( JSON_ERROR_NONE === json_last_error() && is_array( $matrix ) ) {
+						if ( isset( $matrix['quantity_constraints'] ) ) {
+							$quantity_constraints[ $book_size ] = $matrix['quantity_constraints'];
+						}
+
+						// Get restrictions for filtering
+						$restrictions          = $matrix['restrictions'] ?? array();
+						$forbidden_papers      = $restrictions['forbidden_paper_types'] ?? array();
+						$forbidden_bindings    = $restrictions['forbidden_binding_types'] ?? array();
+						$forbidden_print_types = $restrictions['forbidden_print_types'] ?? array();
+
+						$v2_pricing_matrices[ $book_size ] = array(
+							'paper_types'   => array(),
+							'binding_types' => array(),
+							'extras'        => array_keys( $matrix['extras_costs'] ?? array() ),
+						);
+
+						// Filter binding types to exclude forbidden ones
+						$all_bindings = array_keys( $matrix['binding_costs'] ?? array() );
+						foreach ( $all_bindings as $binding_type ) {
+							if ( ! in_array( $binding_type, $forbidden_bindings, true ) ) {
+								$v2_pricing_matrices[ $book_size ]['binding_types'][] = $binding_type;
+							}
+						}
+
+						// Extract paper types with their weights, excluding forbidden ones
+						if ( isset( $matrix['page_costs'] ) && is_array( $matrix['page_costs'] ) ) {
+							foreach ( $matrix['page_costs'] as $paper_type => $weights_data ) {
+								// Skip if paper type is completely forbidden
+								if ( in_array( $paper_type, $forbidden_papers, true ) ) {
+									continue;
+								}
+
+								// CRITICAL FIX: With per-weight restrictions, we need to check each weight individually.
+								// Only include weights that have at least one allowed print type.
+								$available_weights = array();
+								
+								foreach ( array_keys( $weights_data ) as $weight ) {
+									// Get forbidden print types for this specific weight
+									$forbidden_for_weight = $forbidden_print_types[ $paper_type ][ $weight ] ?? array();
+
+									// Check if both bw and color are forbidden for this weight
+									$bw_forbidden    = in_array( 'bw', $forbidden_for_weight, true );
+									$color_forbidden = in_array( 'color', $forbidden_for_weight, true );
+
+									// Only include this weight if at least one print type is allowed
+									if ( ! ( $bw_forbidden && $color_forbidden ) ) {
+										$available_weights[] = $weight;
+									}
+								}
+								
+								// Only include this paper type if it has at least one available weight
+								if ( ! empty( $available_weights ) ) {
+									$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = $available_weights;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Override settings with V2 data for default book size
+			if ( ! empty( $v2_pricing_matrices ) && ! empty( $configured_sizes ) ) {
+				$default_size = $configured_sizes[0];
+				if ( isset( $v2_pricing_matrices[ $default_size ] ) ) {
+					$v2_data    = $v2_pricing_matrices[ $default_size ];
+					$book_sizes = $configured_sizes;
+					if ( ! empty( $v2_data['paper_types'] ) ) {
+						$paper_types = $v2_data['paper_types'];
+					}
+					if ( ! empty( $v2_data['binding_types'] ) ) {
+						$binding_types = $v2_data['binding_types'];
+					}
+					if ( ! empty( $v2_data['extras'] ) ) {
+						$extras = $v2_data['extras'];
+					}
+				}
+			}
+		}
+
+		// Localize script with necessary data
+		// ارسال داده‌ها به جاوااسکریپت
 		wp_localize_script(
 			'tabesh-admin-order-form',
 			'tabeshAdminOrderForm',
 			array(
-				'restUrl'        => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
-				'availableSizes' => $available_sizes,
-				'settings'       => array(
-					'minQuantity'  => intval( $min_quantity ),
-					'maxQuantity'  => intval( $max_quantity ),
-					'quantityStep' => intval( $quantity_step ),
+				'restUrl'             => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'               => wp_create_nonce( 'wp_rest' ),
+				'settings'            => array(
+					'paperTypes'        => $paper_types,
+					'bookSizes'         => is_array( $book_sizes ) ? $book_sizes : array(),
+					'printTypes'        => is_array( $print_types ) ? $print_types : array(),
+					'bindingTypes'      => is_array( $binding_types ) ? $binding_types : array(),
+					'licenseTypes'      => is_array( $license_types ) ? $license_types : array(),
+					'coverPaperWeights' => is_array( $cover_paper_weights ) ? $cover_paper_weights : array(),
+					'laminationTypes'   => is_array( $lamination_types ) ? $lamination_types : array(),
+					'extras'            => $extras,
+					'minQuantity'       => intval( Tabesh()->get_setting( 'min_quantity', 10 ) ),
+					'maxQuantity'       => intval( Tabesh()->get_setting( 'max_quantity', 10000 ) ),
+					'quantityStep'      => intval( Tabesh()->get_setting( 'quantity_step', 10 ) ),
 				),
-				'strings'        => array(
-					'selectUser'         => __( 'انتخاب کاربر', 'tabesh' ),
-					'createNewUser'      => __( 'ایجاد کاربر جدید', 'tabesh' ),
-					'searchUsers'        => __( 'جستجوی کاربران...', 'tabesh' ),
-					'noResults'          => __( 'کاربری یافت نشد', 'tabesh' ),
-					'calculating'        => __( 'در حال محاسبه قیمت...', 'tabesh' ),
-					'submitting'         => __( 'در حال ثبت سفارش...', 'tabesh' ),
-					'success'            => __( 'سفارش با موفقیت ثبت شد', 'tabesh' ),
-					'error'              => __( 'خطا در ثبت سفارش', 'tabesh' ),
-					'fillAllFields'      => __( 'لطفاً تمام فیلدهای الزامی را پر کنید', 'tabesh' ),
-					'selectCustomer'     => __( 'لطفاً یک مشتری را انتخاب یا ایجاد کنید', 'tabesh' ),
-					'invalidMobile'      => __( 'فرمت شماره موبایل نامعتبر است', 'tabesh' ),
-					'userCreated'        => __( 'کاربر با موفقیت ایجاد شد', 'tabesh' ),
-					'searching'          => __( 'در حال جستجو...', 'tabesh' ),
-					'selectOption'       => __( 'انتخاب کنید...', 'tabesh' ),
-					'bookTitle'          => __( 'عنوان کتاب را وارد کنید', 'tabesh' ),
-					'selectBookSize'     => __( 'قطع کتاب را انتخاب کنید', 'tabesh' ),
-					'selectPaperType'    => __( 'نوع کاغذ را انتخاب کنید', 'tabesh' ),
-					'selectPaperWeight'  => __( 'گرماژ کاغذ را انتخاب کنید', 'tabesh' ),
-					'selectPrintType'    => __( 'نوع چاپ را انتخاب کنید', 'tabesh' ),
-					'enterPageCount'     => __( 'تعداد صفحات معتبر وارد کنید', 'tabesh' ),
-					'enterQuantity'      => __( 'تیراژ معتبر وارد کنید', 'tabesh' ),
-					'selectBindingType'  => __( 'نوع صحافی را انتخاب کنید', 'tabesh' ),
-					'selectCoverWeight'  => __( 'گرماژ جلد را انتخاب کنید', 'tabesh' ),
-					'orderCreated'       => __( 'سفارش با موفقیت ایجاد شد', 'tabesh' ),
-					'viewOrder'          => __( 'مشاهده سفارش', 'tabesh' ),
-					'createAnother'      => __( 'ثبت سفارش جدید', 'tabesh' ),
-					'loadingOptions'     => __( 'در حال بارگذاری گزینه‌ها...', 'tabesh' ),
-					'noOptionsAvailable' => __( 'هیچ گزینه‌ای موجود نیست', 'tabesh' ),
+				'v2Enabled'           => $v2_enabled,
+				'v2PricingMatrices'   => $v2_pricing_matrices,
+				'quantityConstraints' => $quantity_constraints,
+				'strings'             => array(
+					'selectUser'        => __( 'انتخاب کاربر', 'tabesh' ),
+					'createNewUser'     => __( 'ایجاد کاربر جدید', 'tabesh' ),
+					'searchUsers'       => __( 'جستجوی کاربران...', 'tabesh' ),
+					'noResults'         => __( 'کاربری یافت نشد', 'tabesh' ),
+					'calculating'       => __( 'در حال محاسبه قیمت...', 'tabesh' ),
+					'submitting'        => __( 'در حال ثبت سفارش...', 'tabesh' ),
+					'success'           => __( 'سفارش با موفقیت ثبت شد', 'tabesh' ),
+					'error'             => __( 'خطا در ثبت سفارش', 'tabesh' ),
+					'fillAllFields'     => __( 'لطفاً تمام فیلدهای الزامی را پر کنید', 'tabesh' ),
+					'selectCustomer'    => __( 'لطفاً یک مشتری را انتخاب یا ایجاد کنید', 'tabesh' ),
+					'createUserFirst'   => __( 'لطفاً ابتدا کاربر جدید را ایجاد کنید', 'tabesh' ),
+					'invalidMobile'     => __( 'فرمت شماره موبایل نامعتبر است', 'tabesh' ),
+					'fillAllUserFields' => __( 'لطفاً تمام فیلدها را پر کنید', 'tabesh' ),
+					'userCreated'       => __( 'کاربر با موفقیت ایجاد شد', 'tabesh' ),
+					'searching'         => __( 'در حال جستجو...', 'tabesh' ),
+					'searchError'       => __( 'خطا در جستجو', 'tabesh' ),
+					'calculatePrice'    => __( 'محاسبه قیمت', 'tabesh' ),
+					'submitOrder'       => __( 'ثبت سفارش', 'tabesh' ),
+					'selectPaperFirst'  => __( 'ابتدا نوع کاغذ را انتخاب کنید', 'tabesh' ),
+					'selectOption'      => __( 'انتخاب کنید...', 'tabesh' ),
 				),
 			)
 		);
@@ -180,36 +305,34 @@ class Tabesh_Admin_Order_Form {
 	 * Render the admin order form shortcode
 	 * رندر شورتکد فرم سفارش ویژه مدیر
 	 *
-	 * @param array $atts Shortcode attributes.
-	 * @return string HTML output.
+	 * @param array $atts Shortcode attributes / پارامترهای شورتکد
+	 * @return string HTML output / خروجی HTML
 	 */
 	public function render( $atts = array() ) {
-		// Parse shortcode attributes.
+		// Parse shortcode attributes
+		// پردازش پارامترهای شورتکد
 		$atts = shortcode_atts(
 			array(
-				'title' => __( 'ثبت سفارش جدید (ویژه مدیر)', 'tabesh' ),
+				'title' => __( 'ثبت سفارش جدید', 'tabesh' ),
 			),
 			$atts,
 			'tabesh_admin_order_form'
 		);
 
-		// Check if user is logged in.
+		// Check if user is logged in
+		// بررسی ورود کاربر
 		if ( ! is_user_logged_in() ) {
 			return $this->render_login_required_message();
 		}
 
-		// Check access permission.
+		// Check access permission
+		// بررسی دسترسی
 		if ( ! $this->user_has_access() ) {
 			return $this->render_access_denied_message();
 		}
 
-		// Check if V2 pricing engine is enabled.
-		$pricing_engine = new Tabesh_Pricing_Engine();
-		if ( ! $pricing_engine->is_enabled() ) {
-			return $this->render_v2_not_enabled_message();
-		}
-
-		// Output buffer for template.
+		// Output buffer for template
+		// بافر خروجی برای قالب
 		ob_start();
 		include TABESH_PLUGIN_DIR . 'templates/frontend/admin-order-form.php';
 		return ob_get_clean();
@@ -220,11 +343,11 @@ class Tabesh_Admin_Order_Form {
 	 * بررسی دسترسی کاربر فعلی به فرم سفارش مدیر
 	 *
 	 * Access is granted if:
-	 * 1. User has manage_woocommerce capability (admins always have access).
-	 * 2. User's role is in allowed roles list.
-	 * 3. User's ID is in allowed users list.
+	 * 1. User has manage_woocommerce capability (admins always have access)
+	 * 2. User's role is in allowed roles list
+	 * 3. User's ID is in allowed users list
 	 *
-	 * @return bool True if user has access.
+	 * @return bool True if user has access / درست اگر کاربر دسترسی داشته باشد
 	 */
 	public function user_has_access() {
 		$user_id = get_current_user_id();
@@ -238,12 +361,14 @@ class Tabesh_Admin_Order_Form {
 			return false;
 		}
 
-		// Admins always have access.
+		// Admins always have access
+		// مدیران همیشه دسترسی دارند
 		if ( user_can( $user, 'manage_woocommerce' ) ) {
 			return true;
 		}
 
-		// Check if user role is in allowed roles.
+		// Check if user role is in allowed roles
+		// بررسی نقش کاربر در لیست نقش‌های مجاز
 		$allowed_roles = $this->get_allowed_roles();
 		if ( ! empty( $allowed_roles ) ) {
 			foreach ( $user->roles as $role ) {
@@ -253,7 +378,8 @@ class Tabesh_Admin_Order_Form {
 			}
 		}
 
-		// Check if user ID is in allowed users list.
+		// Check if user ID is in allowed users list
+		// بررسی شناسه کاربر در لیست کاربران مجاز
 		$allowed_users = $this->get_allowed_users();
 		if ( ! empty( $allowed_users ) && in_array( $user_id, $allowed_users, true ) ) {
 			return true;
@@ -266,130 +392,125 @@ class Tabesh_Admin_Order_Form {
 	 * Get allowed roles from settings
 	 * دریافت نقش‌های مجاز از تنظیمات
 	 *
-	 * @return array Allowed roles.
+	 * @return array Allowed roles / نقش‌های مجاز
 	 */
 	public function get_allowed_roles() {
 		global $wpdb;
 		$table = $wpdb->prefix . 'tabesh_settings';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->get_var(
+		$value = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT setting_value FROM {$wpdb->prefix}tabesh_settings WHERE setting_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT setting_value FROM $table WHERE setting_key = %s",
 				self::SETTINGS_KEY_ALLOWED_ROLES
 			)
 		);
 
-		if ( $result ) {
-			$roles = json_decode( $result, true );
-			if ( is_array( $roles ) && ! empty( $roles ) ) {
-				return $roles;
-			}
+		if ( $value === null ) {
+			return self::$default_allowed_roles;
 		}
 
-		return self::$default_allowed_roles;
+		$roles = json_decode( $value, true );
+		if ( ! is_array( $roles ) ) {
+			return self::$default_allowed_roles;
+		}
+
+		return $roles;
 	}
 
 	/**
 	 * Get allowed users from settings
 	 * دریافت کاربران مجاز از تنظیمات
 	 *
-	 * @return array Allowed user IDs.
+	 * @return array Allowed user IDs / شناسه کاربران مجاز
 	 */
 	public function get_allowed_users() {
 		global $wpdb;
 		$table = $wpdb->prefix . 'tabesh_settings';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->get_var(
+		$value = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT setting_value FROM {$wpdb->prefix}tabesh_settings WHERE setting_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT setting_value FROM $table WHERE setting_key = %s",
 				self::SETTINGS_KEY_ALLOWED_USERS
 			)
 		);
 
-		if ( $result ) {
-			$users = json_decode( $result, true );
-			if ( is_array( $users ) && ! empty( $users ) ) {
-				return array_map( 'intval', $users );
-			}
+		if ( $value === null ) {
+			return array();
 		}
 
-		return array();
+		$users = json_decode( $value, true );
+		if ( ! is_array( $users ) ) {
+			return array();
+		}
+
+		return array_map( 'intval', $users );
 	}
 
 	/**
 	 * Render login required message
-	 * رندر پیام نیاز به ورود
+	 * نمایش پیام نیاز به ورود
 	 *
-	 * @return string HTML message.
+	 * @return string HTML message / پیام HTML
 	 */
 	private function render_login_required_message() {
-		ob_start();
-		?>
-		<div class="tabesh-message error" dir="rtl">
-			<p>
-				<strong><?php echo esc_html__( 'خطا:', 'tabesh' ); ?></strong>
-				<?php echo esc_html__( 'برای دسترسی به این فرم باید وارد حساب کاربری خود شوید.', 'tabesh' ); ?>
-			</p>
-			<p>
-				<a href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>" class="button">
-					<?php echo esc_html__( 'ورود به حساب کاربری', 'tabesh' ); ?>
-				</a>
-			</p>
-		</div>
-		<?php
-		return ob_get_clean();
+		return sprintf(
+			'<div class="tabesh-notice tabesh-notice-warning" dir="rtl">
+                <div class="tabesh-notice-icon">
+                    <span class="dashicons dashicons-warning"></span>
+                </div>
+                <div class="tabesh-notice-content">
+                    <h3>%s</h3>
+                    <p>%s</p>
+                    <a href="%s" class="tabesh-btn tabesh-btn-primary">%s</a>
+                </div>
+            </div>',
+			esc_html__( 'نیاز به ورود', 'tabesh' ),
+			esc_html__( 'برای دسترسی به این بخش باید وارد حساب کاربری خود شوید.', 'tabesh' ),
+			esc_url( wp_login_url( get_permalink() ) ),
+			esc_html__( 'ورود به سیستم', 'tabesh' )
+		);
 	}
 
 	/**
 	 * Render access denied message
-	 * رندر پیام عدم دسترسی
+	 * نمایش پیام عدم دسترسی
 	 *
-	 * @return string HTML message.
+	 * @return string HTML message / پیام HTML
 	 */
 	private function render_access_denied_message() {
-		ob_start();
-		?>
-		<div class="tabesh-message error" dir="rtl">
-			<p>
-				<strong><?php echo esc_html__( 'خطا:', 'tabesh' ); ?></strong>
-				<?php echo esc_html__( 'شما دسترسی لازم برای استفاده از این فرم را ندارید.', 'tabesh' ); ?>
-			</p>
-			<p>
-				<?php echo esc_html__( 'این فرم فقط برای مدیران و کاربران مجاز در دسترس است.', 'tabesh' ); ?>
-			</p>
-		</div>
-		<?php
-		return ob_get_clean();
+		return sprintf(
+			'<div class="tabesh-notice tabesh-notice-error" dir="rtl">
+                <div class="tabesh-notice-icon">
+                    <span class="dashicons dashicons-lock"></span>
+                </div>
+                <div class="tabesh-notice-content">
+                    <h3>%s</h3>
+                    <p>%s</p>
+                </div>
+            </div>',
+			esc_html__( 'عدم دسترسی', 'tabesh' ),
+			esc_html__( 'شما مجاز به دسترسی به این فرم نیستید. لطفاً با مدیر سایت تماس بگیرید.', 'tabesh' )
+		);
 	}
 
 	/**
-	 * Render V2 not enabled message
-	 * رندر پیام غیرفعال بودن موتور قیمت‌گذاری V2
+	 * Get all available WordPress roles
+	 * دریافت تمام نقش‌های موجود در وردپرس
 	 *
-	 * @return string HTML message.
+	 * @return array Role name => Role display name / نام نقش => نام نمایشی
 	 */
-	private function render_v2_not_enabled_message() {
-		ob_start();
-		?>
-		<div class="tabesh-message error" dir="rtl">
-			<p>
-				<strong><?php echo esc_html__( 'خطا:', 'tabesh' ); ?></strong>
-				<?php echo esc_html__( 'موتور قیمت‌گذاری نسخه ۲ فعال نیست.', 'tabesh' ); ?>
-			</p>
-			<?php if ( current_user_can( 'manage_woocommerce' ) ) : ?>
-			<p>
-				<?php echo esc_html__( 'لطفاً ابتدا از پنل تنظیمات، موتور قیمت‌گذاری نسخه ۲ را فعال کنید:', 'tabesh' ); ?>
-			</p>
-			<p>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=tabesh-product-pricing' ) ); ?>" class="button button-primary">
-					<?php echo esc_html__( 'رفتن به تنظیمات قیمت‌گذاری', 'tabesh' ); ?>
-				</a>
-			</p>
-			<?php endif; ?>
-		</div>
-		<?php
-		return ob_get_clean();
+	public static function get_available_roles() {
+		global $wp_roles;
+
+		if ( ! isset( $wp_roles ) ) {
+			$wp_roles = new WP_Roles();
+		}
+
+		$roles = array();
+		foreach ( $wp_roles->role_names as $role => $name ) {
+			$roles[ $role ] = translate_user_role( $name );
+		}
+
+		return $roles;
 	}
 }

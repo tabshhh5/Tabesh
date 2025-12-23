@@ -99,23 +99,6 @@ Show admin dashboard overview (requires manage_woocommerce capability):
 [tabesh_admin_dashboard]
 ```
 
-#### Admin Order Form
-Advanced admin order form with V2 pricing engine and customer management (requires administrator role):
-```
-[tabesh_admin_order_form]
-```
-**Features:**
-- V2 matrix-based pricing engine integration
-- Customer search and creation
-- Constraint manager for cascading filters
-- Real-time price calculation
-- Optional SMS notification to customer
-- Modern 5-step wizard interface
-- Requires V2 pricing engine to be enabled
-- Requires administrator role or configured access
-
-See [ADMIN_ORDER_FORM_V2_GUIDE.md](ADMIN_ORDER_FORM_V2_GUIDE.md) for complete documentation.
-
 #### Product Pricing (New V2)
 Manage pricing parameters with matrix-based engine (requires manage_woocommerce capability):
 ```

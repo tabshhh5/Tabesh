@@ -302,7 +302,7 @@ final class Tabesh {
 		$this->sms = new Tabesh_SMS();
 		// Initialize admin order creator handler
 		$this->admin_order_creator = new Tabesh_Admin_Order_Creator();
-		// Initialize admin order form shortcode handler (Matrix-based pricing V2)
+		// Initialize admin order form shortcode handler
 		$this->admin_order_form = new Tabesh_Admin_Order_Form();
 		// Initialize export/import handler
 		$this->export_import = new Tabesh_Export_Import();

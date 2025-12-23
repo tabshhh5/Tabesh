@@ -1,573 +1,1349 @@
 /**
- * Admin Order Form V2 - Matrix-Based Pricing
+ * Admin Order Form Shortcode CSS - Redesigned Compact Horizontal Layout
  * 
- * Modern wizard form for admin order creation
- * Extends order-form-v2.css with admin-specific features
+ * استایل فرم ثبت سفارش ویژه مدیر - بازطراحی چیدمان افقی فشرده
+ * Modern compact horizontal styling for the admin order form shortcode
+ * Designed to fit on 1366x768 screens without scrolling
+ * 
+ * Features / ویژگی‌ها:
+ * - Compact horizontal layout / چیدمان افقی فشرده
+ * - Sticky header and footer / هدر و فوتر ثابت
+ * - CSS Grid for form fields / گرید CSS برای فیلدهای فرم
+ * - Responsive design (desktop, tablet, mobile) / طراحی واکنش‌گرا
+ * - No scroll on 1366x768 desktop / بدون اسکرول در دسکتاپ ۱۳۶۶×۷۶۸
  * 
  * @package Tabesh
+ * @since 1.0.4
  */
 
-/* Import base wizard styles from order-form-v2.css */
-@import url('order-form-v2.css');
+/* ==========================================================================
+   CSS Variables / متغیرهای CSS
+   Design tokens for consistent theming / توکن‌های طراحی برای تم یکپارچه
+   ========================================================================== */
+
+.tabesh-aof-wrapper {
+    /* Colors / رنگ‌ها */
+    --aof-primary: #2563eb;
+    --aof-primary-hover: #1d4ed8;
+    --aof-secondary: #7c3aed;
+    --aof-success: #10b981;
+    --aof-success-hover: #059669;
+    --aof-warning: #f59e0b;
+    --aof-danger: #ef4444;
+    
+    /* Backgrounds / پس‌زمینه‌ها */
+    --aof-bg: #f9fafb;
+    --aof-bg-card: #ffffff;
+    --aof-bg-muted: #f3f4f6;
+    
+    /* Text / متن */
+    --aof-text: #111827;
+    --aof-text-secondary: #374151;
+    --aof-text-muted: #6b7280;
+    
+    /* Borders / حاشیه‌ها */
+    --aof-border: #e5e7eb;
+    --aof-border-focus: var(--aof-primary);
+    
+    /* Shadows / سایه‌ها */
+    --aof-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --aof-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --aof-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Spacing (Compact) / فاصله‌ها (فشرده) */
+    --aof-space-xs: 4px;
+    --aof-space-sm: 6px;
+    --aof-space-md: 10px;
+    --aof-space-lg: 14px;
+    --aof-space-xl: 20px;
+    
+    /* Typography / تایپوگرافی */
+    --aof-font-xs: 11px;
+    --aof-font-sm: 12px;
+    --aof-font-base: 13px;
+    --aof-font-lg: 14px;
+    --aof-font-xl: 16px;
+    
+    /* Radius / گردی */
+    --aof-radius-sm: 4px;
+    --aof-radius: 6px;
+    --aof-radius-lg: 8px;
+    
+    /* Transitions / انتقال‌ها */
+    --aof-transition: all 0.15s ease;
+}
+
+/* ==========================================================================
+   Wrapper / پوشش اصلی
+   Main container - flex column layout / کانتینر اصلی - چیدمان ستونی فلکس
+   ========================================================================== */
+
+.tabesh-aof-wrapper {
+    font-family: 'Vazirmatn', 'Vazir', 'Tahoma', Arial, sans-serif;
+    direction: rtl;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--aof-bg);
+    border-radius: var(--aof-radius-lg);
+    box-shadow: var(--aof-shadow-lg);
+    overflow: hidden;
+    /* Fit on 1366x768 without scrolling */
+    max-height: calc(100vh - 80px);
+}
+
+/* ==========================================================================
+   Sticky Header / هدر ثابت
+   Compact sticky header / هدر ثابت فشرده
+   ========================================================================== */
+
+.tabesh-aof-header {
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #fff;
+    padding: var(--aof-space-sm) var(--aof-space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.tabesh-aof-header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-md);
+}
 
-/* CSS Variables for Admin Form */
-:root {
-	--admin-wizard-accent: #7c3aed;
-	--admin-wizard-accent-hover: #6d28d9;
-	--admin-wizard-customer-bg: #faf5ff;
-	--admin-wizard-customer-border: #e9d5ff;
+.tabesh-aof-title {
+    margin: 0;
+    font-size: var(--aof-font-lg);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
 }
 
-/* Admin Container Override */
-.tabesh-admin-wizard-container {
-	max-width: 1000px;
-	margin: 2rem auto;
-	padding: 0 1rem;
-	direction: rtl;
-	font-family: 'Vazirmatn', 'Vazir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-/* Admin Header */
-.admin-wizard-header {
-	background: linear-gradient(135deg, var(--admin-wizard-accent) 0%, var(--admin-wizard-accent-hover) 100%);
-	border-radius: var(--wizard-radius);
-	padding: 2rem;
-	margin-bottom: 2rem;
-	text-align: center;
-	color: white;
-	box-shadow: var(--wizard-shadow-lg);
-}
-
-.admin-wizard-title {
-	margin: 0 0 0.5rem 0;
-	font-size: 2rem;
-	font-weight: 700;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.75rem;
+.tabesh-aof-title .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
 }
 
-.admin-wizard-title .dashicons {
-	font-size: 2.5rem;
-	width: 2.5rem;
-	height: 2.5rem;
+.tabesh-aof-subtitle {
+    font-size: var(--aof-font-xs);
+    opacity: 0.85;
 }
 
-.admin-wizard-subtitle {
-	margin: 0;
-	opacity: 0.9;
-	font-size: 1rem;
+.tabesh-aof-header-hint {
+    font-size: var(--aof-font-xs);
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-xs);
 }
 
-/* Customer Selection Section */
-.customer-section {
-	margin-bottom: 1.5rem;
+.tabesh-aof-header-hint kbd {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 10px;
 }
 
-.customer-type-toggle {
-	display: flex;
-	gap: 1rem;
-	margin-bottom: 1.5rem;
+/* ==========================================================================
+   Form / فرم
+   Scrollable form area / ناحیه فرم قابل اسکرول
+   ========================================================================== */
+
+.tabesh-aof-form {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--aof-space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--aof-space-md);
+}
+
+/* Custom scrollbar / نوار اسکرول سفارشی */
+.tabesh-aof-form::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabesh-aof-form::-webkit-scrollbar-track {
+    background: var(--aof-bg-muted);
+}
+
+.tabesh-aof-form::-webkit-scrollbar-thumb {
+    background: var(--aof-border);
+    border-radius: 3px;
+}
+
+.tabesh-aof-form::-webkit-scrollbar-thumb:hover {
+    background: var(--aof-text-muted);
+}
+
+/* ==========================================================================
+   Sections / بخش‌ها
+   Compact section cards / کارت‌های بخش فشرده
+   ========================================================================== */
+
+.tabesh-aof-section {
+    background: var(--aof-bg-card);
+    border-radius: var(--aof-radius);
+    padding: var(--aof-space-md);
+    box-shadow: var(--aof-shadow-sm);
+    border: 1px solid var(--aof-border);
+}
+
+.tabesh-aof-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    margin-bottom: var(--aof-space-md);
+    padding-bottom: var(--aof-space-sm);
+    border-bottom: 2px solid var(--aof-primary);
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #fff;
+    border-radius: 50%;
+    font-size: var(--aof-font-xs);
+    font-weight: 700;
+}
+
+.section-label {
+    font-size: var(--aof-font-base);
+    font-weight: 600;
+    color: var(--aof-text);
+}
+
+/* ==========================================================================
+   Customer Section / بخش مشتری
+   Inline customer selection / انتخاب مشتری خطی
+   ========================================================================== */
+
+.tabesh-aof-section-customer {
+    padding: var(--aof-space-sm) var(--aof-space-md);
+}
+
+.tabesh-aof-customer-row {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-md);
+    flex-wrap: wrap;
+}
+
+/* Toggle group / گروه تغییر */
+.tabesh-aof-toggle-group {
+    display: inline-flex;
+    background: var(--aof-bg-muted);
+    border-radius: var(--aof-radius);
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.tabesh-aof-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--aof-space-xs) var(--aof-space-md);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    color: var(--aof-text-secondary);
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tabesh-aof-toggle input:checked + .toggle-text {
+    background: var(--aof-bg-card);
+    color: var(--aof-primary);
+    font-weight: 600;
+    box-shadow: var(--aof-shadow-sm);
+}
+
+.toggle-text {
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius-sm);
+    transition: var(--aof-transition);
+}
+
+/* Customer fields / فیلدهای مشتری */
+.tabesh-aof-customer-fields {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Search box / جعبه جستجو */
+.tabesh-aof-search-box {
+    position: relative;
+    max-width: 350px;
+}
+
+.tabesh-aof-search-box .search-icon {
+    position: absolute;
+    right: var(--aof-space-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--aof-text-muted);
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.tabesh-aof-search-box .tabesh-aof-input {
+    padding-right: 32px;
+}
+
+/* Inline fields / فیلدهای خطی */
+.tabesh-aof-inline-fields {
+    display: flex;
+    gap: var(--aof-space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tabesh-aof-inline-fields .tabesh-aof-input {
+    width: 130px;
+    flex-shrink: 0;
 }
 
-.toggle-option {
-	flex: 1;
-	position: relative;
-	cursor: pointer;
+/* ==========================================================================
+   Grid Layout / چیدمان گرید
+   Responsive grid for order fields / گرید واکنش‌گرا برای فیلدهای سفارش
+   ========================================================================== */
+
+.tabesh-aof-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--aof-space-sm);
+    margin-bottom: var(--aof-space-sm);
+}
+
+.tabesh-aof-grid:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Form Fields / فیلدهای فرم
+   Compact field styling / استایل فشرده فیلدها
+   ========================================================================== */
+
+.tabesh-aof-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.tabesh-aof-field-full {
+    grid-column: 1 / -1;
+    margin-bottom: var(--aof-space-sm);
+}
+
+.tabesh-aof-field label {
+    font-size: var(--aof-font-xs);
+    font-weight: 500;
+    color: var(--aof-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tabesh-aof-field label .req {
+    color: var(--aof-danger);
+    font-weight: 700;
+}
+
+/* Inputs / ورودی‌ها */
+.tabesh-aof-input,
+.tabesh-aof-select {
+    width: 100%;
+    height: 32px;
+    padding: 0 var(--aof-space-sm);
+    border: 1px solid var(--aof-border);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    font-family: inherit;
+    background: var(--aof-bg-card);
+    color: var(--aof-text);
+    transition: var(--aof-transition);
+    box-sizing: border-box;
+}
+
+.tabesh-aof-input:hover,
+.tabesh-aof-select:hover {
+    border-color: var(--aof-text-muted);
+}
+
+.tabesh-aof-input:focus,
+.tabesh-aof-select:focus {
+    outline: none;
+    border-color: var(--aof-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.tabesh-aof-input-sm {
+    height: 28px;
+    width: 120px;
+}
+
+/* Textarea / تکست‌اریا */
+.tabesh-aof-textarea {
+    width: 100%;
+    height: 36px;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border: 1px solid var(--aof-border);
+    border-radius: var(--aof-radius-sm);
+    font-size: var(--aof-font-sm);
+    font-family: inherit;
+    background: var(--aof-bg-card);
+    color: var(--aof-text);
+    resize: none;
+    transition: var(--aof-transition);
+}
+
+.tabesh-aof-textarea:focus {
+    outline: none;
+    border-color: var(--aof-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ==========================================================================
+   Extras & Notes Row / ردیف آپشن‌ها و یادداشت
+   Inline extras with notes / آپشن‌های خطی با یادداشت
+   ========================================================================== */
+
+.tabesh-aof-extras-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--aof-space-lg);
+    margin-top: var(--aof-space-sm);
+}
+
+.tabesh-aof-extras {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.extras-label {
+    font-size: var(--aof-font-xs);
+    font-weight: 500;
+    color: var(--aof-text-secondary);
 }
 
-.toggle-option input[type="radio"] {
-	position: absolute;
-	opacity: 0;
-	width: 0;
-	height: 0;
+.tabesh-aof-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aof-space-xs);
 }
 
-.toggle-option span {
-	display: block;
-	padding: 1rem;
-	text-align: center;
-	background: var(--wizard-bg-secondary);
-	border: 2px solid var(--wizard-border);
-	border-radius: var(--wizard-radius-sm);
-	transition: var(--wizard-transition);
-	font-weight: 600;
-	color: var(--wizard-text);
+/* Chip checkbox / چک‌باکس چیپ */
+.tabesh-aof-chip {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    background: var(--aof-bg-muted);
+    border: 1px solid transparent;
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
+    transition: var(--aof-transition);
 }
 
-.toggle-option input[type="radio"]:checked + span {
-	background: var(--admin-wizard-customer-bg);
-	border-color: var(--admin-wizard-accent);
-	color: var(--admin-wizard-accent);
+.tabesh-aof-chip:hover {
+    background: var(--aof-border);
 }
 
-.toggle-option:hover span {
-	border-color: var(--admin-wizard-accent);
-	transform: translateY(-2px);
-	box-shadow: var(--wizard-shadow-md);
+.tabesh-aof-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-/* Customer Search */
-#customer_search {
-	position: relative;
-	z-index: 10;
+.tabesh-aof-chip input:checked + .chip-text {
+    color: var(--aof-primary);
+    font-weight: 600;
 }
 
-.search-results {
-	position: absolute;
-	top: 100%;
-	right: 0;
-	left: 0;
-	background: var(--wizard-bg);
-	border: 2px solid var(--wizard-border);
-	border-top: none;
-	border-radius: 0 0 var(--wizard-radius-sm) var(--wizard-radius-sm);
-	box-shadow: var(--wizard-shadow-lg);
-	max-height: 300px;
-	overflow-y: auto;
-	z-index: 1000;
-	margin-top: -1px;
+/* Note: :has() may not work in older browsers. JS fallback adds .chip-checked class */
+.tabesh-aof-chip:has(input:checked),
+.tabesh-aof-chip.chip-checked {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--aof-primary);
 }
 
-.search-loading,
-.search-no-results,
-.search-error {
-	padding: 1rem;
-	text-align: center;
-	color: var(--wizard-text-muted);
+.tabesh-aof-notes {
+    flex: 1;
+    min-width: 200px;
 }
 
-.search-error {
-	color: var(--wizard-danger);
+/* ==========================================================================
+   Search Results / نتایج جستجو
+   Dropdown results / نتایج کشویی
+   ========================================================================== */
+
+.tabesh-aof-search-results {
+    position: absolute;
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    background: var(--aof-bg-card);
+    border: 1px solid var(--aof-border);
+    border-top: none;
+    border-radius: 0 0 var(--aof-radius-sm) var(--aof-radius-sm);
+    box-shadow: var(--aof-shadow-lg);
+    z-index: 200;
+    top: 100%;
 }
 
-.search-results-list {
-	padding: 0.5rem 0;
+.tabesh-aof-search-results:empty {
+    display: none;
 }
 
-.search-result-item {
-	padding: 1rem;
-	cursor: pointer;
-	transition: var(--wizard-transition);
-	border-bottom: 1px solid var(--wizard-border);
+.tabesh-aof-search-results .user-result-item {
+    padding: var(--aof-space-sm) var(--aof-space-md);
+    cursor: pointer;
+    border-bottom: 1px solid var(--aof-border);
+    transition: var(--aof-transition);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.search-result-item:last-child {
-	border-bottom: none;
+.tabesh-aof-search-results .user-result-item:last-child {
+    border-bottom: none;
 }
 
-.search-result-item:hover {
-	background: var(--wizard-bg-secondary);
+.tabesh-aof-search-results .user-result-item:hover {
+    background: rgba(37, 99, 235, 0.05);
+    border-right: 3px solid var(--aof-primary);
 }
 
-.search-result-item .user-info {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
+.tabesh-aof-search-results .user-name {
+    font-weight: 600;
+    color: var(--aof-text);
+    font-size: var(--aof-font-sm);
 }
 
-.search-result-item .user-info strong {
-	color: var(--wizard-text);
-	font-size: 1rem;
+.tabesh-aof-search-results .user-login {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-muted);
 }
 
-.search-result-item .user-info span {
-	color: var(--wizard-text-muted);
-	font-size: 0.875rem;
+.tabesh-aof-search-results .searching,
+.tabesh-aof-search-results .no-results,
+.tabesh-aof-search-results .error {
+    padding: var(--aof-space-md);
+    text-align: center;
+    color: var(--aof-text-muted);
+    font-size: var(--aof-font-sm);
 }
 
-/* Selected Customer Display */
-.selected-customer {
-	margin-top: 1rem;
+.tabesh-aof-search-results .error {
+    color: var(--aof-danger);
 }
 
-.selected-customer-card {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	background: var(--admin-wizard-customer-bg);
-	border: 2px solid var(--admin-wizard-customer-border);
-	border-radius: var(--wizard-radius-sm);
-	padding: 1.25rem;
-	animation: slideIn 0.3s ease;
+/* ==========================================================================
+   Selected User / کاربر انتخاب شده
+   Inline selected user tag / تگ خطی کاربر انتخاب شده
+   ========================================================================== */
+
+.tabesh-aof-selected-user:empty {
+    display: none;
 }
 
-@keyframes slideIn {
-	from {
-		opacity: 0;
-		transform: translateY(-10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
+.tabesh-aof-selected-user {
+    margin-top: var(--aof-space-xs);
 }
 
-.selected-customer-card .customer-info {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
+.tabesh-aof-selected-user .selected-user {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid var(--aof-primary);
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
 }
 
-.selected-customer-card .customer-info strong {
-	color: var(--admin-wizard-accent);
-	font-size: 1.125rem;
-	font-weight: 700;
+.tabesh-aof-selected-user .selected-user strong {
+    color: var(--aof-primary);
 }
 
-.selected-customer-card .customer-info span {
-	color: var(--wizard-text-muted);
-	font-size: 0.875rem;
+.tabesh-aof-selected-user .remove-user {
+    background: none;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--aof-text-muted);
+    padding: 2px;
+    border-radius: 3px;
+    transition: var(--aof-transition);
 }
 
-.remove-customer {
-	background: var(--wizard-danger);
-	color: white;
-	border: none;
-	border-radius: 50%;
-	width: 32px;
-	height: 32px;
-	font-size: 1.5rem;
-	line-height: 1;
-	cursor: pointer;
-	transition: var(--wizard-transition);
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.tabesh-aof-selected-user .remove-user:hover {
+    background: var(--aof-danger);
+    color: #fff;
 }
+
+/* ==========================================================================
+   Sticky Footer / فوتر ثابت
+   Action bar with price display / نوار عملیات با نمایش قیمت
+   ========================================================================== */
 
-.remove-customer:hover {
-	background: #dc2626;
-	transform: scale(1.1);
+.tabesh-aof-footer {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-top: 2px solid var(--aof-success);
+    padding: var(--aof-space-sm) var(--aof-space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aof-space-lg);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
 }
 
-/* New Customer Form */
-#new-customer-section .form-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
-	margin-bottom: 1rem;
+/* Price bar / نوار قیمت */
+.tabesh-aof-price-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-lg);
+    flex-wrap: wrap;
 }
 
-#create_customer_btn {
-	margin-top: 0.5rem;
+.tabesh-aof-price-item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aof-space-xs);
 }
 
-/* Price Display */
-.price-section {
-	margin: 2rem 0;
-	text-align: center;
+.tabesh-aof-price-item .price-label {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
+    font-weight: 500;
 }
 
-.price-display {
-	margin-top: 1.5rem;
+.tabesh-aof-price-item .price-value {
+    font-size: var(--aof-font-lg);
+    font-weight: 700;
+    color: var(--aof-text-muted);
+    min-width: 80px;
 }
 
-.price-loading {
-	padding: 2rem;
-	color: var(--wizard-text-muted);
-	font-size: 1.125rem;
+.tabesh-aof-price-item .price-unit {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-muted);
 }
 
-.price-result {
-	background: var(--wizard-bg-secondary);
-	border-radius: var(--wizard-radius-sm);
-	padding: 1.5rem;
-	box-shadow: var(--wizard-shadow);
+.tabesh-aof-price-unit {
+    background: #e8f4fd;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius);
+    border-right: 3px solid #2196F3;
 }
 
-.price-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 0.75rem 0;
-	border-bottom: 1px solid var(--wizard-border);
+.tabesh-aof-price-calculated {
+    background: #fff9e6;
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    border-radius: var(--aof-radius);
+    border-right: 3px solid #f59e0b;
 }
 
-.price-row:last-child {
-	border-bottom: none;
+.tabesh-aof-price-final {
+    padding-right: var(--aof-space-md);
+    border-right: 2px solid var(--aof-success);
 }
 
-.price-row.total {
-	margin-top: 0.5rem;
-	padding-top: 1rem;
-	border-top: 2px solid var(--admin-wizard-accent);
+.tabesh-aof-price-final .price-value {
+    color: var(--aof-success);
 }
 
-.price-label {
-	color: var(--wizard-text-muted);
-	font-size: 1rem;
+.tabesh-aof-price-final .price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aof-space-xs);
 }
 
-.price-row.total .price-label {
-	color: var(--wizard-text);
-	font-weight: 700;
-	font-size: 1.125rem;
+.tabesh-aof-price-final .price-breakdown > div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aof-space-xs);
 }
 
-.price-value {
-	color: var(--wizard-text);
-	font-size: 1.125rem;
-	font-weight: 600;
+.price-sublabel {
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-muted);
+    min-width: 50px;
 }
 
-.price-row.total .price-value {
-	color: var(--admin-wizard-accent);
-	font-size: 1.5rem;
-	font-weight: 700;
+/* Override price / قیمت دلخواه */
+.tabesh-aof-override {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
 }
 
-.price-error {
-	padding: 1rem;
-	background: #fee2e2;
-	color: var(--wizard-danger);
-	border-radius: var(--wizard-radius-sm);
-	text-align: center;
+.tabesh-aof-override-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-xs);
+    cursor: pointer;
+    font-size: var(--aof-font-xs);
+    color: var(--aof-text-secondary);
 }
 
-/* Order Review */
-.order-review-section {
-	margin-bottom: 2rem;
+.tabesh-aof-override-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-.order-review-section h3 {
-	margin: 0 0 1rem 0;
-	color: var(--wizard-text);
-	font-size: 1.25rem;
+.toggle-slider {
+    width: 32px;
+    height: 18px;
+    background: var(--aof-border);
+    border-radius: 9px;
+    position: relative;
+    transition: var(--aof-transition);
 }
 
-.review-content {
-	background: var(--wizard-bg-secondary);
-	border-radius: var(--wizard-radius-sm);
-	padding: 1.5rem;
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    right: 2px;
+    transition: var(--aof-transition);
+    box-shadow: var(--aof-shadow-sm);
 }
 
-.review-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
+.tabesh-aof-override-toggle input:checked + .toggle-slider {
+    background: var(--aof-primary);
 }
 
-.review-item {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
+.tabesh-aof-override-toggle input:checked + .toggle-slider::after {
+    right: 16px;
 }
 
-.review-label {
-	color: var(--wizard-text-muted);
-	font-size: 0.875rem;
+.tabesh-aof-override .price-helper {
+    display: block;
+    margin-top: var(--aof-space-xs);
+    color: var(--aof-text-muted);
+    font-size: var(--aof-font-xs);
+    font-style: italic;
+    margin-right: auto;
 }
 
-.review-value {
-	color: var(--wizard-text);
-	font-weight: 600;
-	font-size: 1rem;
+/* Actions / عملیات */
+.tabesh-aof-actions {
+    display: flex;
+    gap: var(--aof-space-sm);
 }
 
-/* SMS Checkbox */
-.checkbox-label {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	cursor: pointer;
-	padding: 1rem;
-	background: var(--wizard-bg-secondary);
-	border-radius: var(--wizard-radius-sm);
-	transition: var(--wizard-transition);
+/* ==========================================================================
+   Buttons / دکمه‌ها
+   Compact action buttons / دکمه‌های عملیات فشرده
+   ========================================================================== */
+
+.tabesh-aof-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aof-space-xs);
+    padding: var(--aof-space-sm) var(--aof-space-lg);
+    border: none;
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--aof-transition);
+    white-space: nowrap;
 }
 
-.checkbox-label:hover {
-	background: var(--admin-wizard-customer-bg);
-	border-color: var(--admin-wizard-accent);
+.tabesh-aof-btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
 }
 
-.checkbox-label input[type="checkbox"] {
-	width: 1.25rem;
-	height: 1.25rem;
-	cursor: pointer;
-	accent-color: var(--admin-wizard-accent);
+.tabesh-aof-btn-sm {
+    padding: var(--aof-space-xs) var(--aof-space-sm);
+    font-size: var(--aof-font-xs);
 }
 
-.checkbox-label span {
-	font-weight: 600;
-	color: var(--wizard-text);
+.tabesh-aof-btn-sm .dashicons {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
 }
 
-/* Success Message */
-.success-message {
-	text-align: center;
-	padding: 3rem 2rem;
-	background: var(--wizard-bg);
-	border-radius: var(--wizard-radius);
-	box-shadow: var(--wizard-shadow-lg);
-	animation: slideIn 0.5s ease;
+.tabesh-aof-btn-calc {
+    background: linear-gradient(135deg, var(--aof-primary) 0%, var(--aof-secondary) 100%);
+    color: #fff;
 }
 
-.success-icon {
-	width: 80px;
-	height: 80px;
-	margin: 0 auto 1.5rem;
-	background: var(--wizard-success);
-	color: white;
-	font-size: 3rem;
-	line-height: 80px;
-	border-radius: 50%;
-	animation: scaleIn 0.5s ease;
+.tabesh-aof-btn-calc:hover {
+    background: linear-gradient(135deg, var(--aof-primary-hover) 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
-@keyframes scaleIn {
-	from {
-		transform: scale(0);
-	}
-	to {
-		transform: scale(1);
-	}
+.tabesh-aof-btn-submit {
+    background: linear-gradient(135deg, var(--aof-success) 0%, var(--aof-success-hover) 100%);
+    color: #fff;
 }
 
-.success-message h3 {
-	color: var(--wizard-success);
-	margin: 0 0 1rem 0;
-	font-size: 1.75rem;
+.tabesh-aof-btn-submit:hover {
+    background: linear-gradient(135deg, var(--aof-success-hover) 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.success-message p {
-	color: var(--wizard-text-muted);
-	margin: 0 0 2rem 0;
-	font-size: 1.125rem;
+.tabesh-aof-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
-.success-message p a {
-	color: var(--admin-wizard-accent);
-	text-decoration: none;
-	font-weight: 600;
+/* ==========================================================================
+   Toast Notifications / اعلان‌های توست
+   Modern toast messages / پیام‌های توست مدرن
+   ========================================================================== */
+
+.tabesh-aof-toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--aof-space-sm);
+    pointer-events: none;
 }
 
-.success-message p a:hover {
-	text-decoration: underline;
+.tabesh-aof-toast {
+    display: flex;
+    align-items: center;
+    gap: var(--aof-space-sm);
+    padding: var(--aof-space-md) var(--aof-space-lg);
+    border-radius: var(--aof-radius);
+    font-size: var(--aof-font-sm);
+    font-weight: 500;
+    box-shadow: var(--aof-shadow-lg);
+    animation: toastSlideIn 0.3s ease;
+    pointer-events: auto;
+    max-width: 400px;
 }
 
-#create_another_order_btn {
-	margin-top: 1rem;
+.tabesh-aof-toast-success {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid var(--aof-success);
+    color: #166534;
 }
 
-/* Toast Notifications */
-.tabesh-toast {
-	position: fixed;
-	top: 2rem;
-	left: 50%;
-	transform: translateX(-50%) translateY(-100px);
-	background: white;
-	padding: 1rem 1.5rem;
-	border-radius: var(--wizard-radius-sm);
-	box-shadow: var(--wizard-shadow-lg);
-	z-index: 10000;
-	max-width: 500px;
-	opacity: 0;
-	transition: all 0.3s ease;
-	font-weight: 600;
+.tabesh-aof-toast-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid var(--aof-danger);
+    color: #991b1b;
 }
 
-.tabesh-toast.show {
-	opacity: 1;
-	transform: translateX(-50%) translateY(0);
+.tabesh-aof-toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.6;
+    margin-right: auto;
+    padding: 0;
+    color: inherit;
 }
 
-.tabesh-toast.success {
-	border-right: 4px solid var(--wizard-success);
-	color: var(--wizard-success);
+.tabesh-aof-toast-close:hover {
+    opacity: 1;
 }
 
-.tabesh-toast.error {
-	border-right: 4px solid var(--wizard-danger);
-	color: var(--wizard-danger);
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.tabesh-toast.warning {
-	border-right: 4px solid var(--wizard-warning);
-	color: var(--wizard-warning);
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-	.tabesh-admin-wizard-container {
-		padding: 0 0.5rem;
-	}
+.tabesh-aof-toast.fade-out {
+    animation: toastSlideOut 0.3s ease forwards;
+}
 
-	.admin-wizard-header {
-		padding: 1.5rem 1rem;
-	}
+/* ==========================================================================
+   Notice Messages / پیام‌ها
+   Access denied and login required / عدم دسترسی و نیاز به ورود
+   ========================================================================== */
 
-	.admin-wizard-title {
-		font-size: 1.5rem;
-	}
+.tabesh-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--aof-space-lg);
+    padding: var(--aof-space-xl);
+    border-radius: var(--aof-radius);
+    max-width: 400px;
+    margin: var(--aof-space-xl) auto;
+}
 
-	.admin-wizard-title .dashicons {
-		font-size: 2rem;
-		width: 2rem;
-		height: 2rem;
-	}
+.tabesh-notice-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid var(--aof-warning);
+}
 
-	.customer-type-toggle {
-		flex-direction: column;
-	}
+.tabesh-notice-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid var(--aof-danger);
+}
 
-	#new-customer-section .form-row {
-		grid-template-columns: 1fr;
-	}
+.tabesh-notice-icon {
+    font-size: 24px;
+}
 
-	.review-grid {
-		grid-template-columns: 1fr;
-	}
+.tabesh-notice-warning .tabesh-notice-icon {
+    color: #d97706;
+}
 
-	.wizard-navigation {
-		flex-direction: column;
-	}
+.tabesh-notice-error .tabesh-notice-icon {
+    color: #dc2626;
+}
 
-	.wizard-navigation button {
-		width: 100%;
-	}
+.tabesh-notice-content h3 {
+    margin: 0 0 var(--aof-space-sm) 0;
+    font-size: var(--aof-font-lg);
+    font-weight: 600;
 }
 
-@media (max-width: 480px) {
-	.admin-wizard-title {
-		font-size: 1.25rem;
-	}
+.tabesh-notice-warning .tabesh-notice-content h3 {
+    color: #92400e;
+}
 
-	.price-row.total .price-value {
-		font-size: 1.25rem;
-	}
+.tabesh-notice-error .tabesh-notice-content h3 {
+    color: #991b1b;
+}
 
-	.success-icon {
-		width: 60px;
-		height: 60px;
-		font-size: 2rem;
-		line-height: 60px;
-	}
+.tabesh-notice-content p {
+    margin: 0 0 var(--aof-space-md) 0;
+    color: var(--aof-text-secondary);
+    font-size: var(--aof-font-sm);
 }
 
-/* RTL Support */
-[dir="rtl"] .search-results {
-	left: 0;
-	right: 0;
+.tabesh-notice .tabesh-btn {
+    background: var(--aof-primary);
+    color: #fff;
+    padding: var(--aof-space-sm) var(--aof-space-lg);
+    border-radius: var(--aof-radius);
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    font-size: var(--aof-font-sm);
+    transition: var(--aof-transition);
 }
 
-[dir="rtl"] .selected-customer-card {
-	text-align: right;
+.tabesh-notice .tabesh-btn:hover {
+    background: var(--aof-primary-hover);
 }
+
+/* ==========================================================================
+   Responsive Design / طراحی واکنش‌گرا
+   Optimized for 1366x768 desktop without scroll
+   بهینه‌سازی شده برای دسکتاپ ۱۳۶۶×۷۶۸ بدون اسکرول
+   ========================================================================== */
 
-[dir="rtl"] .tabesh-toast.success {
-	border-right: 4px solid var(--wizard-success);
-	border-left: none;
+/* Large Desktop (1200px+) - 6 columns / دسکتاپ بزرگ - ۶ ستون */
+@media (min-width: 1200px) {
+    .tabesh-aof-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .tabesh-aof-wrapper {
+        max-height: calc(100vh - 60px);
+    }
 }
 
-[dir="rtl"] .tabesh-toast.error {
-	border-right: 4px solid var(--wizard-danger);
-	border-left: none;
+/* Small Desktop (992px - 1199px) - 4 columns / دسکتاپ کوچک - ۴ ستون */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .tabesh-aof-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .tabesh-aof-inline-fields .tabesh-aof-input {
+        width: 110px;
+    }
 }
 
-[dir="rtl"] .tabesh-toast.warning {
-	border-right: 4px solid var(--wizard-warning);
-	border-left: none;
+/* Tablet Landscape (768px - 991px) - 3 columns / تبلت افقی - ۳ ستون */
+@media (min-width: 768px) and (max-width: 991px) {
+    .tabesh-aof-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .tabesh-aof-wrapper {
+        max-height: none;
+    }
+    
+    .tabesh-aof-header {
+        flex-direction: column;
+        gap: var(--aof-space-xs);
+    }
+    
+    .tabesh-aof-header-hint {
+        display: none;
+    }
+    
+    .tabesh-aof-customer-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabesh-aof-search-box {
+        max-width: 100%;
+    }
+    
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+    }
+    
+    .tabesh-aof-price-bar {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tabesh-aof-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Tablet Portrait (576px - 767px) - 2 columns / تبلت عمودی - ۲ ستون */
+@media (min-width: 576px) and (max-width: 767px) {
+    .tabesh-aof-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tabesh-aof-header-hint {
+        display: none;
+    }
+    
+    .tabesh-aof-customer-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabesh-aof-inline-fields {
+        flex-direction: column;
+    }
+    
+    .tabesh-aof-inline-fields .tabesh-aof-input {
+        width: 100%;
+    }
+    
+    .tabesh-aof-extras-row {
+        flex-direction: column;
+    }
+    
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+        padding: var(--aof-space-md);
+    }
+    
+    .tabesh-aof-price-bar {
+        width: 100%;
+        flex-direction: column;
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-price-final {
+        border-right: none;
+        padding-right: 0;
+        border-top: 1px solid var(--aof-success);
+        padding-top: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-override {
+        flex-wrap: wrap;
+    }
+    
+    .tabesh-aof-override .tabesh-aof-input-sm {
+        width: 100%;
+    }
+    
+    .tabesh-aof-actions {
+        width: 100%;
+    }
+    
+    .tabesh-aof-btn {
+        flex: 1;
+    }
+}
+
+/* Mobile (< 576px) - 1 column / موبایل - ۱ ستون */
+@media (max-width: 575px) {
+    .tabesh-aof-wrapper {
+        max-height: none;
+        border-radius: 0;
+    }
+    
+    .tabesh-aof-header {
+        padding: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-header-hint {
+        display: none;
+    }
+    
+    .tabesh-aof-title {
+        font-size: var(--aof-font-base);
+    }
+    
+    .tabesh-aof-form {
+        padding: var(--aof-space-sm);
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-section {
+        padding: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-grid {
+        grid-template-columns: 1fr;
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-customer-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabesh-aof-toggle-group {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tabesh-aof-inline-fields {
+        flex-direction: column;
+    }
+    
+    .tabesh-aof-inline-fields .tabesh-aof-input,
+    .tabesh-aof-inline-fields .tabesh-aof-btn {
+        width: 100%;
+    }
+    
+    .tabesh-aof-extras-row {
+        flex-direction: column;
+    }
+    
+    .tabesh-aof-extras {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tabesh-aof-footer {
+        flex-direction: column;
+        gap: var(--aof-space-md);
+        padding: var(--aof-space-md) var(--aof-space-sm);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        z-index: 100;
+    }
+    
+    .tabesh-aof-price-bar {
+        flex-direction: column;
+        gap: var(--aof-space-sm);
+        width: 100%;
+    }
+    
+    .tabesh-aof-price-final {
+        border-right: none;
+        padding-right: 0;
+    }
+    
+    .tabesh-aof-override {
+        width: 100%;
+        flex-direction: column;
+        gap: var(--aof-space-sm);
+    }
+    
+    .tabesh-aof-override .tabesh-aof-input-sm {
+        width: 100%;
+    }
+    
+    .tabesh-aof-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .tabesh-aof-btn {
+        width: 100%;
+        padding: var(--aof-space-md);
+    }
+    
+    /* Add padding at bottom for fixed footer */
+    .tabesh-aof-form {
+        padding-bottom: 180px;
+    }
+}
+
+/* Extra small mobile (< 400px) / موبایل خیلی کوچک */
+@media (max-width: 399px) {
+    .tabesh-aof-title {
+        font-size: var(--aof-font-sm);
+    }
+    
+    .section-badge {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    
+    .section-label {
+        font-size: var(--aof-font-sm);
+    }
+    
+    .tabesh-aof-input,
+    .tabesh-aof-select {
+        height: 30px;
+        font-size: var(--aof-font-xs);
+    }
+    
+    .tabesh-aof-chip {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+}
+
+/* ==========================================================================
+   Animations / انیمیشن‌ها
+   Subtle animations for better UX / انیمیشن‌های ظریف برای تجربه کاربری بهتر
+   ========================================================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tabesh-aof-section {
+    animation: fadeIn 0.25s ease-out;
+}
+
+.tabesh-aof-section:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.tabesh-aof-section:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+/* Spinning animation for loading states / انیمیشن چرخش برای حالت بارگذاری */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   SMS Options / گزینه‌های پیامک
+   ========================================================================== */
+
+.tabesh-aof-sms-options {
+    border: 1px solid #ddd;
+}
+
+.tabesh-aof-sms-options h4 {
+    color: #1e293b;
+}
+
+.tabesh-aof-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 13px;
+}
+
+.tabesh-aof-checkbox-group label:hover {
+    background: #f1f5f9;
+}
+
+.tabesh-aof-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+/* ==========================================================================
+   Print Styles / استایل‌های چاپ
+   ========================================================================== */
+
+@media print {
+    .tabesh-aof-wrapper {
+        display: none;
+    }
 }
