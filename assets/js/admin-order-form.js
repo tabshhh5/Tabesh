@@ -328,11 +328,12 @@
             updatePageCountFields();
         });
 
-        // Update extras availability when binding type changes (V2 cascade)
-        // به‌روزرسانی دسترسی آپشن‌ها هنگام تغییر نوع صحافی (cascade V2)
+        // Update extras and cover weights availability when binding type changes (V2 cascade)
+        // به‌روزرسانی دسترسی آپشن‌ها و گرماژ جلد هنگام تغییر نوع صحافی (cascade V2)
         $('#aof-binding-type').on('change', function() {
             if (tabeshAdminOrderForm.v2Enabled) {
                 updateExtrasAvailability();
+                updateCoverWeightsAvailability();
             }
         });
         
@@ -487,6 +488,91 @@
                 $(this).closest('.tabesh-aof-chip').addClass('chip-disabled');
             }
         });
+    }
+
+    /**
+     * Update cover weights availability based on selected binding type (V2 cascade)
+     * به‌روزرسانی دسترسی گرماژ جلد بر اساس نوع صحافی انتخاب شده
+     */
+    function updateCoverWeightsAvailability() {
+        const bookSize = $('#aof-book-size').val();
+        const bindingType = $('#aof-binding-type').val();
+
+        if (!bookSize || !bindingType) {
+            return;
+        }
+
+        // Call API to get allowed cover weights for this binding type
+        $.ajax({
+            url: tabeshAdminOrderForm.restUrl + '/get-allowed-options',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                book_size: bookSize,
+                current_selection: {
+                    binding_type: bindingType
+                }
+            }),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', tabeshAdminOrderForm.nonce);
+            },
+            success: function(response) {
+                if (response.success && response.data && response.data.allowed_cover_weights) {
+                    updateCoverWeightsDropdown(response.data.allowed_cover_weights);
+                }
+            },
+            error: function(xhr) {
+                console.error('Tabesh: Error fetching allowed cover weights:', xhr.responseText);
+            }
+        });
+    }
+
+    /**
+     * Update cover weights dropdown based on allowed list
+     * به‌روزرسانی منوی کشویی گرماژ جلد بر اساس لیست مجاز
+     */
+    function updateCoverWeightsDropdown(allowedCoverWeights) {
+        const $coverWeightSelect = $('#aof-cover-paper-weight');
+        const currentValue = $coverWeightSelect.val();
+
+        // Clear and rebuild dropdown
+        $coverWeightSelect.empty();
+
+        if (!allowedCoverWeights || allowedCoverWeights.length === 0) {
+            // No allowed weights - add disabled message
+            $coverWeightSelect.append('<option value="" disabled>' + 
+                (tabeshAdminOrderForm.strings.noAllowedWeights || 'هیچ گرماژ جلدی مجاز نیست') + 
+            '</option>');
+            return;
+        }
+
+        // Add allowed cover weights
+        allowedCoverWeights.forEach(function(weightInfo) {
+            const weight = typeof weightInfo === 'object' ? weightInfo.weight : weightInfo;
+            $coverWeightSelect.append(
+                $('<option></option>')
+                    .val(weight)
+                    .text(weight + ' گرم')
+            );
+        });
+
+        // Try to restore previous selection if still valid
+        if (currentValue) {
+            const isValid = allowedCoverWeights.some(function(w) {
+                const weight = typeof w === 'object' ? w.weight : w;
+                return weight === currentValue;
+            });
+            if (isValid) {
+                $coverWeightSelect.val(currentValue);
+            }
+        }
+
+        // If no selection, select first option
+        if (!$coverWeightSelect.val() && allowedCoverWeights.length > 0) {
+            const firstWeight = typeof allowedCoverWeights[0] === 'object' ? 
+                allowedCoverWeights[0].weight : allowedCoverWeights[0];
+            $coverWeightSelect.val(firstWeight);
+        }
     }
 
     /**

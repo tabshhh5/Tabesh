@@ -61,7 +61,19 @@
    ✓ نتوان آنها را انتخاب کرد
 ```
 
-##### 4. تست تغییر قطع
+##### 4. تست فیلتر گرماژ جلد (Cover Weight) ✅ جدید
+```
+1. ماتریسی با forbidden_cover_weights برای یک نوع صحافی تنظیم کنید
+   مثال: برای صحافی "شومیز" فقط گرماژ 250 و 300 مجاز است
+2. در فرم، قطع کتاب را انتخاب کنید
+3. نوع صحافی "شومیز" را انتخاب کنید
+   ✓ فیلد گرماژ جلد باید فقط گرماژهای 250 و 300 را نمایش دهد
+   ✓ سایر گرماژها نباید در لیست باشند
+4. نوع صحافی دیگری انتخاب کنید
+   ✓ گرماژهای جلد باید به‌روز شوند بر اساس محدودیت‌های آن صحافی
+```
+
+##### 5. تست تغییر قطع
 ```
 1. قطع اول را انتخاب کنید و تمام فیلدها را پر کنید
 2. قطع دیگری انتخاب کنید
@@ -109,6 +121,8 @@
 - `updatePrintTypeAvailability()`: فیلتر کردن نوع چاپ
 - `updateExtrasAvailability()`: فیلتر کردن آپشن‌ها
 - `updateExtrasCheckboxes()`: غیرفعال کردن extras غیرمجاز
+- `updateCoverWeightsAvailability()`: ✅ **جدید** - فیلتر کردن گرماژ جلد
+- `updateCoverWeightsDropdown()`: ✅ **جدید** - بروزرسانی منوی کشویی گرماژ جلد
 
 #### CSS Classes
 - `.chip-disabled`: برای آپشن‌های غیرفعال
@@ -191,7 +205,19 @@ The admin order form is now fully integrated with the V2 matrix pricing engine. 
    ✓ Should not be selectable
 ```
 
-##### 4. Book Size Change Test
+##### 4. Cover Weight Filtering Test ✅ NEW
+```
+1. Configure matrix with forbidden_cover_weights for a binding type
+   Example: For "شومیز" binding, only 250 and 300 weights are allowed
+2. In form, select book size
+3. Select "شومیز" binding type
+   ✓ Cover weight field should only show 250 and 300 options
+   ✓ Other weights should not appear in the list
+4. Change to a different binding type
+   ✓ Cover weights should update based on that binding's restrictions
+```
+
+##### 5. Book Size Change Test
 ```
 1. Select first size and fill all fields
 2. Change to different size
@@ -265,7 +291,7 @@ Enable WordPress debug mode and check browser console:
 ```
 
 ### Future Enhancements
-- [ ] Cover weight filtering based on binding type
+- [x] Cover weight filtering based on binding type ✅ **Implemented**
 - [ ] Live price preview during cascade
 - [ ] Validation messages for each field
 - [ ] Undo/redo for selections
@@ -275,13 +301,19 @@ Enable WordPress debug mode and check browser console:
 
 ## Version History
 
-### v1.0 (Current)
+### v1.1 (Current)
+- **Cover weight cascade filtering** ✅
+  - Cover weights now filter based on selected binding type
+  - Uses constraint manager's `allowed_cover_weights` API
+  - Preserves user selection when possible
+  - Auto-selects first valid option
+
+### v1.0
 - Initial V2 integration
 - Complete cascade filtering
 - API-based option loading
 - Legacy code removal
 
 ### Future Versions
-- v1.1: Cover weight cascade
 - v1.2: Enhanced validation
 - v2.0: Full wizard-style interface
