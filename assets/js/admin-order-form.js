@@ -500,24 +500,23 @@
         const selectedOption = $bindingSelect.find('option:selected');
         const coverWeights = selectedOption.data('cover_weights');
 
-        // Clear current options
+        // Clear current options and add default empty option
         $coverSelect.empty();
+        const defaultOption = '<option value="">' + tabeshAdminOrderForm.strings.selectOption + '</option>';
+        $coverSelect.append(defaultOption);
 
         // Validate coverWeights is an array
         if (!Array.isArray(coverWeights) || coverWeights.length === 0) {
-            // No cover weights available for this binding type
-            $coverSelect.append('<option value="">' + tabeshAdminOrderForm.strings.selectOption + '</option>');
+            // No cover weights available for this binding type - default option already added
             return;
         }
 
-        // Add default empty option
-        $coverSelect.append('<option value="">' + tabeshAdminOrderForm.strings.selectOption + '</option>');
-
         // Add allowed cover weights
         coverWeights.forEach(function(weightInfo) {
-            // Validate weightInfo structure and sanitize weight value
-            if (weightInfo && typeof weightInfo === 'object' && weightInfo.weight) {
-                const weight = String(weightInfo.weight); // Convert to string
+            // Validate weightInfo structure and weight value
+            if (weightInfo && typeof weightInfo === 'object' && 
+                typeof weightInfo.weight !== 'undefined' && weightInfo.weight !== null) {
+                const weight = String(weightInfo.weight); // Convert to string for safety
                 $coverSelect.append(
                     $('<option></option>')
                         .val(weight)
