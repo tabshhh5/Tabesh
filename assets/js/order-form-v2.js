@@ -360,28 +360,22 @@
 	 * Load and filter print types based on selected paper weight availability
 	 */
 	function loadPrintTypes() {
+		// First, try to use locally cached data from weight selection
+		const $weightSelect = $('#paper_weight_wizard');
+		const selectedOption = $weightSelect.find('option:selected');
+		const availablePrints = selectedOption.data('available_prints') || [];
+
 		// Get all print type radio buttons
 		const $bwOption = $('input[name="print_type"][value="bw"]');
 		const $colorOption = $('input[name="print_type"][value="color"]');
 		const $bwCard = $bwOption.closest('.print-option');
 		const $colorCard = $colorOption.closest('.print-option');
 
-		// Reset both options first - enable everything
+		// Reset both options first
 		$bwOption.prop('disabled', false);
 		$colorOption.prop('disabled', false);
 		$bwCard.removeClass('disabled');
 		$colorCard.removeClass('disabled');
-
-		// Check if we have the required data to filter
-		if (!formState.book_size || !formState.paper_type || !formState.paper_weight) {
-			// Not enough data, don't restrict anything
-			return;
-		}
-
-		// First, try to use locally cached data from weight selection
-		const $weightSelect = $('#paper_weight_wizard');
-		const selectedOption = $weightSelect.find('option:selected');
-		const availablePrints = selectedOption.data('available_prints') || [];
 
 		// If we have specific availability data from the weight option, apply it
 		if (availablePrints.length > 0) {
@@ -389,20 +383,14 @@
 			if (!availablePrints.includes('bw')) {
 				$bwOption.prop('disabled', true).prop('checked', false);
 				$bwCard.addClass('disabled');
-				if (formState.print_type === 'bw') {
-					formState.print_type = '';
-				}
 			}
 			if (!availablePrints.includes('color')) {
 				$colorOption.prop('disabled', true).prop('checked', false);
 				$colorCard.addClass('disabled');
-				if (formState.print_type === 'color') {
-					formState.print_type = '';
-				}
 			}
 
 			// Auto-select if only one option is available
-			if (availablePrints.length === 1 && !formState.print_type) {
+			if (availablePrints.length === 1) {
 				const onlyAvailable = availablePrints[0];
 				if (onlyAvailable === 'bw') {
 					$bwOption.prop('checked', true);
@@ -412,7 +400,7 @@
 					formState.print_type = 'color';
 				}
 			}
-		} else {
+		} else if (formState.paper_type && formState.paper_weight) {
 			// Fallback: Query the API to get allowed print types
 			// This ensures we always have the correct data even if cached data is missing
 			$.ajax({
@@ -439,20 +427,14 @@
 						if (!allowedTypes.includes('bw')) {
 							$bwOption.prop('disabled', true).prop('checked', false);
 							$bwCard.addClass('disabled');
-							if (formState.print_type === 'bw') {
-								formState.print_type = '';
-							}
 						}
 						if (!allowedTypes.includes('color')) {
 							$colorOption.prop('disabled', true).prop('checked', false);
 							$colorCard.addClass('disabled');
-							if (formState.print_type === 'color') {
-								formState.print_type = '';
-							}
 						}
 
 						// Auto-select if only one option
-						if (allowedTypes.length === 1 && !formState.print_type) {
+						if (allowedTypes.length === 1) {
 							if (allowedTypes[0] === 'bw') {
 								$bwOption.prop('checked', true);
 								formState.print_type = 'bw';
@@ -568,29 +550,18 @@
 		}
 
 		extras.forEach(function(extra) {
-			// Ensure extra is an object with name property
-			let extraName = '';
-			if (typeof extra === 'string') {
-				extraName = extra;
-			} else if (extra && typeof extra === 'object' && extra.name) {
-				extraName = String(extra.name);
-			} else {
-				console.warn('Invalid extra format:', extra);
-				return; // Skip this extra
-			}
-
 			const $label = $('<label></label>').addClass('extra-option');
 			
 			const $checkbox = $('<input>')
 				.attr('type', 'checkbox')
 				.attr('name', 'extras[]')
-				.attr('value', extraName)
-				.data('price', extra.price || 0)
-				.data('type', extra.type || 'fixed');
+				.attr('value', extra.name)
+				.data('price', extra.price)
+				.data('type', extra.type);
 			
 			const $card = $('<span></span>').addClass('extra-card');
 			const $check = $('<span></span>').addClass('extra-check');
-			const $name = $('<span></span>').addClass('extra-name').text(extraName);
+			const $name = $('<span></span>').addClass('extra-name').text(extra.name);
 			
 			$card.append($check).append($name);
 			$label.append($checkbox).append($card);
@@ -612,32 +583,6 @@
 	 * Calculate price
 	 */
 	function calculatePrice() {
-		// Validate we have all required data
-		if (!formState.book_size) {
-			showMessage('لطفاً قطع کتاب را انتخاب کنید', 'error');
-			return;
-		}
-		if (!formState.paper_type) {
-			showMessage('لطفاً نوع کاغذ را انتخاب کنید', 'error');
-			return;
-		}
-		if (!formState.paper_weight) {
-			showMessage('لطفاً گرماژ کاغذ را انتخاب کنید', 'error');
-			return;
-		}
-		if (!formState.print_type) {
-			showMessage('لطفاً نوع چاپ را انتخاب کنید', 'error');
-			return;
-		}
-		if (!formState.binding_type) {
-			showMessage('لطفاً نوع صحافی را انتخاب کنید', 'error');
-			return;
-		}
-		if (!formState.cover_weight) {
-			showMessage('لطفاً گرماژ جلد را انتخاب کنید', 'error');
-			return;
-		}
-
 		showLoading();
 		updateExtrasState();
 
@@ -662,8 +607,6 @@
 			extras: formState.extras
 		};
 
-		console.log('Calculating price with data:', priceData);
-
 		$.ajax({
 			url: tabeshOrderFormV2.apiUrl + '/calculate-price',
 			method: 'POST',
@@ -675,21 +618,17 @@
 			success: function(response) {
 				hideLoading();
 
-				console.log('Price calculation response:', response);
-
 				if (response.success && response.data) {
 					displayPrice(response.data);
 					formState.calculated_price = response.data;
 					showMessage('قیمت با موفقیت محاسبه شد', 'success');
 				} else {
 					showMessage(response.message || 'خطا در محاسبه قیمت', 'error');
-					console.error('Price calculation failed:', response);
 				}
 			},
-			error: function(xhr, status, error) {
+			error: function() {
 				hideLoading();
 				showMessage('خطا در محاسبه قیمت', 'error');
-				console.error('Price calculation error:', xhr, status, error);
 			}
 		});
 	}
@@ -715,23 +654,19 @@
 		$review.empty();
 
 		const items = [
-			{ label: 'عنوان کتاب', value: formState.book_title || '-' },
-			{ label: 'قطع کتاب', value: formState.book_size || '-' },
-			{ label: 'نوع کاغذ', value: formState.paper_type || '-' },
-			{ label: 'گرماژ کاغذ', value: formState.paper_weight ? formState.paper_weight + ' گرم' : '-' },
-			{ label: 'نوع چاپ', value: formState.print_type === 'bw' ? 'سیاه و سفید' : (formState.print_type === 'color' ? 'رنگی' : '-') },
-			{ label: 'تعداد صفحات', value: formState.page_count || '-' },
-			{ label: 'تیراژ', value: formState.quantity || '-' },
-			{ label: 'نوع صحافی', value: formState.binding_type || '-' },
-			{ label: 'گرماژ جلد', value: formState.cover_weight ? formState.cover_weight + ' گرم' : '-' }
+			{ label: 'عنوان کتاب', value: formState.book_title },
+			{ label: 'قطع کتاب', value: formState.book_size },
+			{ label: 'نوع کاغذ', value: formState.paper_type },
+			{ label: 'گرماژ کاغذ', value: formState.paper_weight + ' گرم' },
+			{ label: 'نوع چاپ', value: formState.print_type === 'bw' ? 'سیاه و سفید' : 'رنگی' },
+			{ label: 'تعداد صفحات', value: formState.page_count },
+			{ label: 'تیراژ', value: formState.quantity },
+			{ label: 'نوع صحافی', value: formState.binding_type },
+			{ label: 'گرماژ جلد', value: formState.cover_weight + ' گرم' }
 		];
 
-		if (formState.extras && formState.extras.length > 0) {
-			// Ensure extras are strings before joining
-			const extrasText = formState.extras.map(function(extra) {
-				return String(extra);
-			}).join('، ');
-			items.push({ label: 'خدمات اضافی', value: extrasText });
+		if (formState.extras.length > 0) {
+			items.push({ label: 'خدمات اضافی', value: formState.extras.join('، ') });
 		}
 
 		items.forEach(function(item) {

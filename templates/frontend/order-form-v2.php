@@ -18,16 +18,16 @@ try {
 	$constraint_manager = new Tabesh_Constraint_Manager();
 	$available_sizes    = $constraint_manager->get_available_book_sizes();
 
-	// Log for debugging if WP_DEBUG is enabled.
+	// Log for debugging if WP_DEBUG is enabled
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Tabesh Order Form V2 Modern: Available book sizes count: ' . count( $available_sizes ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'Tabesh Order Form V2 Modern: Available book sizes count: ' . count( $available_sizes ) );
 		if ( empty( $available_sizes ) ) {
-			error_log( 'Tabesh Order Form V2 Modern: WARNING - No book sizes configured in pricing matrix' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Tabesh Order Form V2 Modern: WARNING - No book sizes configured in pricing matrix' );
 		}
 	}
 } catch ( Exception $e ) {
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Tabesh Order Form V2 Modern Error: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'Tabesh Order Form V2 Modern Error: ' . $e->getMessage() );
 	}
 	$available_sizes = array();
 }
@@ -121,6 +121,15 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 
 			<!-- Step 1: Book Title & Basic Info -->
 			<div class="wizard-step active" data-step="1">
+				<div class="step-header">
+					<h2 class="step-title">
+						<span class="step-icon">📖</span>
+						<?php echo esc_html__( 'اطلاعات اولیه کتاب', 'tabesh' ); ?>
+					</h2>
+					<p class="step-description">
+						<?php echo esc_html__( 'عنوان کتاب و قطع مورد نظر خود را انتخاب کنید', 'tabesh' ); ?>
+					</p>
+				</div>
 				<div class="step-content">
 					<div class="form-group">
 						<label for="book_title_wizard" class="form-label">
@@ -170,6 +179,15 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 
 			<!-- Step 2: Paper & Print Specifications -->
 			<div class="wizard-step" data-step="2">
+				<div class="step-header">
+					<h2 class="step-title">
+						<span class="step-icon">📄</span>
+						<?php echo esc_html__( 'مشخصات کاغذ و چاپ', 'tabesh' ); ?>
+					</h2>
+					<p class="step-description">
+						<?php echo esc_html__( 'نوع کاغذ، گرماژ و نوع چاپ را انتخاب کنید', 'tabesh' ); ?>
+					</p>
+				</div>
 				<div class="step-content">
 					<div class="form-row">
 						<div class="form-group">
@@ -251,10 +269,7 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 								required
 							>
 							<span class="form-hint">
-								<?php
-								/* translators: %d: minimum quantity value */
-								echo esc_html( sprintf( __( 'حداقل: %d', 'tabesh' ), $min_quantity ) );
-								?>
+								<?php echo esc_html( sprintf( __( 'حداقل: %d', 'tabesh' ), $min_quantity ) ); ?>
 							</span>
 						</div>
 					</div>
@@ -263,6 +278,15 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 
 			<!-- Step 3: Binding & Cover -->
 			<div class="wizard-step" data-step="3">
+				<div class="step-header">
+					<h2 class="step-title">
+						<span class="step-icon">📚</span>
+						<?php echo esc_html__( 'صحافی و جلد', 'tabesh' ); ?>
+					</h2>
+					<p class="step-description">
+						<?php echo esc_html__( 'نوع صحافی، گرماژ جلد و خدمات اضافی را انتخاب کنید', 'tabesh' ); ?>
+					</p>
+				</div>
 				<div class="step-content">
 					<div class="form-group">
 						<label for="binding_type_wizard" class="form-label">
@@ -297,6 +321,15 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 
 			<!-- Step 4: Review & Submit -->
 			<div class="wizard-step" data-step="4">
+				<div class="step-header">
+					<h2 class="step-title">
+						<span class="step-icon">✅</span>
+						<?php echo esc_html__( 'بررسی نهایی و ثبت سفارش', 'tabesh' ); ?>
+					</h2>
+					<p class="step-description">
+						<?php echo esc_html__( 'مشخصات سفارش خود را بررسی کنید', 'tabesh' ); ?>
+					</p>
+				</div>
 				<div class="step-content">
 					<!-- Price Summary -->
 					<div class="price-summary">
