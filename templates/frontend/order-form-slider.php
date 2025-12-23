@@ -78,6 +78,19 @@ $show_title      = isset( $show_title ) ? $show_title : true;
 		</div>
 	<?php else : ?>
 
+	<!-- Form Header -->
+		<?php if ( $show_title ) : ?>
+	<div class="slider-form-header">
+		<h2 class="form-main-title">
+			<span class="title-icon">📖</span>
+			<?php echo esc_html__( 'فرم ثبت سفارش چاپ کتاب', 'tabesh' ); ?>
+		</h2>
+		<p class="form-subtitle">
+			<?php echo esc_html__( 'تمام مشخصات کتاب خود را وارد کنید. تغییرات به صورت لحظه‌ای اعمال می‌شود.', 'tabesh' ); ?>
+		</p>
+	</div>
+	<?php endif; ?>
+
 	<!-- Progress Indicator (3 steps only) -->
 	<div class="slider-form-progress">
 		<div class="progress-track">

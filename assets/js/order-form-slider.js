@@ -22,7 +22,6 @@
 		binding_type: '',
 		cover_weight: '',
 		extras: [],
-		extras_names: [], // Store names for display
 		notes: '',
 		calculated_price: null,
 		step: 1
@@ -160,7 +159,6 @@
 				binding_type: formState.binding_type,
 				cover_weight: formState.cover_weight,
 				extras: formState.extras.slice(), // Copy array
-				extras_names: formState.extras_names.slice(), // Copy array
 				notes: formState.notes,
 				calculated_price: formState.calculated_price,
 				current_step: currentStep
@@ -410,7 +408,7 @@
 				$('<option></option>')
 					.val(weightInfo.weight)
 					.text(weightInfo.weight)
-					.data('print-types', weightInfo.available_prints || weightInfo.allowed_print_types)
+					.data('print-types', weightInfo.allowed_print_types)
 			);
 		});
 	}
@@ -426,20 +424,12 @@
 		// Enable/disable print type options
 		$('input[name="print_type"]').each(function() {
 			const printType = $(this).val();
-			const $card = $(this).closest('.print-option-card');
-			
-			// If no restrictions, enable all
-			if (!allowedPrintTypes || allowedPrintTypes.length === 0) {
-				$(this).prop('disabled', false);
-				$card.removeClass('disabled');
-			} else if (allowedPrintTypes.indexOf(printType) === -1) {
-				// Disable if not in allowed list
+			if (allowedPrintTypes && allowedPrintTypes.indexOf(printType) === -1) {
 				$(this).prop('disabled', true).prop('checked', false);
-				$card.addClass('disabled');
+				$(this).closest('.print-option-card').addClass('disabled');
 			} else {
-				// Enable if in allowed list
 				$(this).prop('disabled', false);
-				$card.removeClass('disabled');
+				$(this).closest('.print-option-card').removeClass('disabled');
 			}
 		});
 	}
@@ -533,19 +523,14 @@
 		}
 
 		extras.forEach(function(extra) {
-			// Handle both object format {name: '...', slug: '...', price: ...} and string format
-			const extraName = (typeof extra === 'object' && extra !== null && extra.name) ? extra.name : extra;
-			const extraValue = (typeof extra === 'object' && extra !== null && extra.slug) ? extra.slug : extra;
-			
 			const $checkbox = $('<label class="extra-checkbox"></label>')
 				.append(
 					$('<input type="checkbox" name="extras[]">')
-						.val(extraValue)
-						.attr('data-extra-name', extraName)
+						.val(extra)
 						.attr('data-event-field', 'extras')
 				)
 				.append(
-					$('<span class="extra-label"></span>').text(extraName)
+					$('<span class="extra-label"></span>').text(extra)
 				);
 			
 			$container.append($checkbox);
@@ -557,13 +542,10 @@
 	 */
 	function updateExtrasState() {
 		const selectedExtras = [];
-		const selectedExtrasNames = [];
 		$('#slider_extras_container input[type="checkbox"]:checked').each(function() {
 			selectedExtras.push($(this).val());
-			selectedExtrasNames.push($(this).attr('data-extra-name') || $(this).val());
 		});
 		formState.extras = selectedExtras;
-		formState.extras_names = selectedExtrasNames;
 	}
 
 	/**
@@ -660,8 +642,8 @@
 			{ label: 'گرماژ جلد', value: formState.cover_weight }
 		];
 
-		if (formState.extras_names && formState.extras_names.length > 0) {
-			summaryItems.push({ label: 'خدمات اضافی', value: formState.extras_names.join('، ') });
+		if (formState.extras.length > 0) {
+			summaryItems.push({ label: 'خدمات اضافی', value: formState.extras.join('، ') });
 		}
 
 		summaryItems.forEach(function(item) {
