@@ -73,8 +73,13 @@
 
         // Scroll to element
         scrollToElement($target, function() {
-            // Highlight element
-            highlightElement($target, step.pulse || false);
+            // Highlight element (with optional red flag for urgent steps)
+            highlightElement($target, step.pulse || false, step.redFlag || false);
+
+            // Add spotlight if urgent
+            if (step.spotlight) {
+                addSpotlight($target);
+            }
 
             // Show arrow
             if (step.arrow) {
@@ -113,7 +118,7 @@
     /**
      * Highlight element
      */
-    function highlightElement($element, pulse) {
+    function highlightElement($element, pulse, redFlag) {
         // Remove existing highlight
         if ($highlight) {
             $highlight.remove();
@@ -135,10 +140,15 @@
             zIndex: 100000
         });
 
+        // Add red flag class for confused users
+        if (redFlag) {
+            $highlight.addClass('red-flag');
+        }
+
         $('body').append($highlight);
 
-        // Add pulse animation if requested
-        if (pulse) {
+        // Add pulse animation if requested (note: pulse is already in CSS for red-flag)
+        if (pulse && !redFlag) {
             $highlight.addClass('pulse');
         }
     }
@@ -342,8 +352,13 @@
 
         // Scroll to element
         scrollToElement($element, function() {
-            // Highlight
-            highlightElement($element, options.pulse || false);
+            // Highlight with optional red flag styling
+            highlightElement($element, options.pulse || false, options.redFlag || false);
+
+            // Add spotlight effect if requested
+            if (options.spotlight) {
+                addSpotlight($element);
+            }
 
             // Show arrow if specified
             if (options.arrow) {
@@ -361,8 +376,52 @@
                 if ($highlight) $highlight.remove();
                 if ($arrow) $arrow.remove();
                 if ($tooltip) $tooltip.remove();
+                $('.tour-guide-spotlight').remove();
             }, options.duration || 5000);
         });
+    }
+
+    /**
+     * Add spotlight effect to element
+     */
+    function addSpotlight($element) {
+        const offset = $element.offset();
+        const width = $element.outerWidth();
+        const height = $element.outerHeight();
+
+        const $spotlight = $('<div class="tour-guide-spotlight"></div>');
+        $spotlight.css({
+            position: 'absolute',
+            top: offset.top - 30,
+            left: offset.left - 30,
+            width: width + 60,
+            height: height + 60,
+            pointerEvents: 'none'
+        });
+
+        $('body').append($spotlight);
+    }
+
+    /**
+     * Highlight element for confused user (red flag)
+     */
+    function highlightConfusedElement(selector, message) {
+        highlightElementPublic(selector, {
+            pulse: true,
+            redFlag: true,
+            spotlight: true,
+            arrow: 'top',
+            tooltip: message || 'اینجا کلیک کنید!',
+            duration: 8000
+        });
+
+        // Track red flag event
+        if (window.tabeshAITracker) {
+            window.tabeshAITracker.trackEvent('red_flag_shown', {
+                element: selector,
+                message: message
+            });
+        }
     }
 
     /**
@@ -386,6 +445,8 @@
         nextStep: nextStep,
         previousStep: previousStep,
         highlightElement: highlightElementPublic,
+        highlightConfusedElement: highlightConfusedElement,
+        addSpotlight: addSpotlight,
         scrollToElement: scrollToElement
     };
 

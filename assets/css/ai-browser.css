@@ -642,6 +642,25 @@ body.ai-browser-open {
 	background: rgba(255, 255, 255, 0.1);
 }
 
+/* Red flag highlight for confused users */
+.tour-guide-highlight.red-flag {
+	border-color: #ff4757;
+	animation: flash-red 1s infinite;
+}
+
+@keyframes flash-red {
+	0%, 100% {
+		box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.3),
+		            0 0 32px rgba(255, 71, 87, 0.5);
+		border-color: #ff4757;
+	}
+	50% {
+		box-shadow: 0 0 0 8px rgba(255, 71, 87, 0.5),
+		            0 0 48px rgba(255, 71, 87, 0.8);
+		border-color: #ff6b7a;
+	}
+}
+
 @keyframes pulse-highlight {
 	0%, 100% {
 		box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2),
@@ -650,6 +669,45 @@ body.ai-browser-open {
 	50% {
 		box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.3),
 		            0 0 48px rgba(102, 126, 234, 0.6);
+	}
+}
+
+/* Animated spotlight effect */
+.tour-guide-spotlight {
+	position: absolute;
+	pointer-events: none;
+	z-index: 100003;
+	animation: spotlight-pulse 2s infinite;
+}
+
+.tour-guide-spotlight::before {
+	content: "";
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+	animation: rotate-spotlight 4s linear infinite;
+}
+
+@keyframes spotlight-pulse {
+	0%, 100% {
+		opacity: 0.7;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+}
+
+@keyframes rotate-spotlight {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
 	}
 }
 
