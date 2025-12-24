@@ -833,6 +833,42 @@ class Tabesh_Admin {
             $firewall->save_settings($firewall_settings);
         }
 
+        // Handle AI settings
+        $ai_fields = array(
+            'ai_enabled'           => 'checkbox',
+            'ai_mode'              => 'scalar',
+            'ai_gemini_api_key'    => 'scalar',
+            'ai_gemini_model'      => 'scalar',
+            'ai_server_url'        => 'scalar',
+            'ai_server_api_key'    => 'scalar',
+            'ai_access_orders'     => 'checkbox',
+            'ai_access_users'      => 'checkbox',
+            'ai_access_pricing'    => 'checkbox',
+            'ai_access_woocommerce' => 'checkbox',
+            'ai_cache_enabled'     => 'checkbox',
+            'ai_cache_ttl'         => 'scalar',
+            'ai_max_tokens'        => 'scalar',
+            'ai_temperature'       => 'scalar',
+        );
+
+        foreach ( $ai_fields as $field => $type ) {
+            if ( 'checkbox' === $type ) {
+                $value = isset( $post_data[ $field ] ) ? '1' : '0';
+            } else {
+                $value = isset( $post_data[ $field ] ) ? sanitize_text_field( $post_data[ $field ] ) : '';
+            }
+
+            Tabesh_AI_Config::set( str_replace( 'ai_', '', $field ), $value );
+        }
+
+        // Handle AI allowed roles (array of checkboxes).
+        if ( isset( $post_data['ai_allowed_roles'] ) && is_array( $post_data['ai_allowed_roles'] ) ) {
+            $roles = array_map( 'sanitize_text_field', $post_data['ai_allowed_roles'] );
+            Tabesh_AI_Config::set( 'allowed_roles', $roles );
+        } else {
+            Tabesh_AI_Config::set( 'allowed_roles', array() );
+        }
+
         // Clear the settings cache after saving to ensure fresh data is loaded
         self::clear_settings_cache();
         

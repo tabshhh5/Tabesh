@@ -75,8 +75,8 @@ spl_autoload_register(
 		// Convert full class name to filename (e.g., Tabesh_Order -> class-tabesh-order.php)
 		$filename = 'class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
 
-		// Search in subdirectories: core, handlers, utils, api, security, and root
-		$subdirs = array( 'core/', 'handlers/', 'utils/', 'api/', 'security/', '' );
+		// Search in subdirectories: core, handlers, utils, api, security, ai, and root
+		$subdirs = array( 'core/', 'handlers/', 'utils/', 'api/', 'security/', 'ai/', '' );
 
 		foreach ( $subdirs as $subdir ) {
 			$file = $base_dir . $subdir . $filename;
@@ -241,6 +241,13 @@ final class Tabesh {
 	public $product_pricing;
 
 	/**
+	 * AI system handler
+	 *
+	 * @var Tabesh_AI
+	 */
+	public $ai;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -319,6 +326,8 @@ final class Tabesh {
 		$this->firewall = new Tabesh_Doomsday_Firewall();
 		// Initialize Product Pricing handler
 		$this->product_pricing = new Tabesh_Product_Pricing();
+		// Initialize AI system
+		$this->ai = new Tabesh_AI();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );

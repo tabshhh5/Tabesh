@@ -40,6 +40,7 @@ $admin = $tabesh->admin;
                 <a href="#tab-product" class="nav-tab">پارامترهای محصول</a>
                 <a href="#tab-pricing" class="nav-tab">قیمت‌گذاری</a>
                 <a href="#tab-sms" class="nav-tab">پیامک</a>
+                <a href="#tab-ai" class="nav-tab">تنظیمات هوش مصنوعی</a>
                 <a href="#tab-firewall" class="nav-tab">فایروال روز رستاخیز</a>
                 <a href="#tab-staff-access" class="nav-tab">دسترسی کارمندان</a>
                 <a href="#tab-export-import" class="nav-tab">برونبری و درونریزی</a>
@@ -1095,6 +1096,217 @@ $admin = $tabesh->admin;
                     <p><strong>نمونه الگوی ثبت‌نام:</strong> <code>%user_name% عزیز، ثبت‌نام شما با موفقیت انجام شد. شماره موبایل: %mobile%</code></p>
                     <p><strong>نمونه الگوی ثبت سفارش:</strong> <code>سفارش شماره %order_number% برای کتاب "%book_title%" با تیراژ %quantity% ثبت شد. قیمت: %total_price% ریال</code></p>
                 </div>
+            </div>
+
+            <!-- AI Settings -->
+            <div id="tab-ai" class="tabesh-tab-content">
+                <h2>تنظیمات هوش مصنوعی</h2>
+
+                <div class="notice notice-info">
+                    <p><strong>🤖 راهنما:</strong></p>
+                    <ul style="margin-right: 20px;">
+                        <li>✨ سیستم هوش مصنوعی تابش به مشتریان در تکمیل فرم سفارش کمک می‌کند</li>
+                        <li>🔑 برای استفاده از حالت مستقیم، نیاز به کلید API از Google AI Studio دارید</li>
+                        <li>🌐 حالت سرور: افزونه شما به عنوان سرور AI عمل می‌کند</li>
+                        <li>📡 حالت کلاینت: به یک سرور خارجی متصل می‌شوید</li>
+                        <li>🔒 دسترسی‌ها را با دقت تنظیم کنید تا امنیت داده‌ها حفظ شود</li>
+                    </ul>
+                </div>
+
+                <table class="form-table">
+                    <!-- Enable/Disable AI -->
+                    <tr>
+                        <th><label for="ai_enabled">فعالسازی هوش مصنوعی</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="ai_enabled" name="ai_enabled" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('enabled', false), true); ?>>
+                                فعال کردن سیستم هوش مصنوعی
+                            </label>
+                            <p class="description">با فعال کردن این گزینه، دستیار هوشمند تابش در دسترس کاربران قرار می‌گیرد.</p>
+                        </td>
+                    </tr>
+
+                    <!-- AI Mode -->
+                    <tr>
+                        <th><label for="ai_mode">حالت عملکرد</label></th>
+                        <td>
+                            <?php $current_mode = Tabesh_AI_Config::get_mode(); ?>
+                            <select id="ai_mode" name="ai_mode" class="regular-text">
+                                <option value="direct" <?php selected($current_mode, 'direct'); ?>>
+                                    مستقیم (Direct) - اتصال مستقیم به Gemini
+                                </option>
+                                <option value="server" <?php selected($current_mode, 'server'); ?>>
+                                    سرور (Server) - ارائه سرویس به کلاینت‌های خارجی
+                                </option>
+                                <option value="client" <?php selected($current_mode, 'client'); ?>>
+                                    کلاینت (Client) - اتصال به سرور خارجی
+                                </option>
+                            </select>
+                            <p class="description">نحوه ارتباط با سیستم هوش مصنوعی را مشخص کنید.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Gemini API Key (for Direct mode) -->
+                    <tr class="ai-mode-field ai-mode-direct">
+                        <th><label for="ai_gemini_api_key">کلید API گوگل Gemini</label></th>
+                        <td>
+                            <input type="text" id="ai_gemini_api_key" name="ai_gemini_api_key" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('gemini_api_key', '')); ?>" 
+                                class="regular-text" placeholder="AIza...">
+                            <p class="description">
+                                کلید API خود را از 
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> 
+                                دریافت کنید.
+                            </p>
+                            <button type="button" id="test-ai-connection" class="button">
+                                🔍 تست اتصال
+                            </button>
+                            <span id="test-ai-status"></span>
+                        </td>
+                    </tr>
+
+                    <!-- Gemini Model -->
+                    <tr class="ai-mode-field ai-mode-direct">
+                        <th><label for="ai_gemini_model">مدل Gemini</label></th>
+                        <td>
+                            <select id="ai_gemini_model" name="ai_gemini_model" class="regular-text">
+                                <?php $current_model = Tabesh_AI_Config::get('gemini_model', 'gemini-2.0-flash-exp'); ?>
+                                <option value="gemini-2.0-flash-exp" <?php selected($current_model, 'gemini-2.0-flash-exp'); ?>>
+                                    Gemini 2.0 Flash (توصیه می‌شود)
+                                </option>
+                                <option value="gemini-1.5-flash" <?php selected($current_model, 'gemini-1.5-flash'); ?>>
+                                    Gemini 1.5 Flash
+                                </option>
+                                <option value="gemini-1.5-pro" <?php selected($current_model, 'gemini-1.5-pro'); ?>>
+                                    Gemini 1.5 Pro
+                                </option>
+                            </select>
+                            <p class="description">مدل هوش مصنوعی مورد استفاده را انتخاب کنید.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Server URL (for Client mode) -->
+                    <tr class="ai-mode-field ai-mode-client" style="display: none;">
+                        <th><label for="ai_server_url">آدرس سرور</label></th>
+                        <td>
+                            <input type="url" id="ai_server_url" name="ai_server_url" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('server_url', '')); ?>" 
+                                class="regular-text" placeholder="https://example.com">
+                            <p class="description">آدرس کامل سایت وردپرس که به عنوان سرور AI عمل می‌کند.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Server API Key (for Client mode) -->
+                    <tr class="ai-mode-field ai-mode-client" style="display: none;">
+                        <th><label for="ai_server_api_key">کلید API سرور</label></th>
+                        <td>
+                            <input type="text" id="ai_server_api_key" name="ai_server_api_key" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('server_api_key', '')); ?>" 
+                                class="regular-text">
+                            <p class="description">کلید API برای احراز هویت با سرور.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Allowed Roles -->
+                    <tr>
+                        <th><label>نقش‌های مجاز</label></th>
+                        <td>
+                            <?php
+                            $allowed_roles = Tabesh_AI_Config::get('allowed_roles', array('administrator', 'shop_manager', 'customer'));
+                            $all_roles = wp_roles()->roles;
+                            foreach ($all_roles as $role_key => $role_data):
+                            ?>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="ai_allowed_roles[]" 
+                                    value="<?php echo esc_attr($role_key); ?>"
+                                    <?php checked(in_array($role_key, $allowed_roles, true), true); ?>>
+                                <?php echo esc_html($role_data['name']); ?>
+                            </label>
+                            <?php endforeach; ?>
+                            <p class="description">کاربران با این نقش‌ها می‌توانند از سیستم هوش مصنوعی استفاده کنند.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Access Control -->
+                    <tr>
+                        <th><label>کنترل دسترسی</label></th>
+                        <td>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="ai_access_orders" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('access_orders', true), true); ?>>
+                                دسترسی به اطلاعات سفارشات
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="ai_access_users" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('access_users', false), true); ?>>
+                                دسترسی به اطلاعات کاربران
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="ai_access_pricing" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('access_pricing', true), true); ?>>
+                                دسترسی به محاسبات قیمت
+                            </label>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="ai_access_woocommerce" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('access_woocommerce', false), true); ?>>
+                                دسترسی به اطلاعات ووکامرس
+                            </label>
+                            <p class="description">مشخص کنید سیستم هوش مصنوعی به چه بخش‌هایی دسترسی داشته باشد.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Cache Settings -->
+                    <tr>
+                        <th><label for="ai_cache_enabled">تنظیمات کش</label></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="ai_cache_enabled" name="ai_cache_enabled" value="1"
+                                    <?php checked(Tabesh_AI_Config::get('cache_enabled', true), true); ?>>
+                                فعال کردن کش پاسخ‌ها
+                            </label>
+                            <br><br>
+                            <label for="ai_cache_ttl">مدت اعتبار کش (ثانیه):</label>
+                            <input type="number" id="ai_cache_ttl" name="ai_cache_ttl" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('cache_ttl', 3600)); ?>" 
+                                class="small-text" min="60" max="86400">
+                            <p class="description">برای بهبود عملکرد و کاهش هزینه API، پاسخ‌های مشابه را کش کنید.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Advanced Settings -->
+                    <tr>
+                        <th><label>تنظیمات پیشرفته</label></th>
+                        <td>
+                            <label for="ai_max_tokens">حداکثر توکن‌های خروجی:</label>
+                            <input type="number" id="ai_max_tokens" name="ai_max_tokens" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('max_tokens', 2048)); ?>" 
+                                class="small-text" min="256" max="8192">
+                            <br><br>
+                            <label for="ai_temperature">Temperature (خلاقیت):</label>
+                            <input type="number" id="ai_temperature" name="ai_temperature" 
+                                value="<?php echo esc_attr(Tabesh_AI_Config::get('temperature', 0.7)); ?>" 
+                                class="small-text" min="0" max="2" step="0.1">
+                            <p class="description">
+                                مقادیر بالاتر temperature منجر به پاسخ‌های خلاقانه‌تر و غیرقابل پیش‌بینی‌تر می‌شود.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Shortcode Info -->
+                    <tr>
+                        <th>شورتکد گفتگو</th>
+                        <td>
+                            <p>برای نمایش رابط گفتگوی هوش مصنوعی، از شورتکد زیر استفاده کنید:</p>
+                            <code style="display: block; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; margin: 10px 0;">
+                                [tabesh_ai_chat]
+                            </code>
+                            <p class="description">
+                                این شورتکد را در هر صفحه یا نوشته‌ای که می‌خواهید دستیار هوشمند نمایش داده شود قرار دهید.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             <!-- Firewall Settings -->
@@ -2344,6 +2556,58 @@ jQuery(document).ready(function($) {
             error: function(xhr) {
                 alert('خطا: ' + (xhr.responseJSON?.message || 'کلید امنیتی نامعتبر است'));
                 button.prop('disabled', false);
+            }
+        });
+    });
+
+    // AI Settings - Mode field visibility
+    $('#ai_mode').on('change', function() {
+        const mode = $(this).val();
+        $('.ai-mode-field').hide();
+        $('.ai-mode-' + mode).show();
+    }).trigger('change');
+
+    // AI Settings - Test connection
+    $('#test-ai-connection').on('click', function(e) {
+        e.preventDefault();
+        const apiKey = $('#ai_gemini_api_key').val();
+        const status = $('#test-ai-status');
+        
+        if (!apiKey) {
+            status.html('<span style="color: #d63638;">⚠️ لطفاً ابتدا کلید API را وارد کنید</span>');
+            return;
+        }
+
+        $(this).prop('disabled', true);
+        status.html('<span style="color: #999;">⏳ در حال تست...</span>');
+
+        $.ajax({
+            url: '<?php echo esc_url(rest_url(TABESH_REST_NAMESPACE . '/ai/chat')); ?>',
+            method: 'POST',
+            headers: {
+                'X-WP-Nonce': '<?php echo wp_create_nonce('wp_rest'); ?>'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                message: 'سلام',
+                context: {}
+            }),
+            success: function(response) {
+                if (response.success) {
+                    status.html('<span style="color: #00a32a;">✓ اتصال موفقیت‌آمیز بود</span>');
+                } else {
+                    status.html('<span style="color: #d63638;">✗ خطا در اتصال</span>');
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'خطا در اتصال';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                status.html('<span style="color: #d63638;">✗ ' + errorMsg + '</span>');
+            },
+            complete: function() {
+                $('#test-ai-connection').prop('disabled', false);
             }
         });
     });
