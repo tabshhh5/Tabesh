@@ -81,6 +81,25 @@ Display the advanced order form with dynamic dependency mapping:
 
 See [ORDER_FORM_V2_GUIDE.md](ORDER_FORM_V2_GUIDE.md) for complete documentation.
 
+#### Order Form with Revolution Slider Integration (New)
+Display the order form with real-time event dispatching for Revolution Slider:
+```
+[tabesh_order_form_slider]
+```
+**Features:**
+- All V2 form features plus slider integration
+- Real-time JavaScript events on field changes
+- Seamless Revolution Slider integration
+- Works standalone without slider (graceful degradation)
+- Clean API for custom integrations
+
+**Attributes:**
+```
+[tabesh_order_form_slider slider_id="my-slider" enable_slider_events="true"]
+```
+
+See [docs/REVOLUTION_SLIDER_INTEGRATION.md](docs/REVOLUTION_SLIDER_INTEGRATION.md) for complete documentation and [docs/REVOLUTION_SLIDER_QUICKSTART.md](docs/REVOLUTION_SLIDER_QUICKSTART.md) for quick start guide.
+
 #### User Orders
 Show logged-in user's orders:
 ```
