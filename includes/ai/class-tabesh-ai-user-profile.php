@@ -30,7 +30,7 @@ class Tabesh_AI_User_Profile {
 
 		$table_name = $wpdb->prefix . 'tabesh_ai_user_profiles';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$profile = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE user_id = %d",
@@ -61,7 +61,7 @@ class Tabesh_AI_User_Profile {
 
 		$table_name = $wpdb->prefix . 'tabesh_ai_guest_profiles';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$profile = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE guest_uuid = %s",
@@ -127,7 +127,7 @@ class Tabesh_AI_User_Profile {
 		$table_name = $wpdb->prefix . 'tabesh_ai_guest_profiles';
 
 		// Set expiration to 90 days from now.
-		$expires_at = date( 'Y-m-d H:i:s', strtotime( '+90 days' ) );
+		$expires_at = gmdate( 'Y-m-d H:i:s', strtotime( '+90 days' ) );
 
 		$data = array(
 			'guest_uuid'    => sanitize_text_field( $guest_uuid ),
@@ -280,7 +280,7 @@ class Tabesh_AI_User_Profile {
 
 		$table_name = $wpdb->prefix . 'tabesh_ai_guest_profiles';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$deleted = $wpdb->query(
 			"DELETE FROM {$table_name} WHERE expires_at < NOW()"
 		);
@@ -299,7 +299,7 @@ class Tabesh_AI_User_Profile {
 
 		foreach ( $json_fields as $field ) {
 			if ( isset( $profile[ $field ] ) && is_string( $profile[ $field ] ) ) {
-				$decoded = json_decode( $profile[ $field ], true );
+				$decoded           = json_decode( $profile[ $field ], true );
 				$profile[ $field ] = is_array( $decoded ) ? $decoded : array();
 			} elseif ( ! isset( $profile[ $field ] ) ) {
 				$profile[ $field ] = array();

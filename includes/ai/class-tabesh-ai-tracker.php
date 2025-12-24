@@ -85,7 +85,7 @@ class Tabesh_AI_Tracker {
 		$table_name = $wpdb->prefix . 'tabesh_ai_behavior_logs';
 
 		if ( $user_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$results = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$table_name} WHERE user_id = %d ORDER BY created_at DESC LIMIT %d",
@@ -95,7 +95,7 @@ class Tabesh_AI_Tracker {
 				ARRAY_A
 			);
 		} elseif ( $guest_uuid ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$results = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$table_name} WHERE guest_uuid = %s ORDER BY created_at DESC LIMIT %d",
@@ -133,7 +133,7 @@ class Tabesh_AI_Tracker {
 
 		if ( $user_id ) {
 			if ( $page_url ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$count = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table_name} WHERE user_id = %d AND event_type = 'page_view' AND page_url = %s",
@@ -142,7 +142,7 @@ class Tabesh_AI_Tracker {
 					)
 				);
 			} else {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$count = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table_name} WHERE user_id = %d AND event_type = 'page_view'",
@@ -152,7 +152,7 @@ class Tabesh_AI_Tracker {
 			}
 		} elseif ( $guest_uuid ) {
 			if ( $page_url ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$count = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table_name} WHERE guest_uuid = %s AND event_type = 'page_view' AND page_url = %s",
@@ -161,7 +161,7 @@ class Tabesh_AI_Tracker {
 					)
 				);
 			} else {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$count = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table_name} WHERE guest_uuid = %s AND event_type = 'page_view'",
@@ -189,7 +189,7 @@ class Tabesh_AI_Tracker {
 
 		$table_name = $wpdb->prefix . 'tabesh_ai_behavior_logs';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",

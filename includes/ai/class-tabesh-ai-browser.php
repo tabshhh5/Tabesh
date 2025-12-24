@@ -100,17 +100,17 @@ class Tabesh_AI_Browser {
 				'callback'            => array( $this, 'rest_navigate' ),
 				'permission_callback' => '__return_true',
 				'args'                => array(
-					'profession'  => array(
+					'profession' => array(
 						'required'          => true,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'context'     => array(
+					'context'    => array(
 						'required' => false,
 						'type'     => 'object',
 						'default'  => array(),
 					),
-					'guest_uuid'  => array(
+					'guest_uuid' => array(
 						'required'          => false,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
@@ -315,7 +315,7 @@ class Tabesh_AI_Browser {
 	 * Get target URL based on user profession
 	 *
 	 * @param string $profession User profession.
-	 * @param array  $context Additional context.
+	 * @param array  $context Additional context (unused but kept for future extensibility).
 	 * @return string Target URL.
 	 */
 	private function get_target_url_for_profession( $profession, $context = array() ) {
@@ -445,24 +445,24 @@ class Tabesh_AI_Browser {
 			'tabesh-ai-browser',
 			'tabeshAIBrowser',
 			array(
-				'ajaxUrl'       => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'         => wp_create_nonce( 'wp_rest' ),
-				'isLoggedIn'    => is_user_logged_in(),
-				'userId'        => get_current_user_id(),
+				'ajaxUrl'         => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'           => wp_create_nonce( 'wp_rest' ),
+				'isLoggedIn'      => is_user_logged_in(),
+				'userId'          => get_current_user_id(),
 				'trackingEnabled' => get_option( 'tabesh_ai_tracking_enabled', true ),
-				'strings'       => array(
-					'greeting'         => __( 'سلام! من دستیار هوشمند تابش هستم. اجازه میدید کمکتون کنم؟', 'tabesh' ),
-					'profession_buyer' => __( 'آیا خریدار کتاب هستید؟', 'tabesh' ),
-					'profession_author' => __( 'آیا نویسنده هستید؟', 'tabesh' ),
+				'strings'         => array(
+					'greeting'             => __( 'سلام! من دستیار هوشمند تابش هستم. اجازه میدید کمکتون کنم؟', 'tabesh' ),
+					'profession_buyer'     => __( 'آیا خریدار کتاب هستید؟', 'tabesh' ),
+					'profession_author'    => __( 'آیا نویسنده هستید؟', 'tabesh' ),
 					'profession_publisher' => __( 'آیا ناشر هستید؟', 'tabesh' ),
-					'profession_printer' => __( 'آیا چاپخانه‌دار هستید؟', 'tabesh' ),
-					'show_target'      => __( 'اجازه میدید چیزی را به شما نشان دهم که شاید به دنبالش میگردید؟', 'tabesh' ),
-					'yes'              => __( 'بله', 'tabesh' ),
-					'no'               => __( 'خیر', 'tabesh' ),
-					'close'            => __( 'بستن', 'tabesh' ),
-					'minimize'         => __( 'کوچک کردن', 'tabesh' ),
-					'open_chat'        => __( 'باز کردن گفتگو', 'tabesh' ),
-					'error'            => __( 'خطایی رخ داده است', 'tabesh' ),
+					'profession_printer'   => __( 'آیا چاپخانه‌دار هستید؟', 'tabesh' ),
+					'show_target'          => __( 'اجازه میدید چیزی را به شما نشان دهم که شاید به دنبالش میگردید؟', 'tabesh' ),
+					'yes'                  => __( 'بله', 'tabesh' ),
+					'no'                   => __( 'خیر', 'tabesh' ),
+					'close'                => __( 'بستن', 'tabesh' ),
+					'minimize'             => __( 'کوچک کردن', 'tabesh' ),
+					'open_chat'            => __( 'باز کردن گفتگو', 'tabesh' ),
+					'error'                => __( 'خطایی رخ داده است', 'tabesh' ),
 				),
 			)
 		);
