@@ -17,10 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 $ai = Tabesh_AI::instance();
 
 // Get current settings
-$ai_enabled      = $ai->get_setting( 'ai_enabled', 'no' );
-$active_models   = $ai->get_setting( 'ai_active_models', array() );
-$all_models      = $ai->get_all_models();
-$all_assistants  = $ai->get_all_assistants();
+$ai_enabled     = $ai->get_setting( 'ai_enabled', 'no' );
+$active_models  = $ai->get_setting( 'ai_active_models', array() );
+$all_models     = $ai->get_all_models();
+$all_assistants = $ai->get_all_assistants();
 ?>
 
 <div id="tab-ai" class="tabesh-tab-content">
@@ -184,8 +184,8 @@ $all_assistants  = $ai->get_all_assistants();
 				<?php esc_html_e( '💡 برای پیکربندی پیشرفته دستیارها (تغییر نقش‌ها، قابلیت‌ها، دستور سیستم)، از فیلترهای وردپرس استفاده کنید:', 'tabesh' ); ?>
 			</p>
 			<pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; direction: ltr; text-align: left;"><code>add_filter( 'tabesh_ai_assistant_can_access', function( $has_access, $user_id, $assistant_id ) {
-    // Custom access logic
-    return $has_access;
+	// Custom access logic
+	return $has_access;
 }, 10, 3 );</code></pre>
 		</div>
 	<?php endif; ?>
@@ -201,23 +201,23 @@ $all_assistants  = $ai->get_all_assistants();
 		<pre style="background: #fff; padding: 10px; border: 1px solid #ddd; direction: ltr; text-align: left;"><code>POST /wp-json/tabesh/v1/ai/query
 
 {
-  "assistant_id": "order",
-  "query": "How do I calculate the price?",
-  "context": {}
+	"assistant_id": "order",
+	"query": "How do I calculate the price?",
+	"context": {}
 }</code></pre>
 
 		<h4><?php esc_html_e( 'افزودن مدل سفارشی', 'tabesh' ); ?> / Adding Custom Model</h4>
 		<p><?php esc_html_e( 'برای افزودن مدل هوش مصنوعی جدید:', 'tabesh' ); ?></p>
 		<pre style="background: #fff; padding: 10px; border: 1px solid #ddd; direction: ltr; text-align: left;"><code>add_action( 'tabesh_ai_register_models', function( $ai ) {
-    $custom_model = new My_Custom_AI_Model();
-    $ai->register_model( $custom_model );
+	$custom_model = new My_Custom_AI_Model();
+	$ai->register_model( $custom_model );
 } );</code></pre>
 
 		<h4><?php esc_html_e( 'افزودن دستیار سفارشی', 'tabesh' ); ?> / Adding Custom Assistant</h4>
 		<p><?php esc_html_e( 'برای افزودن دستیار جدید:', 'tabesh' ); ?></p>
 		<pre style="background: #fff; padding: 10px; border: 1px solid #ddd; direction: ltr; text-align: left;"><code>add_action( 'tabesh_ai_register_assistants', function( $ai ) {
-    $custom_assistant = new My_Custom_Assistant();
-    $ai->register_assistant( $custom_assistant );
+	$custom_assistant = new My_Custom_Assistant();
+	$ai->register_assistant( $custom_assistant );
 } );</code></pre>
 	</div>
 </div>

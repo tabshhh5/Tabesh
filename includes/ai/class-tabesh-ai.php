@@ -129,8 +129,8 @@ class Tabesh_AI {
 
 		if ( $results ) {
 			foreach ( $results as $row ) {
-				$value                                    = maybe_unserialize( $row['setting_value'] );
-				$this->settings[ $row['setting_key'] ]   = $value;
+				$value                                 = maybe_unserialize( $row['setting_value'] );
+				$this->settings[ $row['setting_key'] ] = $value;
 			}
 		}
 
@@ -518,10 +518,10 @@ class Tabesh_AI {
 		foreach ( $this->get_all_assistants() as $assistant_id => $assistant ) {
 			if ( $assistant->can_user_access() ) {
 				$assistants[] = array(
-					'id'          => $assistant->get_assistant_id(),
-					'name'        => $assistant->get_assistant_name(),
-					'description' => $assistant->get_assistant_description(),
-					'roles'       => $assistant->get_allowed_roles(),
+					'id'           => $assistant->get_assistant_id(),
+					'name'         => $assistant->get_assistant_name(),
+					'description'  => $assistant->get_assistant_description(),
+					'roles'        => $assistant->get_allowed_roles(),
 					'capabilities' => $assistant->get_capabilities(),
 				);
 			}

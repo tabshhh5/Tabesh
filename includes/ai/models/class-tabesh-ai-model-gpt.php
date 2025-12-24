@@ -65,7 +65,7 @@ class Tabesh_AI_Model_GPT extends Tabesh_AI_Model_Base {
 			);
 		}
 
-		$config         = $this->get_configuration();
+		$config           = $this->get_configuration();
 		$formatted_prompt = $this->format_prompt( $prompt, $context );
 
 		$body = array(

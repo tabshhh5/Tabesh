@@ -64,15 +64,15 @@ class Tabesh_AI_Model_Gemini extends Tabesh_AI_Model_Base {
 			);
 		}
 
-		$config         = $this->get_configuration();
-		$model          = ! empty( $config['model'] ) ? $config['model'] : 'gemini-pro';
+		$config           = $this->get_configuration();
+		$model            = ! empty( $config['model'] ) ? $config['model'] : 'gemini-pro';
 		$formatted_prompt = $this->format_prompt( $prompt, $context );
 
 		// Build endpoint with model and API key
 		$endpoint = $this->api_endpoint . $model . ':generateContent?key=' . $config['api_key'];
 
 		$body = array(
-			'contents' => array(
+			'contents'         => array(
 				array(
 					'parts' => array(
 						array(
@@ -82,7 +82,7 @@ class Tabesh_AI_Model_Gemini extends Tabesh_AI_Model_Base {
 				),
 			),
 			'generationConfig' => array(
-				'temperature'    => isset( $options['temperature'] ) ? $options['temperature'] : 0.7,
+				'temperature'     => isset( $options['temperature'] ) ? $options['temperature'] : 0.7,
 				'maxOutputTokens' => isset( $options['max_tokens'] ) ? $options['max_tokens'] : 1000,
 			),
 		);
@@ -138,7 +138,7 @@ class Tabesh_AI_Model_Gemini extends Tabesh_AI_Model_Base {
 		$endpoint = $this->api_endpoint . $model . ':generateContent?key=' . $credentials['api_key'];
 
 		$body = array(
-			'contents' => array(
+			'contents'         => array(
 				array(
 					'parts' => array(
 						array(

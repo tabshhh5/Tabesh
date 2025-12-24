@@ -38,7 +38,8 @@
         "classmap": [
             "includes/core/",
             "includes/handlers/",
-            "includes/utils/"
+            "includes/utils/",
+            "includes/ai/"
         ]
     }
 }

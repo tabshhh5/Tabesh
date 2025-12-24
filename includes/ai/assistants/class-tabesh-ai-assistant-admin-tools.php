@@ -77,7 +77,7 @@ class Tabesh_AI_Assistant_Admin_Tools extends Tabesh_AI_Assistant_Base {
 		$stats['total_orders'] = $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 
 		// Orders by status
-		$status_counts = $wpdb->get_results(
+		$status_counts             = $wpdb->get_results(
 			"SELECT status, COUNT(*) as count FROM {$table} GROUP BY status",
 			ARRAY_A
 		);

@@ -40,7 +40,7 @@ class Tabesh_AI_Model_DeepSeek extends Tabesh_AI_Model_Base {
 				'required'    => true,
 				'default'     => 'deepseek-chat',
 				'options'     => array(
-					'deepseek-chat' => 'DeepSeek Chat',
+					'deepseek-chat'  => 'DeepSeek Chat',
 					'deepseek-coder' => 'DeepSeek Coder',
 				),
 				'description' => __( 'انتخاب مدل DeepSeek', 'tabesh' ),
@@ -64,7 +64,7 @@ class Tabesh_AI_Model_DeepSeek extends Tabesh_AI_Model_Base {
 			);
 		}
 
-		$config         = $this->get_configuration();
+		$config           = $this->get_configuration();
 		$formatted_prompt = $this->format_prompt( $prompt, $context );
 
 		$body = array(

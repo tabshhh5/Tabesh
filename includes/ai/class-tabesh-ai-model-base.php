@@ -100,7 +100,7 @@ abstract class Tabesh_AI_Model_Base implements Tabesh_AI_Model_Interface {
 	 */
 	public function is_configured() {
 		$config = $this->get_configuration();
-		
+
 		foreach ( $this->config_fields as $field_key => $field_config ) {
 			if ( ! empty( $field_config['required'] ) && empty( $config[ $field_key ] ) ) {
 				return false;
@@ -120,8 +120,8 @@ abstract class Tabesh_AI_Model_Base implements Tabesh_AI_Model_Interface {
 		$ai     = Tabesh_AI::instance();
 
 		foreach ( $this->config_fields as $field_key => $field_config ) {
-			$setting_key           = 'ai_model_' . $this->model_id . '_' . $field_key;
-			$config[ $field_key ]  = $ai->get_setting( $setting_key, '' );
+			$setting_key          = 'ai_model_' . $this->model_id . '_' . $field_key;
+			$config[ $field_key ] = $ai->get_setting( $setting_key, '' );
 		}
 
 		return $config;

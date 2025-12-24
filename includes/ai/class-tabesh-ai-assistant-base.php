@@ -102,9 +102,9 @@ abstract class Tabesh_AI_Assistant_Base implements Tabesh_AI_Assistant_Interface
 	 */
 	public function get_allowed_roles() {
 		// Allow configuration override
-		$ai       = Tabesh_AI::instance();
-		$config   = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
-		
+		$ai     = Tabesh_AI::instance();
+		$config = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
+
 		if ( ! empty( $config['allowed_roles'] ) && is_array( $config['allowed_roles'] ) ) {
 			return $config['allowed_roles'];
 		}
@@ -119,9 +119,9 @@ abstract class Tabesh_AI_Assistant_Base implements Tabesh_AI_Assistant_Interface
 	 */
 	public function get_capabilities() {
 		// Allow configuration override
-		$ai       = Tabesh_AI::instance();
-		$config   = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
-		
+		$ai     = Tabesh_AI::instance();
+		$config = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
+
 		if ( ! empty( $config['capabilities'] ) && is_array( $config['capabilities'] ) ) {
 			return $config['capabilities'];
 		}
@@ -168,9 +168,9 @@ abstract class Tabesh_AI_Assistant_Base implements Tabesh_AI_Assistant_Interface
 	 */
 	public function get_system_prompt() {
 		// Allow configuration override
-		$ai       = Tabesh_AI::instance();
-		$config   = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
-		
+		$ai     = Tabesh_AI::instance();
+		$config = $ai->get_setting( 'ai_assistant_' . $this->assistant_id . '_config', array() );
+
 		if ( ! empty( $config['system_prompt'] ) ) {
 			return $config['system_prompt'];
 		}
@@ -191,7 +191,7 @@ abstract class Tabesh_AI_Assistant_Base implements Tabesh_AI_Assistant_Interface
 
 		// Get active models
 		$active_models = $ai->get_setting( 'ai_active_models', array() );
-		
+
 		if ( empty( $active_models ) || ! is_array( $active_models ) ) {
 			return array(
 				'success' => false,

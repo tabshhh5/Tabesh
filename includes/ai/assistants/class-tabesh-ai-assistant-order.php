@@ -83,7 +83,7 @@ class Tabesh_AI_Assistant_Order extends Tabesh_AI_Assistant_Base {
 		if ( function_exists( 'Tabesh' ) ) {
 			$tabesh = Tabesh();
 			if ( $tabesh && isset( $tabesh->admin ) ) {
-				$context['available_book_sizes'] = $tabesh->admin->get_setting( 'book_sizes', array() );
+				$context['available_book_sizes']    = $tabesh->admin->get_setting( 'book_sizes', array() );
 				$context['available_binding_types'] = $tabesh->admin->get_setting( 'binding_types', array() );
 			}
 		}
