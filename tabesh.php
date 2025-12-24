@@ -213,6 +213,13 @@ final class Tabesh {
 	public $admin_order_form;
 
 	/**
+	 * Order form slider integration handler
+	 *
+	 * @var Tabesh_Order_Form_Slider
+	 */
+	public $order_form_slider;
+
+	/**
 	 * Export/Import handler
 	 *
 	 * @var Tabesh_Export_Import
@@ -304,6 +311,8 @@ final class Tabesh {
 		$this->admin_order_creator = new Tabesh_Admin_Order_Creator();
 		// Initialize admin order form shortcode handler
 		$this->admin_order_form = new Tabesh_Admin_Order_Form();
+		// Initialize order form slider integration handler
+		$this->order_form_slider = new Tabesh_Order_Form_Slider();
 		// Initialize export/import handler
 		$this->export_import = new Tabesh_Export_Import();
 		// Initialize Doomsday Firewall
@@ -2265,6 +2274,7 @@ final class Tabesh {
 	private function register_shortcodes() {
 		add_shortcode( 'tabesh_order_form', array( $this->order, 'render_order_form' ) );
 		add_shortcode( 'tabesh_order_form_v2', array( $this->order, 'render_order_form_v2' ) );
+		add_shortcode( 'tabesh_order_form_slider', array( $this->order_form_slider, 'render_order_form_slider' ) );
 		add_shortcode( 'tabesh_user_orders', array( $this->user, 'render_user_orders' ) );
 		add_shortcode( 'tabesh_staff_panel', array( $this->staff, 'render_staff_panel' ) );
 		add_shortcode( 'tabesh_admin_dashboard', array( $this->admin, 'render_admin_dashboard' ) );
@@ -2401,6 +2411,45 @@ final class Tabesh {
 					'selectFirst'   => __( 'ابتدا گزینه قبلی را انتخاب کنید', 'tabesh' ),
 					'invalidField'  => __( 'لطفاً این فیلد را پر کنید', 'tabesh' ),
 					'priceEngineV2' => __( 'موتور قیمت‌گذاری V2', 'tabesh' ),
+				),
+			)
+		);
+
+		// Enqueue Order Form Slider Integration assets
+		wp_enqueue_style(
+			'tabesh-order-form-slider',
+			TABESH_PLUGIN_URL . 'assets/css/order-form-slider.css',
+			array(),
+			$get_file_version( TABESH_PLUGIN_DIR . 'assets/css/order-form-slider.css' )
+		);
+
+		wp_enqueue_script(
+			'tabesh-order-form-slider',
+			TABESH_PLUGIN_URL . 'assets/js/order-form-slider.js',
+			array( 'jquery' ),
+			$get_file_version( TABESH_PLUGIN_DIR . 'assets/js/order-form-slider.js' ),
+			true
+		);
+
+		// Localize script for Order Form Slider (same config as V2 plus slider-specific)
+		wp_localize_script(
+			'tabesh-order-form-slider',
+			'tabeshOrderFormV2',  // Keep same name for compatibility
+			array(
+				'apiUrl'         => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'userOrdersUrl'  => home_url( '/user-orders/' ),
+				'i18n'           => array(
+					'loading'       => __( 'در حال بارگذاری...', 'tabesh' ),
+					'calculating'   => __( 'در حال محاسبه قیمت...', 'tabesh' ),
+					'submitting'    => __( 'در حال ثبت سفارش...', 'tabesh' ),
+					'error'         => __( 'خطا در پردازش درخواست', 'tabesh' ),
+					'success'       => __( 'عملیات با موفقیت انجام شد', 'tabesh' ),
+					'noOptions'     => __( 'هیچ گزینه‌ای در دسترس نیست', 'tabesh' ),
+					'selectFirst'   => __( 'ابتدا گزینه قبلی را انتخاب کنید', 'tabesh' ),
+					'invalidField'  => __( 'لطفاً این فیلد را پر کنید', 'tabesh' ),
+					'priceEngineV2' => __( 'موتور قیمت‌گذاری V2', 'tabesh' ),
+					'sliderReady'   => __( 'فرم آماده ارتباط با اسلایدر است', 'tabesh' ),
 				),
 			)
 		);
