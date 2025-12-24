@@ -704,6 +704,23 @@ final class Tabesh {
             KEY created_at (created_at)
         ) $charset_collate;";
 
+		// AI Site Pages table - stores indexed site pages for AI navigation
+		$table_ai_site_pages = $wpdb->prefix . 'tabesh_ai_site_pages';
+		$sql_ai_site_pages   = "CREATE TABLE IF NOT EXISTS $table_ai_site_pages (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            page_url varchar(500) NOT NULL,
+            page_title varchar(255) DEFAULT NULL,
+            page_content_summary text DEFAULT NULL,
+            page_keywords longtext DEFAULT NULL,
+            page_type varchar(50) DEFAULT NULL,
+            last_scanned datetime DEFAULT NULL,
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY page_url (page_url(191)),
+            KEY page_type (page_type),
+            KEY last_scanned (last_scanned)
+        ) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_orders );
 		dbDelta( $sql_settings );
@@ -719,6 +736,7 @@ final class Tabesh {
 		dbDelta( $sql_ai_user_profiles );
 		dbDelta( $sql_ai_guest_profiles );
 		dbDelta( $sql_ai_behavior_logs );
+		dbDelta( $sql_ai_site_pages );
 	}
 
 	/**
