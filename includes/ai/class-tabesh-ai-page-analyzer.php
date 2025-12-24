@@ -28,14 +28,14 @@ class Tabesh_AI_Page_Analyzer {
 	 */
 	public function extract_page_context( $client_data ) {
 		$context = array(
-			'page_title'       => '',
-			'page_url'         => '',
-			'page_content'     => '',
-			'forms'            => array(),
-			'hovered_element'  => array(),
-			'visible_buttons'  => array(),
-			'navigation_menu'  => array(),
-			'page_type'        => 'unknown',
+			'page_title'      => '',
+			'page_url'        => '',
+			'page_content'    => '',
+			'forms'           => array(),
+			'hovered_element' => array(),
+			'visible_buttons' => array(),
+			'navigation_menu' => array(),
+			'page_type'       => 'unknown',
 		);
 
 		// Sanitize page title.
@@ -282,7 +282,7 @@ class Tabesh_AI_Page_Analyzer {
 		}
 
 		if ( ! empty( $user_profile['interests'] ) ) {
-			$interests = is_array( $user_profile['interests'] ) ? implode( ', ', $user_profile['interests'] ) : $user_profile['interests'];
+			$interests       = is_array( $user_profile['interests'] ) ? implode( ', ', $user_profile['interests'] ) : $user_profile['interests'];
 			$context_parts[] = sprintf( 'علایق: %s', $interests );
 		}
 

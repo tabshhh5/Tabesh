@@ -43,16 +43,16 @@ class Tabesh_AI_Persona_Builder {
 
 		// Build persona structure.
 		$persona = array(
-			'detected_profession'  => $this->detect_profession( $history, $profile ),
-			'experience_level'     => $this->detect_experience_level( $history, $profile ),
-			'current_intent'       => $this->detect_intent( $history ),
-			'interests'            => $this->detect_interests( $history, $profile ),
-			'browsing_history'     => $this->summarize_browsing( $history ),
-			'form_interactions'    => $this->summarize_form_interactions( $history ),
-			'confusion_signals'    => $this->detect_confusion_signals( $history ),
-			'engagement_level'     => $this->calculate_engagement( $history ),
-			'preferred_content'    => $this->detect_content_preferences( $history ),
-			'last_updated'         => current_time( 'mysql' ),
+			'detected_profession' => $this->detect_profession( $history, $profile ),
+			'experience_level'    => $this->detect_experience_level( $history, $profile ),
+			'current_intent'      => $this->detect_intent( $history ),
+			'interests'           => $this->detect_interests( $history, $profile ),
+			'browsing_history'    => $this->summarize_browsing( $history ),
+			'form_interactions'   => $this->summarize_form_interactions( $history ),
+			'confusion_signals'   => $this->detect_confusion_signals( $history ),
+			'engagement_level'    => $this->calculate_engagement( $history ),
+			'preferred_content'   => $this->detect_content_preferences( $history ),
+			'last_updated'        => current_time( 'mysql' ),
 		);
 
 		return $persona;
@@ -120,8 +120,8 @@ class Tabesh_AI_Persona_Builder {
 	 * @return string Experience level.
 	 */
 	private function detect_experience_level( $history, $profile ) {
-		$total_visits = count( $history );
-		$confusion_count = 0;
+		$total_visits     = count( $history );
+		$confusion_count  = 0;
 		$completion_count = 0;
 
 		foreach ( $history as $event ) {
@@ -129,12 +129,12 @@ class Tabesh_AI_Persona_Builder {
 
 			// Count confusion signals.
 			if ( in_array( $event_type, array( 'help_request', 'back_navigation', 'idle' ), true ) ) {
-				$confusion_count++;
+				++$confusion_count;
 			}
 
 			// Count completions.
 			if ( in_array( $event_type, array( 'order_submitted', 'checkout_completed' ), true ) ) {
-				$completion_count++;
+				++$completion_count;
 			}
 		}
 
@@ -161,11 +161,11 @@ class Tabesh_AI_Persona_Builder {
 		$recent = array_slice( $history, 0, 10 );
 
 		$intents = array(
-			'ordering_book'     => 0,
-			'browsing_catalog'  => 0,
-			'seeking_help'      => 0,
-			'comparing_prices'  => 0,
-			'checking_order'    => 0,
+			'ordering_book'    => 0,
+			'browsing_catalog' => 0,
+			'seeking_help'     => 0,
+			'comparing_prices' => 0,
+			'checking_order'   => 0,
 		);
 
 		foreach ( $recent as $event ) {
@@ -219,12 +219,12 @@ class Tabesh_AI_Persona_Builder {
 		$interests = ! empty( $profile['interests'] ) ? (array) $profile['interests'] : array();
 
 		$keywords = array(
-			'literature'    => array( 'ادبیات', 'شعر', 'رمان', 'داستان' ),
-			'educational'   => array( 'آموزشی', 'درسی', 'تحصیلی', 'دانشگاهی' ),
-			'children'      => array( 'کودک', 'نوجوان', 'کودکانه' ),
-			'religious'     => array( 'مذهبی', 'قرآنی', 'دینی' ),
-			'art'           => array( 'هنری', 'نقاشی', 'تصویری', 'آلبوم' ),
-			'business'      => array( 'کسب‌وکار', 'مدیریت', 'بازاریابی' ),
+			'literature'  => array( 'ادبیات', 'شعر', 'رمان', 'داستان' ),
+			'educational' => array( 'آموزشی', 'درسی', 'تحصیلی', 'دانشگاهی' ),
+			'children'    => array( 'کودک', 'نوجوان', 'کودکانه' ),
+			'religious'   => array( 'مذهبی', 'قرآنی', 'دینی' ),
+			'art'         => array( 'هنری', 'نقاشی', 'تصویری', 'آلبوم' ),
+			'business'    => array( 'کسب‌وکار', 'مدیریت', 'بازاریابی' ),
 		);
 
 		foreach ( $history as $event ) {
@@ -258,7 +258,7 @@ class Tabesh_AI_Persona_Builder {
 				if ( ! isset( $pages[ $url ] ) ) {
 					$pages[ $url ] = 0;
 				}
-				$pages[ $url ]++;
+				++$pages[ $url ];
 			}
 		}
 
@@ -286,7 +286,7 @@ class Tabesh_AI_Persona_Builder {
 				if ( ! isset( $interactions[ $field_name ] ) ) {
 					$interactions[ $field_name ] = 0;
 				}
-				$interactions[ $field_name ]++;
+				++$interactions[ $field_name ];
 			}
 		}
 
@@ -303,11 +303,11 @@ class Tabesh_AI_Persona_Builder {
 		$signals = array();
 
 		$confusion_events = array(
-			'idle'              => 'بیش از حد در صفحه ماند',
-			'back_navigation'   => 'چندین بار به عقب برگشت',
-			'help_request'      => 'درخواست کمک کرد',
-			'form_abandoned'    => 'فرم را ناتمام رها کرد',
-			'rapid_clicks'      => 'کلیک‌های سریع متعدد',
+			'idle'            => 'بیش از حد در صفحه ماند',
+			'back_navigation' => 'چندین بار به عقب برگشت',
+			'help_request'    => 'درخواست کمک کرد',
+			'form_abandoned'  => 'فرم را ناتمام رها کرد',
+			'rapid_clicks'    => 'کلیک‌های سریع متعدد',
 		);
 
 		foreach ( $history as $event ) {
@@ -332,7 +332,7 @@ class Tabesh_AI_Persona_Builder {
 	 * @return string Engagement level.
 	 */
 	private function calculate_engagement( $history ) {
-		$total_events = count( $history );
+		$total_events  = count( $history );
 		$active_events = 0;
 
 		foreach ( $history as $event ) {
@@ -340,7 +340,7 @@ class Tabesh_AI_Persona_Builder {
 
 			// Count active interactions.
 			if ( in_array( $event_type, array( 'click', 'field_focused', 'field_changed', 'form_submitted', 'chat_message' ), true ) ) {
-				$active_events++;
+				++$active_events;
 			}
 		}
 
@@ -368,8 +368,8 @@ class Tabesh_AI_Persona_Builder {
 			'prefers_quick'   => false,
 		);
 
-		$image_views = 0;
-		$detail_views = 0;
+		$image_views   = 0;
+		$detail_views  = 0;
 		$quick_actions = 0;
 
 		foreach ( $history as $event ) {
@@ -378,17 +378,17 @@ class Tabesh_AI_Persona_Builder {
 
 			// Count image-related events.
 			if ( strpos( $page_url, 'gallery' ) !== false || strpos( $page_url, 'portfolio' ) !== false ) {
-				$image_views++;
+				++$image_views;
 			}
 
 			// Count detail page views.
 			if ( strpos( $page_url, 'about' ) !== false || strpos( $page_url, 'details' ) !== false ) {
-				$detail_views++;
+				++$detail_views;
 			}
 
 			// Count quick actions.
 			if ( in_array( $event_type, array( 'quick_order', 'one_click' ), true ) ) {
-				$quick_actions++;
+				++$quick_actions;
 			}
 		}
 
@@ -419,8 +419,8 @@ class Tabesh_AI_Persona_Builder {
 				'publisher' => 'ناشر',
 				'printer'   => 'چاپخانه‌دار',
 			);
-			$profession = isset( $profession_labels[ $persona['detected_profession'] ] ) ? $profession_labels[ $persona['detected_profession'] ] : $persona['detected_profession'];
-			$parts[] = sprintf( 'شغل: %s', $profession );
+			$profession        = isset( $profession_labels[ $persona['detected_profession'] ] ) ? $profession_labels[ $persona['detected_profession'] ] : $persona['detected_profession'];
+			$parts[]           = sprintf( 'شغل: %s', $profession );
 		}
 
 		// Add experience level.
@@ -430,8 +430,8 @@ class Tabesh_AI_Persona_Builder {
 				'intermediate' => 'متوسط',
 				'expert'       => 'حرفه‌ای',
 			);
-			$level = isset( $level_labels[ $persona['experience_level'] ] ) ? $level_labels[ $persona['experience_level'] ] : $persona['experience_level'];
-			$parts[] = sprintf( 'سطح تجربه: %s', $level );
+			$level        = isset( $level_labels[ $persona['experience_level'] ] ) ? $level_labels[ $persona['experience_level'] ] : $persona['experience_level'];
+			$parts[]      = sprintf( 'سطح تجربه: %s', $level );
 		}
 
 		// Add intent.
@@ -443,8 +443,8 @@ class Tabesh_AI_Persona_Builder {
 				'comparing_prices' => 'مقایسه قیمت',
 				'checking_order'   => 'بررسی سفارش',
 			);
-			$intent = isset( $intent_labels[ $persona['current_intent'] ] ) ? $intent_labels[ $persona['current_intent'] ] : $persona['current_intent'];
-			$parts[] = sprintf( 'هدف فعلی: %s', $intent );
+			$intent        = isset( $intent_labels[ $persona['current_intent'] ] ) ? $intent_labels[ $persona['current_intent'] ] : $persona['current_intent'];
+			$parts[]       = sprintf( 'هدف فعلی: %s', $intent );
 		}
 
 		// Add interests.

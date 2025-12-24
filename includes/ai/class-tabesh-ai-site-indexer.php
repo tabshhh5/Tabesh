@@ -170,7 +170,7 @@ class Tabesh_AI_Site_Indexer {
 			if ( ! isset( $word_freq[ $word ] ) ) {
 				$word_freq[ $word ] = 0;
 			}
-			$word_freq[ $word ]++;
+			++$word_freq[ $word ];
 		}
 
 		// Sort by frequency.
@@ -242,7 +242,7 @@ class Tabesh_AI_Site_Indexer {
 
 		// Check if Yoast SEO sitemap exists.
 		$yoast_sitemap = home_url( '/sitemap_index.xml' );
-		$response = wp_remote_head( $yoast_sitemap );
+		$response      = wp_remote_head( $yoast_sitemap );
 		if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
 			$sitemap_url = $yoast_sitemap;
 		}
@@ -276,9 +276,9 @@ class Tabesh_AI_Site_Indexer {
 
 			$result = $this->index_page( $url );
 			if ( true === $result ) {
-				$indexed++;
+				++$indexed;
 			} else {
-				$failed++;
+				++$failed;
 			}
 
 			// Small delay to avoid overwhelming the server.
