@@ -43,6 +43,7 @@ $admin = $tabesh->admin;
                 <a href="#tab-firewall" class="nav-tab">فایروال روز رستاخیز</a>
                 <a href="#tab-staff-access" class="nav-tab">دسترسی کارمندان</a>
                 <a href="#tab-export-import" class="nav-tab">برونبری و درونریزی</a>
+                <a href="#tab-ai" class="nav-tab">🤖 هوش مصنوعی / AI</a>
             </nav>
 
             <!-- General Settings -->
@@ -1813,6 +1814,14 @@ $admin = $tabesh->admin;
                     </div>
                 </div>
             </div>
+
+            <!-- AI Settings Tab -->
+            <?php
+            // Include AI settings tab if AI module is available
+            if ( class_exists( 'Tabesh_AI' ) ) {
+                include TABESH_PLUGIN_DIR . 'templates/admin/partials/admin-settings-ai.php';
+            }
+            ?>
 
         <p class="submit">
             <input type="submit" name="tabesh_save_settings" class="button button-primary" value="ذخیره تنظیمات">

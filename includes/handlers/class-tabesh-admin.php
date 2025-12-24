@@ -197,6 +197,12 @@ class Tabesh_Admin {
             // Check if format settings were submitted
             $format_saved = isset($_POST['format']) && is_array($_POST['format']) && !empty($_POST['format']);
             
+            // Save AI settings if AI module is enabled
+            if ( class_exists( 'Tabesh_AI' ) ) {
+                $ai = Tabesh_AI::instance();
+                $ai->save_settings( $_POST );
+            }
+            
             if ($format_saved) {
                 echo '<div class="notice notice-success"><p>' . __('تنظیمات با موفقیت ذخیره شد. قالب‌های هوشمند آپلود به‌روزرسانی شدند.', 'tabesh') . '</p></div>';
             } else {

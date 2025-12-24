@@ -72,11 +72,23 @@ spl_autoload_register(
 			return;
 		}
 
-		// Convert full class name to filename (e.g., Tabesh_Order -> class-tabesh-order.php)
-		$filename = 'class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+		// Handle interfaces differently from classes
+		if ( strpos( $class, 'Interface' ) !== false ) {
+			// This is an interface
+			$filename = 'interface-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+		} else {
+			// Convert full class name to filename (e.g., Tabesh_Order -> class-tabesh-order.php)
+			$filename = 'class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+		}
 
-		// Search in subdirectories: core, handlers, utils, api, security, and root
-		$subdirs = array( 'core/', 'handlers/', 'utils/', 'api/', 'security/', '' );
+		// Handle AI subdirectories
+		if ( strpos( $class, 'Tabesh_AI' ) === 0 ) {
+			// AI module classes
+			$subdirs = array( 'ai/', 'ai/models/', 'ai/assistants/', 'ai/interfaces/' );
+		} else {
+			// Search in subdirectories: core, handlers, utils, api, security, and root
+			$subdirs = array( 'core/', 'handlers/', 'utils/', 'api/', 'security/', '' );
+		}
 
 		foreach ( $subdirs as $subdir ) {
 			$file = $base_dir . $subdir . $filename;
@@ -241,6 +253,13 @@ final class Tabesh {
 	public $product_pricing;
 
 	/**
+	 * AI Module handler
+	 *
+	 * @var Tabesh_AI
+	 */
+	public $ai;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -319,6 +338,8 @@ final class Tabesh {
 		$this->firewall = new Tabesh_Doomsday_Firewall();
 		// Initialize Product Pricing handler
 		$this->product_pricing = new Tabesh_Product_Pricing();
+		// Initialize AI module
+		$this->ai = Tabesh_AI::instance();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
