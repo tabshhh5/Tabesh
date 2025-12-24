@@ -607,6 +607,222 @@ class Tabesh_AI_Site_Indexer {
 	}
 
 	/**
+	 * Intelligent page search with fuzzy matching for Persian keywords
+	 *
+	 * Searches pages based on user intent with Persian keyword matching.
+	 *
+	 * @param string $user_query User's natural language query.
+	 * @param int    $limit      Maximum number of results.
+	 * @return array Search results with relevance scores.
+	 */
+	public function smart_search_pages( $user_query, $limit = 5 ) {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'tabesh_ai_site_pages';
+		$user_query = sanitize_text_field( $user_query );
+
+		// Extract keywords from user query.
+		$keywords = $this->extract_search_keywords( $user_query );
+
+		if ( empty( $keywords ) ) {
+			return array();
+		}
+
+		// Build search conditions dynamically.
+		$where_parts = array();
+		$sql_params  = array();
+
+		foreach ( $keywords as $keyword ) {
+			$like_pattern  = '%' . $wpdb->esc_like( $keyword ) . '%';
+			$where_parts[] = '(page_title LIKE %s OR page_content_summary LIKE %s OR page_keywords LIKE %s OR page_type LIKE %s)';
+			$sql_params[]  = $like_pattern;
+			$sql_params[]  = $like_pattern;
+			$sql_params[]  = $like_pattern;
+			$sql_params[]  = $like_pattern;
+		}
+
+		// Add limit parameter.
+		$sql_params[] = $limit;
+
+		// Build the SQL query.
+		$where_clause = implode( ' OR ', $where_parts );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$sql = "SELECT * FROM {$table_name} WHERE {$where_clause} ORDER BY last_scanned DESC LIMIT %d";
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare( $sql, $sql_params ),
+			ARRAY_A
+		);
+
+		// Score results by relevance.
+		$scored_results = array();
+		if ( $results ) {
+			foreach ( $results as $result ) {
+				$result['page_keywords'] = json_decode( $result['page_keywords'], true );
+				$score                   = $this->calculate_relevance_score( $result, $keywords, $user_query );
+				$result['relevance']     = $score;
+				$scored_results[]        = $result;
+			}
+
+			// Sort by relevance score.
+			usort(
+				$scored_results,
+				function ( $a, $b ) {
+					return $b['relevance'] <=> $a['relevance'];
+				}
+			);
+		}
+
+		return $scored_results;
+	}
+
+	/**
+	 * Extract search keywords from user query
+	 *
+	 * @param string $query User query.
+	 * @return array Keywords.
+	 */
+	private function extract_search_keywords( $query ) {
+		// Normalize query.
+		$query = mb_strtolower( trim( $query ) );
+
+		// Define Persian keyword mappings for common intents.
+		$intent_keywords = array(
+			// Order form related.
+			'سفارش'       => array( 'سفارش', 'فرم', 'order' ),
+			'ثبت سفارش'   => array( 'سفارش', 'ثبت', 'فرم', 'order' ),
+			'فرم سفارش'   => array( 'سفارش', 'فرم', 'order', 'form' ),
+			'چاپ'         => array( 'چاپ', 'print', 'کتاب' ),
+			'چاپ کتاب'    => array( 'چاپ', 'کتاب', 'print', 'book' ),
+			// Contact.
+			'تماس'        => array( 'تماس', 'contact', 'ارتباط' ),
+			'تماس با ما'  => array( 'تماس', 'contact' ),
+			// Pricing.
+			'قیمت'        => array( 'قیمت', 'price', 'تعرفه', 'pricing' ),
+			'محاسبه'      => array( 'محاسبه', 'قیمت', 'calculate' ),
+			// Cart.
+			'سبد خرید'    => array( 'سبد', 'خرید', 'cart' ),
+			'سبد'         => array( 'سبد', 'cart' ),
+			// Account.
+			'حساب'        => array( 'حساب', 'account', 'کاربری' ),
+			'حساب کاربری' => array( 'حساب', 'کاربری', 'account' ),
+			// About.
+			'درباره'      => array( 'درباره', 'about' ),
+			'درباره ما'   => array( 'درباره', 'about' ),
+			// Portfolio.
+			'نمونه'       => array( 'نمونه', 'portfolio', 'کار' ),
+			'نمونه کار'   => array( 'نمونه', 'کار', 'portfolio' ),
+		);
+
+		$keywords = array();
+
+		// Check for exact phrase matches first.
+		foreach ( $intent_keywords as $phrase => $related_keywords ) {
+			if ( strpos( $query, $phrase ) !== false ) {
+				$keywords = array_merge( $keywords, $related_keywords );
+			}
+		}
+
+		// If no exact matches, extract individual words.
+		if ( empty( $keywords ) ) {
+			$words = preg_split( '/\s+/', $query );
+			foreach ( $words as $word ) {
+				$word = trim( $word, '.,;:!?؟،' );
+				if ( mb_strlen( $word ) >= 2 ) {
+					$keywords[] = $word;
+
+					// Check if word is in our intent mappings.
+					foreach ( $intent_keywords as $phrase => $related_keywords ) {
+						if ( strpos( $phrase, $word ) !== false || in_array( $word, $related_keywords, true ) ) {
+							$keywords = array_merge( $keywords, $related_keywords );
+						}
+					}
+				}
+			}
+		}
+
+		// Remove duplicates.
+		$keywords = array_unique( $keywords );
+
+		return $keywords;
+	}
+
+	/**
+	 * Calculate relevance score for search result
+	 *
+	 * @param array  $page     Page data.
+	 * @param array  $keywords Search keywords.
+	 * @param string $query    Original query.
+	 * @return float Relevance score.
+	 */
+	private function calculate_relevance_score( $page, $keywords, $query ) {
+		$score = 0;
+
+		// Score based on page title.
+		foreach ( $keywords as $keyword ) {
+			if ( stripos( $page['page_title'], $keyword ) !== false ) {
+				$score += 10;
+			}
+		}
+
+		// Score based on page type.
+		foreach ( $keywords as $keyword ) {
+			if ( stripos( $page['page_type'], $keyword ) !== false ) {
+				$score += 8;
+			}
+		}
+
+		// Score based on content summary.
+		foreach ( $keywords as $keyword ) {
+			if ( stripos( $page['page_content_summary'], $keyword ) !== false ) {
+				$score += 5;
+			}
+		}
+
+		// Score based on keywords array.
+		if ( ! empty( $page['page_keywords'] ) && is_array( $page['page_keywords'] ) ) {
+			foreach ( $keywords as $keyword ) {
+				foreach ( $page['page_keywords'] as $page_keyword ) {
+					if ( stripos( $page_keyword, $keyword ) !== false ) {
+						$score += 3;
+					}
+				}
+			}
+		}
+
+		// Boost score for exact title match.
+		if ( stripos( $page['page_title'], $query ) !== false ) {
+			$score += 20;
+		}
+
+		// Boost for order-form type pages when query is about orders.
+		if ( 'order-form' === $page['page_type'] && ( stripos( $query, 'سفارش' ) !== false || stripos( $query, 'چاپ' ) !== false ) ) {
+			$score += 15;
+		}
+
+		return $score;
+	}
+
+	/**
+	 * Find best matching page for user intent
+	 *
+	 * @param string $user_query User's query or intent.
+	 * @return array|null Best matching page or null if not found.
+	 */
+	public function find_best_page( $user_query ) {
+		$results = $this->smart_search_pages( $user_query, 1 );
+
+		if ( empty( $results ) ) {
+			return null;
+		}
+
+		return $results[0];
+	}
+
+	/**
 	 * Get all indexed pages
 	 *
 	 * Retrieves all indexed pages for AI quick suggestions.

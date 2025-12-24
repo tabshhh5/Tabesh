@@ -574,32 +574,83 @@
     }
 
     /**
-     * Get target URL for navigation intent
+     * Smart search for pages using the AI indexer
      */
-    function getTargetUrl(intentType) {
-        // Get routes from settings (if available in window object)
-        const routes = window.tabeshAIRoutes || {
-            order_form: '/order-form/',
-            pricing: '/pricing/',
-            contact: '/contact/',
-            help: '/help/',
-            cart: '/cart/',
-            account: '/my-account/'
+    function smartSearchPages(query, callback) {
+        $.ajax({
+            url: tabeshAIBrowser.ajaxUrl + '/ai/browser/search-pages',
+            method: 'POST',
+            headers: {
+                'X-WP-Nonce': tabeshAIBrowser.nonce
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                query: query,
+                limit: 1
+            }),
+            success: function(response) {
+                if (response.success && response.results && response.results.length > 0) {
+                    callback(response.results[0]);
+                } else {
+                    callback(null);
+                }
+            },
+            error: function() {
+                callback(null);
+            }
+        });
+    }
+
+    /**
+     * Get target URL for navigation intent with smart search fallback
+     */
+    function getTargetUrl(intentType, keyword, callback) {
+        // Map intent types to search queries
+        const searchQueries = {
+            order_form: 'سفارش چاپ کتاب',
+            pricing: 'قیمت تعرفه',
+            contact: 'تماس با ما',
+            help: 'راهنما کمک',
+            cart: 'سبد خرید',
+            account: 'حساب کاربری'
         };
-        
-        return routes[intentType] || null;
+
+        const searchQuery = searchQueries[intentType] || keyword;
+
+        // Try smart search first
+        smartSearchPages(searchQuery, function(page) {
+            if (page && page.page_url) {
+                callback(page.page_url);
+            } else {
+                // Fallback to hardcoded routes
+                const routes = window.tabeshAIRoutes || {
+                    order_form: '/order-form/',
+                    pricing: '/pricing/',
+                    contact: '/contact/',
+                    help: '/help/',
+                    cart: '/cart/',
+                    account: '/my-account/'
+                };
+                callback(routes[intentType] || null);
+            }
+        });
     }
 
     /**
      * Show navigation offer to user
      */
     function showNavigationOffer(intentType, keyword) {
-        const targetUrl = getTargetUrl(intentType);
-        
-        if (!targetUrl) {
-            return;
-        }
-        
+        // Use smart search to get target URL
+        getTargetUrl(intentType, keyword, function(targetUrl) {
+            if (!targetUrl) {
+                return;
+            }
+            
+            // Ensure URL is properly formed (add home URL if relative)
+            if (targetUrl.startsWith('/')) {
+                targetUrl = window.location.origin + targetUrl;
+            }
+            
         const offerHtml = `
             <div class="tabesh-ai-navigation-offer">
                 <p>میخواهید به صفحه <strong>${keyword}</strong> بروید؟</p>
@@ -635,6 +686,7 @@
         $('.nav-btn-dismiss').off('click').on('click', function() {
             $(this).closest('.tabesh-ai-navigation-offer').fadeOut();
         });
+        }); // Close getTargetUrl callback
     }
 
     /**
@@ -656,16 +708,24 @@
         
         // Check if we're already on the target page
         if (currentPath.includes(targetUrl) || window.location.href.includes(targetUrl)) {
-            addMessage('راهنمای این صفحه را برایتان نشان می‌دهم! 👇', 'bot');
-            closeSidebar();
-            
-            setTimeout(function() {
-                highlightOrderForm();
-            }, 500);
+            // Ask permission before starting tour
+            askTourPermission(function(granted) {
+                if (granted) {
+                    addMessage('راهنمای این صفحه را برایتان نشان می‌دهم! 👇', 'bot');
+                    closeSidebar();
+                    
+                    setTimeout(function() {
+                        startGuidedTour();
+                    }, 500);
+                } else {
+                    addMessage('باشه! اگر بعداً نیاز به راهنما داشتید، حتماً بگید.', 'bot');
+                }
+            });
         } else {
             // Navigate to page and show tour after load
             addMessage('ابتدا شما را به صفحه مورد نظر می‌برم...', 'bot');
-            sessionStorage.setItem('tabesh_show_tour', targetUrl);
+            sessionStorage.setItem('tabesh_show_tour', 'true');
+            sessionStorage.setItem('tabesh_tour_url', targetUrl);
             
             setTimeout(function() {
                 window.location.href = targetUrl;
@@ -674,64 +734,108 @@
     }
 
     /**
-     * Highlight form or element on page
+     * Ask user permission to start tour guide
      */
-    function highlightOrderForm() {
-        // Try to find order form or main content area
-        const form = document.querySelector('.tabesh-order-form, #order-form, [data-tabesh-form], .woocommerce-form, form.checkout');
-        
-        if (!form) {
-            console.warn('Form not found for highlighting');
-            return;
-        }
-        
-        // Scroll to form
-        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Create highlight overlay
-        const highlight = document.createElement('div');
-        highlight.className = 'tabesh-ai-highlight-overlay';
-        
-        const rect = form.getBoundingClientRect();
-        highlight.style.cssText = `
-            position: fixed;
-            top: ${rect.top - 20}px;
-            left: ${rect.left - 20}px;
-            width: ${rect.width + 40}px;
-            height: ${rect.height + 40}px;
-            pointer-events: none;
-            z-index: 999998;
-        `;
-        
-        highlight.innerHTML = `
-            <div class="tabesh-ai-spotlight"></div>
-            <div class="tabesh-ai-arrow" style="top: -60px; left: 50%; transform: translateX(-50%);">👆</div>
-            <div class="tabesh-ai-tooltip" style="top: -140px; left: 50%; transform: translateX(-50%);">
-                اینجا میتونید سفارش ثبت کنید!
-                <br>
-                <small>روی فیلدها کلیک کنید تا راهنمایی بگیرید</small>
+    function askTourPermission(callback) {
+        const permissionHtml = `
+            <div class="tabesh-ai-tour-permission">
+                <p>آیا میخواهید راهنمای گام به گام را ببینید؟</p>
+                <div class="tabesh-ai-offer-buttons">
+                    <button class="tabesh-ai-btn-primary tour-permission-yes">
+                        بله، راهنمایی کن 🎯
+                    </button>
+                    <button class="tabesh-ai-btn-tertiary tour-permission-no">
+                        نه، خودم انجام میدم
+                    </button>
+                </div>
             </div>
         `;
         
-        document.body.appendChild(highlight);
+        const $messages = $('#tabesh-ai-browser-messages');
+        $messages.append(permissionHtml);
+        scrollToBottom();
         
-        // Add pulse animation to form
-        form.classList.add('tabesh-ai-pulse-highlight');
-        
-        // Remove highlight after 8 seconds
-        setTimeout(function() {
-            highlight.remove();
-            form.classList.remove('tabesh-ai-pulse-highlight');
-        }, 8000);
-        
-        // Or remove on click
-        document.addEventListener('click', function removeHighlight(e) {
-            if (!highlight.contains(e.target)) {
-                highlight.remove();
-                form.classList.remove('tabesh-ai-pulse-highlight');
-                document.removeEventListener('click', removeHighlight);
-            }
+        // Event listeners
+        $('.tour-permission-yes').off('click').on('click', function() {
+            $(this).closest('.tabesh-ai-tour-permission').fadeOut();
+            callback(true);
         });
+        
+        $('.tour-permission-no').off('click').on('click', function() {
+            $(this).closest('.tabesh-ai-tour-permission').fadeOut();
+            callback(false);
+        });
+    }
+
+    /**
+     * Start guided tour with animated arrows
+     */
+    function startGuidedTour() {
+        // Detect page type and start appropriate tour
+        const currentUrl = window.location.href;
+        
+        if (currentUrl.includes('order-form') || $('#book_title').length) {
+            // Start order form tour
+            if (window.tabeshAITourGuide) {
+                window.tabeshAITourGuide.startTour('order-form');
+            }
+        } else if (currentUrl.includes('cart') || $('.woocommerce-cart').length) {
+            // Highlight cart
+            highlightElement('.woocommerce-cart, .cart-container', 'سبد خرید شما اینجاست!');
+        } else if (currentUrl.includes('contact') || $('.contact-form').length) {
+            // Highlight contact form
+            highlightElement('.contact-form, [data-contact-form]', 'از اینجا میتونید با ما در ارتباط باشید!');
+        } else {
+            // Generic page highlight
+            highlightMainContent();
+        }
+    }
+
+    /**
+     * Highlight main content area with animated arrow
+     */
+    function highlightMainContent() {
+        const mainContent = document.querySelector('main, .main-content, #main, .content, article');
+        
+        if (!mainContent) {
+            console.warn('Main content not found for highlighting');
+            return;
+        }
+        
+        if (window.tabeshAITourGuide) {
+            window.tabeshAITourGuide.instantHighlight(mainContent, 'محتوای اصلی صفحه اینجاست!', {
+                arrow: 'top',
+                pulse: true,
+                duration: 5000
+            });
+        }
+    }
+
+    /**
+     * Highlight specific element with message
+     */
+    function highlightElement(selector, message) {
+        const element = document.querySelector(selector);
+        
+        if (!element) {
+            console.warn('Element not found for highlighting:', selector);
+            return;
+        }
+        
+        if (window.tabeshAITourGuide) {
+            window.tabeshAITourGuide.instantHighlight(selector, message, {
+                arrow: 'top',
+                pulse: true,
+                duration: 5000
+            });
+        }
+    }
+
+    /**
+     * Highlight form or element on page (legacy support)
+     */
+    function highlightOrderForm() {
+        startGuidedTour();
     }
 
     /**
@@ -739,12 +843,21 @@
      */
     function checkPendingTour() {
         const pendingTour = sessionStorage.getItem('tabesh_show_tour');
-        if (pendingTour) {
+        const tourUrl = sessionStorage.getItem('tabesh_tour_url');
+        
+        if (pendingTour === 'true') {
             sessionStorage.removeItem('tabesh_show_tour');
+            sessionStorage.removeItem('tabesh_tour_url');
             
-            // Show tour after a brief delay
+            // Show permission dialog after brief delay
             setTimeout(function() {
-                highlightOrderForm();
+                askTourPermission(function(granted) {
+                    if (granted) {
+                        setTimeout(function() {
+                            startGuidedTour();
+                        }, 500);
+                    }
+                });
             }, 1000);
         }
     }
