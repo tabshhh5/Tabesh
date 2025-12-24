@@ -243,6 +243,29 @@ class Tabesh_AI_Browser {
 				),
 			)
 		);
+
+		// Search indexed pages.
+		register_rest_route(
+			TABESH_REST_NAMESPACE,
+			'/ai/browser/search-pages',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_search_pages' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'query' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'limit' => array(
+						'required' => false,
+						'type'     => 'integer',
+						'default'  => 5,
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -428,8 +451,27 @@ class Tabesh_AI_Browser {
 			$profile_manager->update_guest_profession( $guest_uuid, $profession );
 		}
 
-		// Get target URL based on profession.
-		$target_url = $this->get_target_url_for_profession( $profession, $context );
+		// Try intelligent page search first based on profession.
+		$indexer    = new Tabesh_AI_Site_Indexer();
+		$target_url = null;
+
+		// Map profession to search query.
+		$search_queries = array(
+			'buyer'     => 'سفارش چاپ کتاب',
+			'author'    => 'سفارش چاپ کتاب',
+			'publisher' => 'سفارش چاپ کتاب',
+			'printer'   => 'تماس با ما',
+		);
+
+		$search_query = isset( $search_queries[ $profession ] ) ? $search_queries[ $profession ] : 'سفارش';
+		$best_page    = $indexer->find_best_page( $search_query );
+
+		if ( $best_page && ! empty( $best_page['page_url'] ) ) {
+			$target_url = $best_page['page_url'];
+		} else {
+			// Fallback to configured routes or defaults.
+			$target_url = $this->get_target_url_for_profession( $profession, $context );
+		}
 
 		return rest_ensure_response(
 			array(
@@ -544,6 +586,28 @@ class Tabesh_AI_Browser {
 			'save_failed',
 			__( 'خطا در ذخیره تاریخچه', 'tabesh' ),
 			array( 'status' => 500 )
+		);
+	}
+
+	/**
+	 * REST API: Search indexed pages
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response Response.
+	 */
+	public function rest_search_pages( $request ) {
+		$query = $request->get_param( 'query' );
+		$limit = $request->get_param( 'limit' );
+
+		$indexer = new Tabesh_AI_Site_Indexer();
+		$results = $indexer->smart_search_pages( $query, $limit );
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'results' => $results,
+				'count'   => count( $results ),
+			)
 		);
 	}
 
