@@ -1,5 +1,5 @@
 /**
- * AI Chat Interface JavaScript
+ * AI Chat Interface JavaScript - Split Screen Layout
  *
  * @package Tabesh
  */
@@ -7,8 +7,8 @@
 (function($) {
     'use strict';
 
-    // Chat state
-    let isOpen = false;
+    // Chat states: 'hidden', 'minimized', 'expanded'
+    let chatState = 'hidden';
     let isTyping = false;
 
     // Initialize chat
@@ -16,18 +16,37 @@
         const toggle = $('#tabesh-ai-toggle');
         const container = $('.tabesh-ai-chat-container');
         const minimize = $('.tabesh-ai-minimize');
+        const closeBtn = $('.tabesh-ai-close');
         const form = $('#tabesh-ai-chat-form');
         const input = $('#tabesh-ai-input');
         const messages = $('#tabesh-ai-messages');
 
-        // Toggle chat
+        // Wrap main content if not already wrapped
+        wrapMainContent();
+
+        // Initially show as minimized
+        setChatState('minimized');
+
+        // Toggle chat from minimized bar
         toggle.on('click', function() {
-            toggleChat();
+            if (chatState === 'minimized') {
+                setChatState('expanded');
+            } else if (chatState === 'expanded') {
+                setChatState('minimized');
+            }
         });
 
+        // Minimize button - minimize to thin bar
         minimize.on('click', function() {
-            toggleChat();
+            setChatState('minimized');
         });
+
+        // Close button - completely hide
+        if (closeBtn.length) {
+            closeBtn.on('click', function() {
+                setChatState('hidden');
+            });
+        }
 
         // Handle form submission
         form.on('submit', function(e) {
@@ -60,16 +79,53 @@
         readFormData();
     }
 
-    // Toggle chat visibility
-    function toggleChat() {
-        isOpen = !isOpen;
-        const container = $('.tabesh-ai-chat-container');
+    // Wrap main content for split-screen layout
+    function wrapMainContent() {
+        if ($('.tabesh-ai-main-content').length) {
+            return; // Already wrapped
+        }
+
+        // Wrap all body content except chat elements
+        const chatContainer = $('.tabesh-ai-chat-container').detach();
+        const chatToggle = $('.tabesh-ai-chat-toggle').detach();
         
-        if (isOpen) {
-            container.addClass('active');
-            $('#tabesh-ai-input').focus();
-        } else {
-            container.removeClass('active');
+        $('body > *').wrapAll('<div class="tabesh-ai-main-content"></div>');
+        
+        // Re-append chat elements
+        $('body').append(chatContainer);
+        $('body').append(chatToggle);
+    }
+
+    // Set chat state
+    function setChatState(newState) {
+        const container = $('.tabesh-ai-chat-container');
+        const toggle = $('.tabesh-ai-chat-toggle');
+        const body = $('body');
+
+        // Remove all state classes
+        body.removeClass('tabesh-ai-split-hidden tabesh-ai-split-minimized tabesh-ai-split-active');
+        container.removeClass('active minimized');
+        toggle.removeClass('minimized');
+
+        chatState = newState;
+
+        switch (newState) {
+            case 'expanded':
+                body.addClass('tabesh-ai-split-active');
+                container.addClass('active');
+                $('#tabesh-ai-input').focus();
+                break;
+
+            case 'minimized':
+                body.addClass('tabesh-ai-split-minimized');
+                container.addClass('minimized');
+                toggle.addClass('minimized');
+                break;
+
+            case 'hidden':
+                body.addClass('tabesh-ai-split-hidden');
+                // Both container and toggle are hidden by default
+                break;
         }
     }
 

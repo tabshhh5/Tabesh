@@ -26,9 +26,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<h3><?php echo esc_html__( 'دستیار هوشمند تابش', 'tabesh' ); ?></h3>
 			<p class="tabesh-ai-status"><?php echo esc_html__( 'آنلاین', 'tabesh' ); ?></p>
 		</div>
-		<button class="tabesh-ai-minimize" aria-label="<?php echo esc_attr__( 'کوچک کردن', 'tabesh' ); ?>">
+		<button class="tabesh-ai-minimize" aria-label="<?php echo esc_attr__( 'کوچک کردن', 'tabesh' ); ?>" title="<?php echo esc_attr__( 'کوچک کردن', 'tabesh' ); ?>">
 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<line x1="5" y1="12" x2="19" y2="12"></line>
+			</svg>
+		</button>
+		<button class="tabesh-ai-close" aria-label="<?php echo esc_attr__( 'بستن', 'tabesh' ); ?>" title="<?php echo esc_attr__( 'بستن', 'tabesh' ); ?>">
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<line x1="18" y1="6" x2="6" y2="18"></line>
+				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</button>
 	</div>
@@ -79,8 +85,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 </div>
 
 <button class="tabesh-ai-chat-toggle" id="tabesh-ai-toggle" aria-label="<?php echo esc_attr__( 'باز کردن گفتگو', 'tabesh' ); ?>">
-	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+	<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 		<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
 	</svg>
+	<span class="tabesh-ai-toggle-text"><?php echo esc_html__( 'گفتگو', 'tabesh' ); ?></span>
 	<span class="tabesh-ai-notification-badge" style="display: none;"></span>
 </button>
