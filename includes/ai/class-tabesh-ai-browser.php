@@ -293,7 +293,7 @@ class Tabesh_AI_Browser {
 		$context  = $analyzer->extract_page_context( $client_data );
 
 		// Get user profile for enriched context.
-		$user_id         = get_current_user_id();
+		$user_id = get_current_user_id();
 		$profile_manager = new Tabesh_AI_User_Profile();
 
 		if ( $user_id ) {
@@ -327,7 +327,7 @@ class Tabesh_AI_Browser {
 		$guest_uuid = $request->get_param( 'guest_uuid' );
 
 		// Get user profile.
-		$user_id         = get_current_user_id();
+		$user_id = get_current_user_id();
 		$profile_manager = new Tabesh_AI_User_Profile();
 
 		if ( $user_id ) {
@@ -339,7 +339,7 @@ class Tabesh_AI_Browser {
 		}
 
 		// Get explanation.
-		$explainer   = new Tabesh_AI_Field_Explainer();
+		$explainer = new Tabesh_AI_Field_Explainer();
 		$explanation = $explainer->get_field_explanation( $field_info, $profile );
 
 		if ( is_wp_error( $explanation ) ) {
@@ -365,7 +365,7 @@ class Tabesh_AI_Browser {
 		$user_id    = get_current_user_id();
 
 		$persona_builder = new Tabesh_AI_Persona_Builder();
-		$persona         = $persona_builder->build_persona( $user_id, $guest_uuid );
+		$persona = $persona_builder->build_persona( $user_id, $guest_uuid );
 
 		return rest_ensure_response(
 			array(
@@ -704,13 +704,13 @@ class Tabesh_AI_Browser {
 			'tabesh-ai-browser',
 			'tabeshAIBrowser',
 			array(
-				'ajaxUrl'               => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'                 => wp_create_nonce( 'wp_rest' ),
-				'isLoggedIn'            => is_user_logged_in(),
-				'userId'                => get_current_user_id(),
-				'trackingEnabled'       => get_option( 'tabesh_ai_tracking_enabled', true ),
+				'ajaxUrl'              => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'                => wp_create_nonce( 'wp_rest' ),
+				'isLoggedIn'           => is_user_logged_in(),
+				'userId'               => get_current_user_id(),
+				'trackingEnabled'      => get_option( 'tabesh_ai_tracking_enabled', true ),
 				'fieldExplainerEnabled' => get_option( 'tabesh_ai_field_explainer_enabled', true ),
-				'strings'               => array(
+				'strings'              => array(
 					'greeting'             => __( 'سلام! من دستیار هوشمند تابش هستم. اجازه میدید کمکتون کنم؟', 'tabesh' ),
 					'profession_buyer'     => __( 'آیا خریدار کتاب هستید؟', 'tabesh' ),
 					'profession_author'    => __( 'آیا نویسنده هستید؟', 'tabesh' ),
@@ -725,25 +725,6 @@ class Tabesh_AI_Browser {
 					'error'                => __( 'خطایی رخ داده است', 'tabesh' ),
 				),
 			)
-		);
-
-		// Add navigation routes as separate global variable.
-		$nav_routes = get_option(
-			'tabesh_ai_navigation_routes',
-			array(
-				'order_form' => '/order-form/',
-				'pricing'    => '/pricing/',
-				'contact'    => '/contact/',
-				'help'       => '/help/',
-				'cart'       => '/cart/',
-				'account'    => '/my-account/',
-			)
-		);
-
-		wp_add_inline_script(
-			'tabesh-ai-browser',
-			'window.tabeshAIRoutes = ' . wp_json_encode( $nav_routes ) . ';',
-			'before'
 		);
 	}
 

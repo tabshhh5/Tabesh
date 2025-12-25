@@ -1419,87 +1419,6 @@ $admin = $tabesh->admin;
                             <p class="description">داده‌های کاربران مهمان بعد از این مدت حذف می‌شود.</p>
                         </td>
                     </tr>
-
-                    <!-- Navigation Routes for Intent Detection -->
-                    <tr>
-                        <th colspan="2" style="padding-top: 30px;">
-                            <h3 style="margin: 0;">🗺️ مسیرهای هدایت هوشمند</h3>
-                        </th>
-                    </tr>
-
-                    <tr>
-                        <th><label>مسیرهای صفحات</label></th>
-                        <td>
-                            <div class="notice notice-info inline" style="margin: 0 0 15px 0;">
-                                <p><strong>💡 توضیح:</strong> وقتی کاربر درخواست هدایت می‌کند (مثل "میخوام سفارش ثبت کنم")، به این آدرس‌ها هدایت می‌شود.</p>
-                            </div>
-
-                            <table class="widefat" style="margin-top: 10px;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 200px;">صفحه</th>
-                                        <th>آدرس URL</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><label for="ai_nav_route_order_form"><strong>صفحه ثبت سفارش</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_order_form" name="ai_nav_route_order_form" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_order_form', '/order-form/')); ?>" 
-                                                class="regular-text" placeholder="/order-form/">
-                                            <p class="description">کلمات کلیدی: سفارش، ثبت سفارش، چاپ کتاب</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><label for="ai_nav_route_pricing"><strong>صفحه قیمت‌ها</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_pricing" name="ai_nav_route_pricing" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_pricing', '/pricing/')); ?>" 
-                                                class="regular-text" placeholder="/pricing/">
-                                            <p class="description">کلمات کلیدی: قیمت، تعرفه</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><label for="ai_nav_route_contact"><strong>صفحه تماس</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_contact" name="ai_nav_route_contact" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_contact', '/contact/')); ?>" 
-                                                class="regular-text" placeholder="/contact/">
-                                            <p class="description">کلمات کلیدی: تماس</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><label for="ai_nav_route_help"><strong>صفحه راهنما</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_help" name="ai_nav_route_help" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_help', '/help/')); ?>" 
-                                                class="regular-text" placeholder="/help/">
-                                            <p class="description">کلمات کلیدی: راهنما، کمک</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><label for="ai_nav_route_cart"><strong>سبد خرید</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_cart" name="ai_nav_route_cart" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_cart', '/cart/')); ?>" 
-                                                class="regular-text" placeholder="/cart/">
-                                            <p class="description">کلمات کلیدی: سبد خرید</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><label for="ai_nav_route_account"><strong>حساب کاربری</strong></label></td>
-                                        <td>
-                                            <input type="text" id="ai_nav_route_account" name="ai_nav_route_account" 
-                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_account', '/my-account/')); ?>" 
-                                                class="regular-text" placeholder="/my-account/">
-                                            <p class="description">کلمات کلیدی: حساب کاربری، حساب</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
                 </table>
             </div>
 

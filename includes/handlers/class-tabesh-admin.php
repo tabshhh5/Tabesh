@@ -905,31 +905,6 @@ class Tabesh_Admin {
             update_option( 'tabesh_ai_profession_routes', $profession_routes );
         }
 
-        // Handle AI Navigation Routes for Intent Detection
-        $nav_routes = array();
-        if ( isset( $post_data['ai_nav_route_order_form'] ) ) {
-            $nav_routes['order_form'] = sanitize_text_field( $post_data['ai_nav_route_order_form'] );
-        }
-        if ( isset( $post_data['ai_nav_route_pricing'] ) ) {
-            $nav_routes['pricing'] = sanitize_text_field( $post_data['ai_nav_route_pricing'] );
-        }
-        if ( isset( $post_data['ai_nav_route_contact'] ) ) {
-            $nav_routes['contact'] = sanitize_text_field( $post_data['ai_nav_route_contact'] );
-        }
-        if ( isset( $post_data['ai_nav_route_help'] ) ) {
-            $nav_routes['help'] = sanitize_text_field( $post_data['ai_nav_route_help'] );
-        }
-        if ( isset( $post_data['ai_nav_route_cart'] ) ) {
-            $nav_routes['cart'] = sanitize_text_field( $post_data['ai_nav_route_cart'] );
-        }
-        if ( isset( $post_data['ai_nav_route_account'] ) ) {
-            $nav_routes['account'] = sanitize_text_field( $post_data['ai_nav_route_account'] );
-        }
-        
-        if ( ! empty( $nav_routes ) ) {
-            update_option( 'tabesh_ai_navigation_routes', $nav_routes );
-        }
-
         // Clear the settings cache after saving to ensure fresh data is loaded
         self::clear_settings_cache();
         

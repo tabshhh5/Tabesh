@@ -65,12 +65,9 @@
             }
         });
 
-        // Overlay click (mobile only)
+        // Overlay click (mobile)
         $('#tabesh-ai-browser-overlay').on('click', function() {
-            // Only close on mobile devices
-            if (window.innerWidth <= 768) {
-                closeSidebar();
-            }
+            closeSidebar();
         });
 
         // Form submission
@@ -536,220 +533,6 @@
     }
 
     /**
-     * Navigation Intent Detection
-     */
-    const navigationIntents = {
-        'سفارش': 'order_form',
-        'ثبت سفارش': 'order_form',
-        'میخوام سفارش': 'order_form',
-        'میخواهم سفارش': 'order_form',
-        'چاپ کتاب': 'order_form',
-        'چاپ': 'order_form',
-        'قیمت': 'pricing',
-        'تماس': 'contact',
-        'راهنما': 'help',
-        'کمک': 'help',
-        'سبد خرید': 'cart',
-        'حساب کاربری': 'account',
-        'حساب': 'account'
-    };
-
-    /**
-     * Detect navigation intent from user message
-     */
-    function detectNavigationIntent(message) {
-        const lowerMessage = message.toLowerCase();
-        
-        for (const [keyword, intentType] of Object.entries(navigationIntents)) {
-            if (lowerMessage.includes(keyword)) {
-                return {
-                    detected: true,
-                    keyword: keyword,
-                    intentType: intentType
-                };
-            }
-        }
-        
-        return { detected: false };
-    }
-
-    /**
-     * Get target URL for navigation intent
-     */
-    function getTargetUrl(intentType) {
-        // Get routes from settings (if available in window object)
-        const routes = window.tabeshAIRoutes || {
-            order_form: '/order-form/',
-            pricing: '/pricing/',
-            contact: '/contact/',
-            help: '/help/',
-            cart: '/cart/',
-            account: '/my-account/'
-        };
-        
-        return routes[intentType] || null;
-    }
-
-    /**
-     * Show navigation offer to user
-     */
-    function showNavigationOffer(intentType, keyword) {
-        const targetUrl = getTargetUrl(intentType);
-        
-        if (!targetUrl) {
-            return;
-        }
-        
-        const offerHtml = `
-            <div class="tabesh-ai-navigation-offer">
-                <p>میخواهید به صفحه <strong>${keyword}</strong> بروید؟</p>
-                <div class="tabesh-ai-offer-buttons">
-                    <button class="tabesh-ai-btn-primary nav-btn-go" data-url="${targetUrl}">
-                        بله، ببرم 🚀
-                    </button>
-                    <button class="tabesh-ai-btn-secondary nav-btn-tour" data-url="${targetUrl}">
-                        اول نشونم بده 👆
-                    </button>
-                    <button class="tabesh-ai-btn-tertiary nav-btn-dismiss">
-                        نه، ممنون
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        const $messages = $('#tabesh-ai-browser-messages');
-        $messages.append(offerHtml);
-        scrollToBottom();
-        
-        // Attach event listeners
-        $('.nav-btn-go').off('click').on('click', function() {
-            const url = $(this).data('url');
-            navigateToPage(url);
-        });
-        
-        $('.nav-btn-tour').off('click').on('click', function() {
-            const url = $(this).data('url');
-            startTourGuide(url);
-        });
-        
-        $('.nav-btn-dismiss').off('click').on('click', function() {
-            $(this).closest('.tabesh-ai-navigation-offer').fadeOut();
-        });
-    }
-
-    /**
-     * Navigate to target page
-     */
-    function navigateToPage(url) {
-        addMessage('در حال انتقال... ⏳', 'bot');
-        
-        setTimeout(function() {
-            window.location.href = url;
-        }, 500);
-    }
-
-    /**
-     * Start tour guide for target page
-     */
-    function startTourGuide(targetUrl) {
-        const currentPath = window.location.pathname;
-        
-        // Check if we're already on the target page
-        if (currentPath.includes(targetUrl) || window.location.href.includes(targetUrl)) {
-            addMessage('راهنمای این صفحه را برایتان نشان می‌دهم! 👇', 'bot');
-            closeSidebar();
-            
-            setTimeout(function() {
-                highlightOrderForm();
-            }, 500);
-        } else {
-            // Navigate to page and show tour after load
-            addMessage('ابتدا شما را به صفحه مورد نظر می‌برم...', 'bot');
-            sessionStorage.setItem('tabesh_show_tour', targetUrl);
-            
-            setTimeout(function() {
-                window.location.href = targetUrl;
-            }, 1000);
-        }
-    }
-
-    /**
-     * Highlight form or element on page
-     */
-    function highlightOrderForm() {
-        // Try to find order form or main content area
-        const form = document.querySelector('.tabesh-order-form, #order-form, [data-tabesh-form], .woocommerce-form, form.checkout');
-        
-        if (!form) {
-            console.warn('Form not found for highlighting');
-            return;
-        }
-        
-        // Scroll to form
-        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Create highlight overlay
-        const highlight = document.createElement('div');
-        highlight.className = 'tabesh-ai-highlight-overlay';
-        
-        const rect = form.getBoundingClientRect();
-        highlight.style.cssText = `
-            position: fixed;
-            top: ${rect.top - 20}px;
-            left: ${rect.left - 20}px;
-            width: ${rect.width + 40}px;
-            height: ${rect.height + 40}px;
-            pointer-events: none;
-            z-index: 999998;
-        `;
-        
-        highlight.innerHTML = `
-            <div class="tabesh-ai-spotlight"></div>
-            <div class="tabesh-ai-arrow" style="top: -60px; left: 50%; transform: translateX(-50%);">👆</div>
-            <div class="tabesh-ai-tooltip" style="top: -140px; left: 50%; transform: translateX(-50%);">
-                اینجا میتونید سفارش ثبت کنید!
-                <br>
-                <small>روی فیلدها کلیک کنید تا راهنمایی بگیرید</small>
-            </div>
-        `;
-        
-        document.body.appendChild(highlight);
-        
-        // Add pulse animation to form
-        form.classList.add('tabesh-ai-pulse-highlight');
-        
-        // Remove highlight after 8 seconds
-        setTimeout(function() {
-            highlight.remove();
-            form.classList.remove('tabesh-ai-pulse-highlight');
-        }, 8000);
-        
-        // Or remove on click
-        document.addEventListener('click', function removeHighlight(e) {
-            if (!highlight.contains(e.target)) {
-                highlight.remove();
-                form.classList.remove('tabesh-ai-pulse-highlight');
-                document.removeEventListener('click', removeHighlight);
-            }
-        });
-    }
-
-    /**
-     * Check for pending tour on page load
-     */
-    function checkPendingTour() {
-        const pendingTour = sessionStorage.getItem('tabesh_show_tour');
-        if (pendingTour) {
-            sessionStorage.removeItem('tabesh_show_tour');
-            
-            // Show tour after a brief delay
-            setTimeout(function() {
-                highlightOrderForm();
-            }, 1000);
-        }
-    }
-
-    /**
      * Send user message
      */
     function sendMessage() {
@@ -766,9 +549,6 @@
         // Clear input
         $input.val('');
         autoResizeTextarea($input[0]);
-
-        // Detect navigation intent
-        const intent = detectNavigationIntent(message);
 
         // Show typing indicator
         showTyping();
@@ -793,11 +573,6 @@
                 
                 if (response.success && response.message) {
                     addMessage(response.message, 'bot');
-                    
-                    // Show navigation offer if intent detected
-                    if (intent.detected) {
-                        showNavigationOffer(intent.intentType, intent.keyword);
-                    }
                 } else {
                     addMessage(tabeshAIBrowser.strings.error, 'bot');
                 }
@@ -1086,9 +861,6 @@
     $(document).ready(function() {
         if ($('#tabesh-ai-browser-sidebar').length) {
             initAIBrowser();
-            
-            // Check for pending tour guide
-            checkPendingTour();
         }
     });
 
