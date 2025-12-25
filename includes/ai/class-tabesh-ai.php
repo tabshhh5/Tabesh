@@ -107,17 +107,6 @@ class Tabesh_AI {
 				),
 			)
 		);
-
-		// Manual site indexing endpoint.
-		register_rest_route(
-			TABESH_REST_NAMESPACE,
-			'/ai/index-site',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'rest_index_site' ),
-				'permission_callback' => array( $this, 'check_admin_permission' ),
-			)
-		);
 	}
 
 	/**
@@ -435,68 +424,5 @@ class Tabesh_AI {
 
 		// Filter based on permissions.
 		return Tabesh_AI_Permissions::filter_data( $sanitized );
-	}
-
-	/**
-	 * Check admin permission for REST API
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return bool|WP_Error True if user has permission, WP_Error otherwise.
-	 */
-	public function check_admin_permission( $request ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return new WP_Error(
-				'no_permission',
-				__( 'شما دسترسی به این عملیات ندارید', 'tabesh' ),
-				array( 'status' => 403 )
-			);
-		}
-
-		// Verify nonce.
-		$nonce = $request->get_header( 'X-WP-Nonce' );
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-			return new WP_Error(
-				'invalid_nonce',
-				__( 'کد امنیتی نامعتبر است', 'tabesh' ),
-				array( 'status' => 403 )
-			);
-		}
-
-		return true;
-	}
-
-	/**
-	 * REST API: Manual site indexing endpoint
-	 *
-	 * @param WP_REST_Request $request Request object (unused but required by REST API).
-	 * @return WP_REST_Response|WP_Error Response or error.
-	 */
-	public function rest_index_site( $request ) {
-		// Suppress unused parameter warning - required by REST API signature.
-		unset( $request );
-
-		$indexer = new Tabesh_AI_Site_Indexer();
-		$result  = $indexer->index_wordpress_content();
-
-		if ( $result['success'] ) {
-			return rest_ensure_response(
-				array(
-					'success' => true,
-					'message' => sprintf(
-						/* translators: 1: number of indexed pages, 2: number of failed pages, 3: total pages */
-						__( 'ایندکس کردن تکمیل شد: %1$d صفحه موفق، %2$d صفحه ناموفق از %3$d صفحه کل', 'tabesh' ),
-						$result['indexed'],
-						$result['failed'],
-						$result['total']
-					),
-					'data'    => $result,
-				)
-			);
-		} else {
-			return new WP_Error(
-				'indexing_failed',
-				__( 'خطا در ایندکس کردن صفحات', 'tabesh' )
-			);
-		}
 	}
 }

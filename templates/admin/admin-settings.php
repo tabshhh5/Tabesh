@@ -1373,106 +1373,40 @@ $admin = $tabesh->admin;
                         </td>
                     </tr>
 
-                    <!-- Auto-indexing Section -->
                     <tr>
-                        <th colspan="2" style="padding-top: 30px;">
-                            <h3 style="margin: 0;">🗺️ ایندکس خودکار صفحات</h3>
-                        </th>
-                    </tr>
-
-                    <tr>
-                        <th><label>ایندکس کردن صفحات سایت</label></th>
+                        <th><label>مسیرهای پیشنهادی</label></th>
                         <td>
-                            <div class="notice notice-info inline" style="margin: 0 0 15px 0;">
-                                <p><strong>💡 توضیح:</strong> سیستم هوش مصنوعی به صورت خودکار تمام صفحات، برگه‌ها و مقالات سایت را ایندکس کرده و به کاربران پیشنهاد می‌دهد.</p>
-                                <p><strong>✨ قابلیت‌ها:</strong></p>
-                                <ul style="margin: 5px 0 5px 20px;">
-                                    <li>ایندکس خودکار تمام صفحات، برگه‌ها و مقالات منتشر شده</li>
-                                    <li>تشخیص خودکار نوع صفحه بر اساس عنوان و نامک</li>
-                                    <li>به‌روزرسانی خودکار روزانه از طریق Cron Job</li>
-                                    <li>ارائه لیست صفحات به هوش مصنوعی برای پیشنهاد به کاربران</li>
-                                </ul>
-                            </div>
+                            <p class="description" style="margin-bottom: 10px;">مسیرهای صفحات برای هر نوع کاربر:</p>
+                            
+                            <label style="display: block; margin-bottom: 8px;">
+                                <strong>خریدار:</strong>
+                                <input type="text" name="ai_route_buyer" 
+                                    value="<?php echo esc_attr(get_option('tabesh_ai_route_buyer', home_url('/order-form/'))); ?>" 
+                                    class="regular-text" placeholder="/order-form/">
+                            </label>
 
-                            <p>
-                                <button type="button" id="btn-index-site-pages" class="button button-primary">
-                                    <span class="dashicons dashicons-update"></span> ایندکس کردن همه صفحات اکنون
-                                </button>
-                                <span id="indexing-status" style="margin-right: 10px; display: none;"></span>
-                            </p>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <strong>نویسنده:</strong>
+                                <input type="text" name="ai_route_author" 
+                                    value="<?php echo esc_attr(get_option('tabesh_ai_route_author', home_url('/author-services/'))); ?>" 
+                                    class="regular-text" placeholder="/author-services/">
+                            </label>
 
-                            <?php
-                            // Get indexed pages count
-                            $indexer = new Tabesh_AI_Site_Indexer();
-                            $all_pages = $indexer->get_all_pages(100);
-                            $pages_count = count($all_pages);
-                            ?>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <strong>ناشر:</strong>
+                                <input type="text" name="ai_route_publisher" 
+                                    value="<?php echo esc_attr(get_option('tabesh_ai_route_publisher', home_url('/publisher-services/'))); ?>" 
+                                    class="regular-text" placeholder="/publisher-services/">
+                            </label>
 
-                            <p class="description">
-                                <strong>تعداد صفحات ایندکس شده:</strong> <?php echo esc_html($pages_count); ?> صفحه
-                            </p>
+                            <label style="display: block; margin-bottom: 8px;">
+                                <strong>چاپخانه:</strong>
+                                <input type="text" name="ai_route_printer" 
+                                    value="<?php echo esc_attr(get_option('tabesh_ai_route_printer', home_url('/printer-services/'))); ?>" 
+                                    class="regular-text" placeholder="/printer-services/">
+                            </label>
 
-                            <?php if ($pages_count > 0) : ?>
-                                <details style="margin-top: 10px;">
-                                    <summary style="cursor: pointer; font-weight: bold;">نمایش صفحات ایندکس شده (<?php echo esc_html($pages_count); ?> صفحه)</summary>
-                                    <div style="max-height: 300px; overflow-y: auto; margin-top: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #ddd;">
-                                        <table class="widefat">
-                                            <thead>
-                                                <tr>
-                                                    <th>عنوان صفحه</th>
-                                                    <th>نوع</th>
-                                                    <th>آدرس</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($all_pages as $page) : ?>
-                                                    <tr>
-                                                        <td><?php echo esc_html($page['page_title']); ?></td>
-                                                        <td><?php echo esc_html($page['page_type']); ?></td>
-                                                        <td><a href="<?php echo esc_url($page['page_url']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($page['page_url']); ?></a></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </details>
-                            <?php endif; ?>
-
-                            <script>
-                            jQuery(document).ready(function($) {
-                                $('#btn-index-site-pages').on('click', function() {
-                                    var $btn = $(this);
-                                    var $status = $('#indexing-status');
-                                    
-                                    $btn.prop('disabled', true);
-                                    $status.show().html('<span class="spinner is-active" style="float: none; margin: 0;"></span> در حال ایندکس کردن صفحات...');
-                                    
-                                    $.ajax({
-                                        url: '<?php echo esc_url(rest_url('tabesh/v1/ai/index-site')); ?>',
-                                        method: 'POST',
-                                        beforeSend: function(xhr) {
-                                            xhr.setRequestHeader('X-WP-Nonce', '<?php echo esc_js(wp_create_nonce('wp_rest')); ?>');
-                                        },
-                                        success: function(response) {
-                                            if (response.success) {
-                                                $status.html('<span class="dashicons dashicons-yes" style="color: #46b450;"></span> ' + response.message);
-                                                setTimeout(function() {
-                                                    location.reload();
-                                                }, 2000);
-                                            } else {
-                                                $status.html('<span class="dashicons dashicons-no" style="color: #dc3232;"></span> خطا: ' + response.message);
-                                            }
-                                        },
-                                        error: function() {
-                                            $status.html('<span class="dashicons dashicons-no" style="color: #dc3232;"></span> خطا در ایندکس کردن');
-                                        },
-                                        complete: function() {
-                                            $btn.prop('disabled', false);
-                                        }
-                                    });
-                                });
-                            });
-                            </script>
+                            <p class="description">کاربران پس از انتخاب حرفه، به این صفحات هدایت می‌شوند.</p>
                         </td>
                     </tr>
 
@@ -1483,6 +1417,87 @@ $admin = $tabesh->admin;
                                 value="<?php echo esc_attr(get_option('tabesh_ai_guest_data_retention', 90)); ?>" 
                                 class="small-text" min="7" max="365">
                             <p class="description">داده‌های کاربران مهمان بعد از این مدت حذف می‌شود.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Navigation Routes for Intent Detection -->
+                    <tr>
+                        <th colspan="2" style="padding-top: 30px;">
+                            <h3 style="margin: 0;">🗺️ مسیرهای هدایت هوشمند</h3>
+                        </th>
+                    </tr>
+
+                    <tr>
+                        <th><label>مسیرهای صفحات</label></th>
+                        <td>
+                            <div class="notice notice-info inline" style="margin: 0 0 15px 0;">
+                                <p><strong>💡 توضیح:</strong> وقتی کاربر درخواست هدایت می‌کند (مثل "میخوام سفارش ثبت کنم")، به این آدرس‌ها هدایت می‌شود.</p>
+                            </div>
+
+                            <table class="widefat" style="margin-top: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">صفحه</th>
+                                        <th>آدرس URL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><label for="ai_nav_route_order_form"><strong>صفحه ثبت سفارش</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_order_form" name="ai_nav_route_order_form" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_order_form', '/order-form/')); ?>" 
+                                                class="regular-text" placeholder="/order-form/">
+                                            <p class="description">کلمات کلیدی: سفارش، ثبت سفارش، چاپ کتاب</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="ai_nav_route_pricing"><strong>صفحه قیمت‌ها</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_pricing" name="ai_nav_route_pricing" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_pricing', '/pricing/')); ?>" 
+                                                class="regular-text" placeholder="/pricing/">
+                                            <p class="description">کلمات کلیدی: قیمت، تعرفه</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="ai_nav_route_contact"><strong>صفحه تماس</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_contact" name="ai_nav_route_contact" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_contact', '/contact/')); ?>" 
+                                                class="regular-text" placeholder="/contact/">
+                                            <p class="description">کلمات کلیدی: تماس</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="ai_nav_route_help"><strong>صفحه راهنما</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_help" name="ai_nav_route_help" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_help', '/help/')); ?>" 
+                                                class="regular-text" placeholder="/help/">
+                                            <p class="description">کلمات کلیدی: راهنما، کمک</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="ai_nav_route_cart"><strong>سبد خرید</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_cart" name="ai_nav_route_cart" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_cart', '/cart/')); ?>" 
+                                                class="regular-text" placeholder="/cart/">
+                                            <p class="description">کلمات کلیدی: سبد خرید</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="ai_nav_route_account"><strong>حساب کاربری</strong></label></td>
+                                        <td>
+                                            <input type="text" id="ai_nav_route_account" name="ai_nav_route_account" 
+                                                value="<?php echo esc_attr(get_option('tabesh_ai_nav_route_account', '/my-account/')); ?>" 
+                                                class="regular-text" placeholder="/my-account/">
+                                            <p class="description">کلمات کلیدی: حساب کاربری، حساب</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </td>
                     </tr>
                 </table>
