@@ -118,6 +118,15 @@ class Tabesh_Admin {
             'tabesh-settings',
             array($this, 'render_settings')
         );
+
+        add_submenu_page(
+            'tabesh',
+            __('تنظیمات هوش مصنوعی', 'tabesh'),
+            __('🤖 هوش مصنوعی', 'tabesh'),
+            'manage_woocommerce',
+            'tabesh-ai-settings',
+            array($this, 'render_ai_settings')
+        );
     }
 
     /**
@@ -205,6 +214,110 @@ class Tabesh_Admin {
         }
 
         include TABESH_PLUGIN_DIR . 'templates/admin/admin-settings.php';
+    }
+
+    /**
+     * Render AI settings page
+     */
+    public function render_ai_settings() {
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die(__('شما اجازه دسترسی به این صفحه را ندارید.', 'tabesh'));
+        }
+
+        // Handle form submission
+        if (isset($_POST['tabesh_save_ai_settings']) && check_admin_referer('tabesh_ai_settings')) {
+            $this->save_ai_settings($_POST);
+            echo '<div class="notice notice-success"><p>' . __('تنظیمات هوش مصنوعی با موفقیت ذخیره شد.', 'tabesh') . '</p></div>';
+        }
+
+        include TABESH_PLUGIN_DIR . 'templates/admin/admin-ai-settings.php';
+    }
+
+    /**
+     * Save AI settings
+     *
+     * @param array $post_data
+     */
+    private function save_ai_settings($post_data) {
+        // AI enabled/disabled
+        Tabesh_AI_Config::set('enabled', isset($post_data['ai_enabled']) ? true : false);
+        
+        // AI mode
+        if (isset($post_data['ai_mode'])) {
+            $mode = sanitize_text_field($post_data['ai_mode']);
+            if (in_array($mode, array('direct', 'server', 'client'), true)) {
+                Tabesh_AI_Config::set('mode', $mode);
+            }
+        }
+        
+        // Gemini API settings
+        if (isset($post_data['ai_gemini_api_key'])) {
+            Tabesh_AI_Config::set('gemini_api_key', sanitize_text_field($post_data['ai_gemini_api_key']));
+        }
+        if (isset($post_data['ai_gemini_model'])) {
+            Tabesh_AI_Config::set('gemini_model', sanitize_text_field($post_data['ai_gemini_model']));
+        }
+        
+        // Server mode settings
+        if (isset($post_data['ai_server_api_key'])) {
+            Tabesh_AI_Config::set('server_api_key', sanitize_text_field($post_data['ai_server_api_key']));
+        }
+        
+        // Client mode settings
+        if (isset($post_data['ai_server_url'])) {
+            Tabesh_AI_Config::set('server_url', esc_url_raw($post_data['ai_server_url']));
+        }
+        if (isset($post_data['ai_client_api_key'])) {
+            Tabesh_AI_Config::set('client_api_key', sanitize_text_field($post_data['ai_client_api_key']));
+        }
+        
+        // Allowed roles - validate against existing WordPress roles
+        if (isset($post_data['ai_allowed_roles']) && is_array($post_data['ai_allowed_roles'])) {
+            $wp_roles = wp_roles()->get_names();
+            $valid_role_keys = array_keys($wp_roles);
+            $allowed_roles = array();
+            
+            foreach ($post_data['ai_allowed_roles'] as $role) {
+                $sanitized_role = sanitize_text_field($role);
+                // Only add if role exists in WordPress
+                if (in_array($sanitized_role, $valid_role_keys, true)) {
+                    $allowed_roles[] = $sanitized_role;
+                }
+            }
+            
+            Tabesh_AI_Config::set('allowed_roles', $allowed_roles);
+        } else {
+            Tabesh_AI_Config::set('allowed_roles', array());
+        }
+        
+        // Data access settings
+        Tabesh_AI_Config::set('access_orders', isset($post_data['ai_access_orders']) ? true : false);
+        Tabesh_AI_Config::set('access_users', isset($post_data['ai_access_users']) ? true : false);
+        Tabesh_AI_Config::set('access_pricing', isset($post_data['ai_access_pricing']) ? true : false);
+        Tabesh_AI_Config::set('access_woocommerce', isset($post_data['ai_access_woocommerce']) ? true : false);
+        
+        // Advanced settings
+        if (isset($post_data['ai_max_tokens'])) {
+            $max_tokens = intval($post_data['ai_max_tokens']);
+            $max_tokens = max(100, min(8192, $max_tokens));
+            Tabesh_AI_Config::set('max_tokens', $max_tokens);
+        }
+        if (isset($post_data['ai_temperature'])) {
+            $temperature = floatval($post_data['ai_temperature']);
+            $temperature = max(0, min(1, $temperature));
+            Tabesh_AI_Config::set('temperature', $temperature);
+        }
+        Tabesh_AI_Config::set('cache_enabled', isset($post_data['ai_cache_enabled']) ? true : false);
+        if (isset($post_data['ai_cache_ttl'])) {
+            $cache_ttl = intval($post_data['ai_cache_ttl']);
+            $cache_ttl = max(60, min(86400, $cache_ttl));
+            Tabesh_AI_Config::set('cache_ttl', $cache_ttl);
+        }
+        
+        // UI settings (stored in wp_options for easier access)
+        update_option('tabesh_ai_browser_enabled', isset($post_data['ai_browser_enabled']) ? true : false);
+        update_option('tabesh_ai_tracking_enabled', isset($post_data['ai_tracking_enabled']) ? true : false);
+        update_option('tabesh_ai_field_explainer_enabled', isset($post_data['ai_field_explainer_enabled']) ? true : false);
     }
 
     /**

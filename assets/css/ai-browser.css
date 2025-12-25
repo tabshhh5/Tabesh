@@ -1,35 +1,88 @@
 /**
- * AI Browser Sidebar Styles
+ * AI Browser Sidebar Styles - Modern Redesign
  *
- * Modern sidebar interface with smooth transitions and RTL support.
+ * Modern, minimal chatbot interface with:
+ * - Auto dark/light mode detection
+ * - Smooth animations with mouse tracking gradients
+ * - Desktop: 30% sidebar with 70% usable website
+ * - Mobile: 70% chatbot coverage
+ * - Vertical minimize/close controls
+ * - Unread message notifications with pulsing badge
  *
  * @package Tabesh
  */
 
-/* Floating Toggle Button */
+/* ========================================
+   CSS Variables for Light/Dark Mode
+   ======================================== */
+:root {
+	/* Light Mode (Default) */
+	--ai-bg-primary: #ffffff;
+	--ai-bg-secondary: #f8fafc;
+	--ai-bg-hover: #f1f5f9;
+	--ai-text-primary: #1e293b;
+	--ai-text-secondary: #64748b;
+	--ai-text-muted: #94a3b8;
+	--ai-border: #e2e8f0;
+	--ai-border-light: #f1f5f9;
+	--ai-accent: #667eea;
+	--ai-accent-hover: #5a67d8;
+	--ai-gradient-start: #667eea;
+	--ai-gradient-end: #764ba2;
+	--ai-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+	--ai-shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.12);
+	--ai-overlay: rgba(0, 0, 0, 0.3);
+	--ai-sidebar-width: 30vw;
+	--ai-sidebar-min-width: 340px;
+	--ai-sidebar-max-width: 450px;
+}
+
+/* Dark Mode Detection */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--ai-bg-primary: #1a1a2e;
+		--ai-bg-secondary: #16213e;
+		--ai-bg-hover: #1f2937;
+		--ai-text-primary: #f1f5f9;
+		--ai-text-secondary: #cbd5e1;
+		--ai-text-muted: #94a3b8;
+		--ai-border: #334155;
+		--ai-border-light: #1e293b;
+		--ai-accent: #818cf8;
+		--ai-accent-hover: #a5b4fc;
+		--ai-gradient-start: #6366f1;
+		--ai-gradient-end: #8b5cf6;
+		--ai-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+		--ai-shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.4);
+		--ai-overlay: rgba(0, 0, 0, 0.6);
+	}
+}
+
+/* ========================================
+   Hidden Toggle Button (icon shown inside)
+   ======================================== */
 .tabesh-ai-browser-toggle {
 	position: fixed;
-	bottom: 20px;
-	right: 20px;
-	width: 64px;
-	height: 64px;
+	bottom: 24px;
+	right: 24px;
+	width: 60px;
+	height: 60px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	border: none;
-	box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+	box-shadow: var(--ai-shadow-medium), 0 0 20px rgba(102, 126, 234, 0.3);
 	cursor: pointer;
-	z-index: 9998;
+	z-index: 99997;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: #fff;
-	animation: pulse-button 2s infinite;
 }
 
 .tabesh-ai-browser-toggle:hover {
-	transform: scale(1.1);
-	box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+	transform: scale(1.08) translateY(-2px);
+	box-shadow: var(--ai-shadow-medium), 0 0 30px rgba(102, 126, 234, 0.5);
 }
 
 .tabesh-ai-browser-toggle:active {
@@ -37,76 +90,94 @@
 }
 
 .tabesh-ai-browser-toggle svg {
-	width: 32px;
-	height: 32px;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+	width: 28px;
+	height: 28px;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-@keyframes pulse-button {
-	0%, 100% {
-		box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-	}
-	50% {
-		box-shadow: 0 8px 32px rgba(102, 126, 234, 0.6);
-	}
+/* Hide toggle when chatbot is open */
+body.ai-browser-open .tabesh-ai-browser-toggle,
+body.ai-browser-minimized .tabesh-ai-browser-toggle {
+	display: none;
 }
 
+/* Notification Badge - Pulsing Animation */
 .tabesh-ai-browser-notification-badge {
 	position: absolute;
-	top: -2px;
-	left: -2px;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	background: #ff4757;
-	border: 3px solid #fff;
-	font-size: 11px;
-	font-weight: bold;
+	top: -4px;
+	left: -4px;
+	min-width: 22px;
+	height: 22px;
+	padding: 0 6px;
+	border-radius: 11px;
+	background: #ef4444;
+	border: 2px solid var(--ai-bg-primary);
+	font-size: 12px;
+	font-weight: 700;
 	color: #fff;
-	display: flex;
+	display: none;
 	align-items: center;
 	justify-content: center;
+	animation: badgePulse 2s ease-in-out infinite;
 }
 
-/* Overlay for mobile only */
+.tabesh-ai-browser-notification-badge.active {
+	display: flex;
+}
+
+@keyframes badgePulse {
+	0%, 100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+	}
+	50% {
+		transform: scale(1.1);
+		box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+	}
+}
+
+/* ========================================
+   Overlay (Mobile Only)
+   ======================================== */
 .tabesh-ai-browser-overlay {
 	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.5);
-	z-index: 9998;
+	inset: 0;
+	background: var(--ai-overlay);
+	z-index: 99998;
 	opacity: 0;
 	visibility: hidden;
 	transition: all 0.3s ease;
-	display: none; /* Hidden on desktop by default */
+	display: none;
+	backdrop-filter: blur(2px);
 }
 
-/* Show overlay only on mobile */
 @media screen and (max-width: 768px) {
 	.tabesh-ai-browser-overlay {
 		display: block;
 	}
-	
+
 	.tabesh-ai-browser-overlay.active {
 		opacity: 1;
 		visibility: visible;
 	}
 }
 
-/* Sidebar Container */
+/* ========================================
+   Main Sidebar Container
+   ======================================== */
 .tabesh-ai-browser-sidebar {
 	position: fixed;
 	top: 0;
 	right: 0;
-	width: 400px;
+	width: var(--ai-sidebar-width);
+	min-width: var(--ai-sidebar-min-width);
+	max-width: var(--ai-sidebar-max-width);
 	height: 100vh;
-	background: #fff;
-	box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-	z-index: 9999;
+	background: var(--ai-bg-primary);
+	box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+	z-index: 99999;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	transform: translateX(100%);
 	transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -115,150 +186,86 @@
 	transform: translateX(0);
 }
 
-/* Push content to left when sidebar is open - DESKTOP ONLY */
-@media screen and (min-width: 769px) {
-	body.ai-browser-open {
-		margin-left: 400px;
-		transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-		overflow-x: hidden;
-	}
-}
-
-/* Header */
-.tabesh-ai-browser-header {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	padding: 20px;
+/* ========================================
+   Vertical Control Bar (Between Site & Chat)
+   ======================================== */
+.tabesh-ai-control-bar {
+	width: 40px;
+	min-width: 40px;
+	height: 100%;
+	background: linear-gradient(180deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	display: flex;
+	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 	gap: 12px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	flex-shrink: 0;
+	position: relative;
 }
 
-.tabesh-ai-browser-avatar {
-	width: 48px;
-	height: 48px;
-	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.2);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	color: #fff;
+.tabesh-ai-control-bar::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 100%;
+	width: 1px;
+	background: rgba(255, 255, 255, 0.1);
 }
 
-.tabesh-ai-browser-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.tabesh-ai-browser-info h3 {
-	margin: 0;
-	font-size: 18px;
-	font-weight: 600;
-	color: #fff;
-	line-height: 1.3;
-}
-
-.tabesh-ai-browser-status {
-	margin: 4px 0 0;
-	font-size: 13px;
-	color: rgba(255, 255, 255, 0.9);
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.status-dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: #4ade80;
-	animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-	0%, 100% {
-		opacity: 1;
-	}
-	50% {
-		opacity: 0.5;
-	}
-}
-
-.tabesh-ai-browser-close {
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.2);
+.tabesh-ai-control-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.15);
 	border: none;
 	color: #fff;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: all 0.2s;
-	flex-shrink: 0;
+	transition: all 0.2s ease;
 }
 
-.tabesh-ai-browser-close:hover {
-	background: rgba(255, 255, 255, 0.3);
-	transform: rotate(90deg);
-}
-
-.tabesh-ai-browser-minimize {
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.2);
-	border: none;
-	color: #fff;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: all 0.2s;
-	flex-shrink: 0;
-	margin-left: 8px;
-}
-
-.tabesh-ai-browser-minimize:hover {
-	background: rgba(255, 255, 255, 0.3);
+.tabesh-ai-control-btn:hover {
+	background: rgba(255, 255, 255, 0.25);
 	transform: scale(1.1);
 }
 
-/* Minimized state */
-.tabesh-ai-browser-sidebar.minimized {
-	height: 80px;
-	width: 350px;
-	bottom: 20px;
-	right: 20px;
-	top: auto;
-	border-radius: 16px;
-	overflow: hidden;
+.tabesh-ai-control-btn svg {
+	width: 18px;
+	height: 18px;
 }
 
-.tabesh-ai-browser-sidebar.minimized .tabesh-ai-browser-messages,
-.tabesh-ai-browser-sidebar.minimized .tabesh-ai-browser-typing,
-.tabesh-ai-browser-sidebar.minimized .tabesh-ai-browser-input-wrapper {
-	display: none;
+/* Minimize button (dash) */
+.tabesh-ai-btn-minimize {
+	order: 1;
 }
 
-.tabesh-ai-browser-sidebar.minimized .tabesh-ai-browser-header {
-	cursor: pointer;
-	border-radius: 16px;
+/* Close button (X) */
+.tabesh-ai-btn-close {
+	order: 2;
 }
 
-.tabesh-ai-browser-sidebar.minimized .tabesh-ai-browser-header:hover {
-	background: linear-gradient(135deg, #7689f1 0%, #8557ac 100%);
+/* ========================================
+   Chat Container (Right Side)
+   ======================================== */
+.tabesh-ai-chat-container {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--ai-bg-primary);
 }
 
-/* Messages Container */
+/* ========================================
+   Messages Area
+   ======================================== */
 .tabesh-ai-browser-messages {
 	flex: 1;
 	overflow-y: auto;
 	padding: 20px;
-	background: #f8fafc;
+	background: var(--ai-bg-secondary);
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -268,14 +275,14 @@
 .ai-message {
 	display: flex;
 	flex-direction: column;
-	max-width: 85%;
-	animation: slideInMessage 0.3s ease;
+	max-width: 90%;
+	animation: messageSlideIn 0.3s ease;
 }
 
-@keyframes slideInMessage {
+@keyframes messageSlideIn {
 	from {
 		opacity: 0;
-		transform: translateY(10px);
+		transform: translateY(12px);
 	}
 	to {
 		opacity: 1;
@@ -293,36 +300,32 @@
 
 .message-bubble {
 	padding: 12px 16px;
-	border-radius: 16px;
+	border-radius: 18px;
 	word-wrap: break-word;
-	line-height: 1.5;
+	line-height: 1.6;
 	font-size: 14px;
 }
 
 .ai-message.bot .message-bubble {
-	background: #fff;
-	color: #1e293b;
-	border: 1px solid #e2e8f0;
+	background: var(--ai-bg-primary);
+	color: var(--ai-text-primary);
+	border: 1px solid var(--ai-border);
 	border-bottom-right-radius: 4px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	box-shadow: var(--ai-shadow-soft);
 }
 
 .ai-message.user .message-bubble {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	color: #fff;
 	border-bottom-left-radius: 4px;
-	box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .message-time {
 	font-size: 11px;
-	color: #94a3b8;
+	color: var(--ai-text-muted);
 	margin-top: 4px;
 	padding: 0 8px;
-}
-
-.ai-message.user .message-time {
-	text-align: left;
 }
 
 /* Action Buttons in Messages */
@@ -335,33 +338,39 @@
 
 .message-action-btn {
 	padding: 8px 16px;
-	border: 2px solid #667eea;
+	border: 2px solid var(--ai-accent);
 	border-radius: 20px;
 	background: transparent;
-	color: #667eea;
+	color: var(--ai-accent);
 	font-size: 13px;
 	font-weight: 500;
 	cursor: pointer;
-	transition: all 0.2s;
+	transition: all 0.2s ease;
 	white-space: nowrap;
 }
 
 .message-action-btn:hover {
-	background: #667eea;
+	background: var(--ai-accent);
 	color: #fff;
 	transform: translateY(-1px);
-	box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Typing Indicator */
+/* ========================================
+   Typing Indicator
+   ======================================== */
 .tabesh-ai-browser-typing {
 	padding: 16px 20px;
-	display: flex;
+	display: none;
 	align-items: center;
 	gap: 12px;
-	background: #f8fafc;
-	border-top: 1px solid #e2e8f0;
+	background: var(--ai-bg-secondary);
+	border-top: 1px solid var(--ai-border);
 	flex-shrink: 0;
+}
+
+.tabesh-ai-browser-typing.active {
+	display: flex;
 }
 
 .typing-dots {
@@ -373,69 +382,79 @@
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
-	background: #667eea;
-	animation: bounce 1.4s infinite;
+	background: var(--ai-accent);
+	animation: typingBounce 1.4s infinite;
 }
 
 .typing-dots span:nth-child(2) {
-	animation-delay: 0.2s;
+	animation-delay: 0.16s;
 }
 
 .typing-dots span:nth-child(3) {
-	animation-delay: 0.4s;
+	animation-delay: 0.32s;
 }
 
-@keyframes bounce {
-	0%, 60%, 100% {
-		transform: translateY(0);
-	}
-	30% {
-		transform: translateY(-8px);
-	}
+@keyframes typingBounce {
+	0%, 60%, 100% { transform: translateY(0); }
+	30% { transform: translateY(-6px); }
 }
 
 .typing-text {
 	font-size: 13px;
-	color: #64748b;
-	font-style: italic;
+	color: var(--ai-text-muted);
 }
 
-/* Input Area */
+/* ========================================
+   Input Area
+   ======================================== */
 .tabesh-ai-browser-input-wrapper {
-	border-top: 1px solid #e2e8f0;
-	background: #fff;
+	border-top: 1px solid var(--ai-border);
+	background: var(--ai-bg-primary);
 	flex-shrink: 0;
 }
 
-/* Quick Actions */
 .tabesh-ai-browser-quick-actions {
-	padding: 12px 16px;
+	padding: 10px 16px;
 	display: flex;
 	gap: 8px;
 	overflow-x: auto;
-	border-bottom: 1px solid #e2e8f0;
+	border-bottom: 1px solid var(--ai-border-light);
+	scrollbar-width: thin;
+	scrollbar-color: var(--ai-border) transparent;
+}
+
+.tabesh-ai-browser-quick-actions::-webkit-scrollbar {
+	height: 4px;
+}
+
+.tabesh-ai-browser-quick-actions::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.tabesh-ai-browser-quick-actions::-webkit-scrollbar-thumb {
+	background: var(--ai-border);
+	border-radius: 2px;
 }
 
 .quick-action-btn {
-	padding: 8px 16px;
-	border: 1px solid #e2e8f0;
-	border-radius: 20px;
-	background: #fff;
-	color: #64748b;
-	font-size: 13px;
+	padding: 6px 14px;
+	border: 1px solid var(--ai-border);
+	border-radius: 16px;
+	background: var(--ai-bg-primary);
+	color: var(--ai-text-secondary);
+	font-size: 12px;
 	cursor: pointer;
 	white-space: nowrap;
-	transition: all 0.2s;
+	transition: all 0.2s ease;
 	flex-shrink: 0;
 }
 
 .quick-action-btn:hover {
-	border-color: #667eea;
-	color: #667eea;
-	background: #f1f5f9;
+	border-color: var(--ai-accent);
+	color: var(--ai-accent);
+	background: var(--ai-bg-hover);
 }
 
-/* Input Form */
 .tabesh-ai-browser-input-form {
 	padding: 16px;
 	display: flex;
@@ -445,46 +464,44 @@
 
 .tabesh-ai-browser-input {
 	flex: 1;
-	border: 2px solid #e2e8f0;
-	border-radius: 24px;
+	border: 2px solid var(--ai-border);
+	border-radius: 22px;
 	padding: 12px 16px;
 	font-family: inherit;
 	font-size: 14px;
 	resize: none;
-	max-height: 120px;
-	transition: border-color 0.2s;
+	max-height: 100px;
+	transition: all 0.2s ease;
 	line-height: 1.5;
-	background: #f8fafc;
+	background: var(--ai-bg-secondary);
+	color: var(--ai-text-primary);
 }
 
 .tabesh-ai-browser-input:focus {
 	outline: none;
-	border-color: #667eea;
-	background: #fff;
+	border-color: var(--ai-accent);
+	background: var(--ai-bg-primary);
+	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .tabesh-ai-browser-send {
 	width: 44px;
 	height: 44px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	border: none;
 	color: #fff;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: all 0.2s;
+	transition: all 0.2s ease;
 	flex-shrink: 0;
 }
 
 .tabesh-ai-browser-send:hover {
-	transform: scale(1.1);
+	transform: scale(1.08);
 	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.tabesh-ai-browser-send:active {
-	transform: scale(0.95);
 }
 
 .tabesh-ai-browser-send:disabled {
@@ -493,7 +510,164 @@
 	transform: none;
 }
 
-/* Scrollbar Styling */
+/* ========================================
+   Minimized State - Side Rail
+   ======================================== */
+.tabesh-ai-browser-sidebar.minimized {
+	width: 50px;
+	min-width: 50px;
+	max-width: 50px;
+}
+
+.tabesh-ai-browser-sidebar.minimized .tabesh-ai-chat-container {
+	display: none;
+}
+
+.tabesh-ai-browser-sidebar.minimized .tabesh-ai-control-bar {
+	width: 100%;
+}
+
+/* Minimized rail badge */
+.tabesh-ai-minimized-badge {
+	position: absolute;
+	top: 16px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: #ef4444;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	animation: badgePulse 2s ease-in-out infinite;
+}
+
+.tabesh-ai-browser-sidebar.minimized .tabesh-ai-minimized-badge.active {
+	display: flex;
+}
+
+/* AI Icon in minimized state */
+.tabesh-ai-minimized-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.2);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.tabesh-ai-minimized-icon:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: scale(1.1);
+}
+
+.tabesh-ai-minimized-icon svg {
+	width: 20px;
+	height: 20px;
+	color: #fff;
+}
+
+/* ========================================
+   Desktop - Push Content Layout
+   ======================================== */
+@media screen and (min-width: 769px) {
+	body.ai-browser-open {
+		margin-right: 0;
+		/* Use clamp for responsive padding with min/max constraints */
+		padding-left: clamp(340px, 30vw, 450px);
+		transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+		overflow-x: hidden;
+	}
+
+	body.ai-browser-minimized {
+		padding-left: 50px;
+		transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+/* ========================================
+   Mobile Layout - 70% from bottom
+   ======================================== */
+@media screen and (max-width: 768px) {
+	.tabesh-ai-browser-sidebar {
+		width: 100%;
+		min-width: 100%;
+		max-width: 100%;
+		height: 70vh;
+		top: auto;
+		bottom: 0;
+		right: 0;
+		left: 0;
+		border-radius: 24px 24px 0 0;
+		box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+		transform: translateY(100%);
+		flex-direction: column;
+	}
+
+	.tabesh-ai-browser-sidebar.active {
+		transform: translateY(0);
+	}
+
+	/* Control bar becomes horizontal on mobile */
+	.tabesh-ai-control-bar {
+		width: 100%;
+		height: 48px;
+		min-height: 48px;
+		flex-direction: row;
+		border-radius: 24px 24px 0 0;
+		order: -1;
+	}
+
+	.tabesh-ai-control-bar::after {
+		display: none;
+	}
+
+	.tabesh-ai-chat-container {
+		height: calc(100% - 48px);
+	}
+
+	body.ai-browser-open {
+		padding-left: 0;
+		overflow: hidden;
+	}
+
+	/* Toggle button position */
+	.tabesh-ai-browser-toggle {
+		bottom: 16px;
+		right: 16px;
+		width: 54px;
+		height: 54px;
+	}
+
+	/* Mobile minimized state - bottom bar */
+	.tabesh-ai-browser-sidebar.minimized {
+		width: 100%;
+		min-width: 100%;
+		max-width: 100%;
+		height: 60px;
+		border-radius: 0;
+		transform: translateY(0);
+	}
+
+	.tabesh-ai-browser-sidebar.minimized .tabesh-ai-control-bar {
+		height: 60px;
+		border-radius: 0;
+	}
+
+	body.ai-browser-minimized {
+		padding-left: 0;
+		padding-bottom: 60px;
+	}
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
 .tabesh-ai-browser-messages::-webkit-scrollbar {
 	width: 6px;
 }
@@ -503,345 +677,126 @@
 }
 
 .tabesh-ai-browser-messages::-webkit-scrollbar-thumb {
-	background: #cbd5e0;
+	background: var(--ai-border);
 	border-radius: 3px;
 }
 
 .tabesh-ai-browser-messages::-webkit-scrollbar-thumb:hover {
-	background: #a0aec0;
+	background: var(--ai-text-muted);
 }
 
-/* Mobile Responsive - Slide from bottom with 70% height */
-@media screen and (max-width: 768px) {
-	.tabesh-ai-browser-sidebar {
-		width: 100%;
-		height: 70vh;
-		top: auto;
-		bottom: 0;
-		right: 0;
-		left: 0;
-		border-radius: 24px 24px 0 0;
-		box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
-		transform: translateY(100%);
-		transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.tabesh-ai-browser-sidebar.active {
-		transform: translateY(0);
-	}
-
-	body.ai-browser-open {
-		margin-left: 0;
-		overflow: hidden;
-	}
-
-	.tabesh-ai-browser-toggle {
-		bottom: 16px;
-		right: 16px;
-		width: 56px;
-		height: 56px;
-	}
-
-	.tabesh-ai-browser-toggle svg {
-		width: 28px;
-		height: 28px;
-	}
-
-	.tabesh-ai-browser-header {
-		padding: 16px;
-	}
-
-	.tabesh-ai-browser-messages {
-		padding: 16px;
-	}
-
-	.ai-message {
-		max-width: 90%;
-	}
-}
-
-/* Tablet */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
-	.tabesh-ai-browser-sidebar {
-		width: 380px;
-		transform: translateX(100%);
-	}
-	
-	.tabesh-ai-browser-sidebar.active {
-		transform: translateX(0);
-	}
-
-	body.ai-browser-open {
-		margin-left: 380px;
-	}
-}
-
-/* Desktop Large */
-@media screen and (min-width: 1440px) {
-	.tabesh-ai-browser-sidebar {
-		width: 450px;
-		transform: translateX(100%);
-	}
-	
-	.tabesh-ai-browser-sidebar.active {
-		transform: translateX(0);
-	}
-
-	body.ai-browser-open {
-		margin-left: 450px;
-	}
-}
-
-/* RTL Support (already RTL by default, but ensure consistency) */
+/* ========================================
+   RTL Support
+   ======================================== */
 [dir="rtl"] .tabesh-ai-browser-toggle {
-	right: 20px;
+	right: 24px;
 	left: auto;
 }
 
 [dir="rtl"] .tabesh-ai-browser-sidebar {
 	right: 0;
 	left: auto;
-	transform: translateX(100%);
 }
 
-[dir="rtl"] .tabesh-ai-browser-sidebar.active {
-	transform: translateX(0);
+[dir="rtl"] .tabesh-ai-control-bar {
+	order: -1;
+}
+
+[dir="rtl"] .tabesh-ai-control-bar::after {
+	left: auto;
+	right: 0;
 }
 
 @media screen and (min-width: 769px) {
 	[dir="rtl"] body.ai-browser-open {
-		margin-left: 400px;
-		margin-right: 0;
+		padding-left: 0;
+		padding-right: min(max(30vw, 340px), 450px);
+	}
+
+	[dir="rtl"] body.ai-browser-minimized {
+		padding-left: 0;
+		padding-right: 50px;
 	}
 }
 
-/* Loading State */
+/* ========================================
+   Loading & Error States
+   ======================================== */
 .ai-browser-loading {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 20px;
-	color: #64748b;
+	color: var(--ai-text-muted);
 	font-size: 14px;
 }
 
 .ai-browser-loading::before {
 	content: "";
-	width: 20px;
-	height: 20px;
-	border: 2px solid #e2e8f0;
-	border-top-color: #667eea;
+	width: 18px;
+	height: 18px;
+	border: 2px solid var(--ai-border);
+	border-top-color: var(--ai-accent);
 	border-radius: 50%;
 	margin-left: 8px;
 	animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-	to {
-		transform: rotate(360deg);
-	}
+	to { transform: rotate(360deg); }
 }
 
-/* Error State */
 .ai-message.error .message-bubble {
-	background: #fee2e2;
-	border-color: #fca5a5;
+	background: #fef2f2;
+	border-color: #fecaca;
 	color: #991b1b;
 }
 
-/* Tour Guide Overlay */
-.tour-guide-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.7);
-	z-index: 99999;
-	pointer-events: none;
-}
-
-.tour-guide-highlight {
-	position: absolute;
-	border: 3px solid #667eea;
-	border-radius: 8px;
-	box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2),
-	            0 0 32px rgba(102, 126, 234, 0.4);
-	animation: pulse-highlight 2s infinite;
-	pointer-events: all;
-	background: rgba(255, 255, 255, 0.1);
-}
-
-/* Red flag highlight for confused users */
-.tour-guide-highlight.red-flag {
-	border-color: #ff4757;
-	animation: flash-red 1s infinite;
-}
-
-@keyframes flash-red {
-	0%, 100% {
-		box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.3),
-		            0 0 32px rgba(255, 71, 87, 0.5);
-		border-color: #ff4757;
-	}
-	50% {
-		box-shadow: 0 0 0 8px rgba(255, 71, 87, 0.5),
-		            0 0 48px rgba(255, 71, 87, 0.8);
-		border-color: #ff6b7a;
+@media (prefers-color-scheme: dark) {
+	.ai-message.error .message-bubble {
+		background: #450a0a;
+		border-color: #7f1d1d;
+		color: #fecaca;
 	}
 }
 
-@keyframes pulse-highlight {
-	0%, 100% {
-		box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2),
-		            0 0 32px rgba(102, 126, 234, 0.4);
-	}
-	50% {
-		box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.3),
-		            0 0 48px rgba(102, 126, 234, 0.6);
-	}
-}
-
-/* Animated spotlight effect */
-.tour-guide-spotlight {
-	position: absolute;
-	pointer-events: none;
-	z-index: 100003;
-	animation: spotlight-pulse 2s infinite;
-}
-
-.tour-guide-spotlight::before {
-	content: "";
-	position: absolute;
-	top: -50%;
-	left: -50%;
-	width: 200%;
-	height: 200%;
-	background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
-	animation: rotate-spotlight 4s linear infinite;
-}
-
-@keyframes spotlight-pulse {
-	0%, 100% {
-		opacity: 0.7;
-		transform: scale(1);
-	}
-	50% {
-		opacity: 1;
-		transform: scale(1.1);
-	}
-}
-
-@keyframes rotate-spotlight {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
-}
-
-.tour-guide-arrow {
-	position: absolute;
-	width: 0;
-	height: 0;
-	border: 20px solid transparent;
-}
-
-.tour-guide-arrow.top {
-	border-bottom-color: #667eea;
-	animation: bounce-arrow-top 1s infinite;
-}
-
-.tour-guide-arrow.bottom {
-	border-top-color: #667eea;
-	animation: bounce-arrow-bottom 1s infinite;
-}
-
-.tour-guide-arrow.left {
-	border-right-color: #667eea;
-	animation: bounce-arrow-left 1s infinite;
-}
-
-.tour-guide-arrow.right {
-	border-left-color: #667eea;
-	animation: bounce-arrow-right 1s infinite;
-}
-
-@keyframes bounce-arrow-top {
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(-10px); }
-}
-
-@keyframes bounce-arrow-bottom {
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(10px); }
-}
-
-@keyframes bounce-arrow-left {
-	0%, 100% { transform: translateX(0); }
-	50% { transform: translateX(-10px); }
-}
-
-@keyframes bounce-arrow-right {
-	0%, 100% { transform: translateX(0); }
-	50% { transform: translateX(10px); }
-}
-
-.tour-guide-tooltip {
-	position: absolute;
-	background: #fff;
-	padding: 16px 20px;
-	border-radius: 12px;
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-	max-width: 300px;
-	z-index: 100000;
-	animation: fadeIn 0.3s ease;
-}
-
-.tour-guide-tooltip p {
-	margin: 0;
-	font-size: 14px;
-	line-height: 1.5;
-	color: #1e293b;
-}
-
-/* Navigation Offer Buttons */
+/* ========================================
+   Navigation Offer & Buttons
+   ======================================== */
 .tabesh-ai-navigation-offer {
-	background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-	border-radius: 12px;
-	padding: 15px;
-	margin: 10px 0;
-	border-right: 4px solid #667eea;
-	animation: slideInMessage 0.3s ease;
+	background: var(--ai-bg-hover);
+	border-radius: 16px;
+	padding: 16px;
+	margin: 8px 0;
+	border-right: 4px solid var(--ai-accent);
+	animation: messageSlideIn 0.3s ease;
 }
 
 .tabesh-ai-navigation-offer p {
 	margin: 0 0 12px 0;
 	font-size: 14px;
-	color: #1e293b;
+	color: var(--ai-text-primary);
 	font-weight: 500;
 }
 
 .tabesh-ai-offer-buttons {
 	display: flex;
-	gap: 10px;
-	margin-top: 10px;
+	gap: 8px;
 	flex-wrap: wrap;
 }
 
 .tabesh-ai-btn-primary {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	color: white;
 	border: none;
-	padding: 10px 20px;
-	border-radius: 8px;
+	padding: 10px 18px;
+	border-radius: 10px;
 	cursor: pointer;
-	font-weight: bold;
-	transition: transform 0.2s, box-shadow 0.2s;
-	font-size: 14px;
+	font-weight: 600;
+	transition: all 0.2s ease;
+	font-size: 13px;
 	flex: 1;
-	min-width: 120px;
+	min-width: 100px;
 	text-align: center;
 }
 
@@ -850,151 +805,112 @@
 	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.tabesh-ai-btn-primary:active {
-	transform: translateY(0);
-}
-
 .tabesh-ai-btn-secondary {
-	background: white;
-	color: #667eea;
-	border: 2px solid #667eea;
-	padding: 10px 20px;
-	border-radius: 8px;
+	background: var(--ai-bg-primary);
+	color: var(--ai-accent);
+	border: 2px solid var(--ai-accent);
+	padding: 8px 16px;
+	border-radius: 10px;
 	cursor: pointer;
-	font-weight: bold;
-	transition: all 0.2s;
-	font-size: 14px;
+	font-weight: 600;
+	transition: all 0.2s ease;
+	font-size: 13px;
 	flex: 1;
-	min-width: 120px;
+	min-width: 100px;
 	text-align: center;
 }
 
 .tabesh-ai-btn-secondary:hover {
-	background: #667eea;
+	background: var(--ai-accent);
 	color: white;
-	transform: translateY(-1px);
-	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.tabesh-ai-btn-secondary:active {
-	transform: translateY(0);
 }
 
 .tabesh-ai-btn-tertiary {
 	background: transparent;
-	color: #999;
+	color: var(--ai-text-muted);
 	border: none;
-	padding: 10px;
+	padding: 8px;
 	cursor: pointer;
-	font-size: 13px;
-	transition: color 0.2s;
+	font-size: 12px;
+	transition: color 0.2s ease;
 }
 
 .tabesh-ai-btn-tertiary:hover {
-	color: #667eea;
-	text-decoration: underline;
+	color: var(--ai-accent);
 }
 
-/* Enhanced Tour Guide Highlight */
+/* ========================================
+   Tour Guide Styles
+   ======================================== */
 .tabesh-ai-highlight-overlay {
 	position: fixed;
 	pointer-events: none;
-	z-index: 999998;
-	animation: fadeIn 0.3s ease;
+	z-index: 99996;
 }
 
 .tabesh-ai-pulse-highlight {
-	animation: pulse-border 1s ease-in-out infinite !important;
+	animation: pulseHighlight 1.5s ease-in-out infinite !important;
 	box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.5) !important;
 	border-radius: 8px !important;
 	position: relative;
-	z-index: 999999;
+	z-index: 99997;
 }
 
-@keyframes pulse-border {
+@keyframes pulseHighlight {
 	0%, 100% {
 		box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.5);
 	}
 	50% {
-		box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.3);
-	}
-}
-
-.tabesh-ai-spotlight {
-	position: absolute;
-	inset: 0;
-	border: 3px solid #667eea;
-	border-radius: 12px;
-	animation: spotlight-pulse 1.5s ease-in-out infinite;
-	pointer-events: none;
-}
-
-@keyframes spotlight-pulse {
-	0%, 100% {
-		border-color: #667eea;
-		box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-	}
-	50% {
-		border-color: #764ba2;
-		box-shadow: 0 0 40px rgba(118, 75, 162, 0.5);
-	}
-}
-
-.tabesh-ai-arrow {
-	position: absolute;
-	font-size: 40px;
-	animation: bounce-arrow 0.6s ease-in-out infinite;
-	user-select: none;
-	pointer-events: none;
-}
-
-@keyframes bounce-arrow {
-	0%, 100% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-15px);
+		box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.2);
 	}
 }
 
 .tabesh-ai-tooltip {
 	position: absolute;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
 	color: white;
-	padding: 15px 20px;
+	padding: 12px 16px;
 	border-radius: 12px;
-	font-size: 14px;
+	font-size: 13px;
 	text-align: center;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	box-shadow: var(--ai-shadow-medium);
 	white-space: nowrap;
-	animation: fadeIn 0.3s ease;
+	animation: tooltipFadeIn 0.3s ease;
 	pointer-events: none;
-}
-
-.tabesh-ai-tooltip small {
-	display: block;
-	margin-top: 5px;
-	font-size: 12px;
-	opacity: 0.9;
+	z-index: 100000;
 }
 
 .tabesh-ai-tooltip::after {
 	content: '';
 	position: absolute;
-	bottom: -10px;
+	bottom: -8px;
 	left: 50%;
 	transform: translateX(-50%);
-	border: 10px solid transparent;
-	border-top-color: #764ba2;
+	border: 8px solid transparent;
+	border-top-color: var(--ai-gradient-end);
 }
 
-@keyframes fadeIn {
+@keyframes tooltipFadeIn {
 	from {
 		opacity: 0;
-		transform: translateY(-10px);
+		transform: translateY(-8px);
 	}
 	to {
 		opacity: 1;
 		transform: translateY(0);
 	}
+}
+
+/* Tour Guide Arrow Animation */
+.tabesh-ai-arrow {
+	position: absolute;
+	font-size: 32px;
+	animation: arrowBounce 0.8s ease-in-out infinite;
+	user-select: none;
+	pointer-events: none;
+}
+
+@keyframes arrowBounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-12px); }
 }
