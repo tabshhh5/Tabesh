@@ -122,8 +122,8 @@
             }
         });
 
-        // Quick action buttons
-        $('.quick-action-btn').on('click', function() {
+        // Quick action buttons - use event delegation for dynamically created elements
+        $(document).on('click', '.quick-action-btn', function() {
             const action = $(this).data('action');
             handleQuickAction(action);
         });

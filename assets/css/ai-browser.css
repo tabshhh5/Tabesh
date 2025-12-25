@@ -419,11 +419,21 @@ body.ai-browser-minimized .tabesh-ai-browser-toggle {
 	gap: 8px;
 	overflow-x: auto;
 	border-bottom: 1px solid var(--ai-border-light);
-	scrollbar-width: none;
+	scrollbar-width: thin;
+	scrollbar-color: var(--ai-border) transparent;
 }
 
 .tabesh-ai-browser-quick-actions::-webkit-scrollbar {
-	display: none;
+	height: 4px;
+}
+
+.tabesh-ai-browser-quick-actions::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.tabesh-ai-browser-quick-actions::-webkit-scrollbar-thumb {
+	background: var(--ai-border);
+	border-radius: 2px;
 }
 
 .quick-action-btn {
@@ -568,9 +578,8 @@ body.ai-browser-minimized .tabesh-ai-browser-toggle {
 @media screen and (min-width: 769px) {
 	body.ai-browser-open {
 		margin-right: 0;
-		padding-left: var(--ai-sidebar-width);
-		min-padding-left: var(--ai-sidebar-min-width);
-		max-padding-left: var(--ai-sidebar-max-width);
+		/* Use clamp for responsive padding with min/max constraints */
+		padding-left: clamp(340px, 30vw, 450px);
 		transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 		overflow-x: hidden;
 	}
@@ -578,11 +587,6 @@ body.ai-browser-minimized .tabesh-ai-browser-toggle {
 	body.ai-browser-minimized {
 		padding-left: 50px;
 		transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	/* Fixed sidebar width calculation */
-	body.ai-browser-open {
-		padding-left: min(max(30vw, 340px), 450px);
 	}
 }
 

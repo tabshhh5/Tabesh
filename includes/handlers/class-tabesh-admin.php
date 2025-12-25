@@ -271,9 +271,20 @@ class Tabesh_Admin {
             Tabesh_AI_Config::set('client_api_key', sanitize_text_field($post_data['ai_client_api_key']));
         }
         
-        // Allowed roles
+        // Allowed roles - validate against existing WordPress roles
         if (isset($post_data['ai_allowed_roles']) && is_array($post_data['ai_allowed_roles'])) {
-            $allowed_roles = array_map('sanitize_text_field', $post_data['ai_allowed_roles']);
+            $wp_roles = wp_roles()->get_names();
+            $valid_role_keys = array_keys($wp_roles);
+            $allowed_roles = array();
+            
+            foreach ($post_data['ai_allowed_roles'] as $role) {
+                $sanitized_role = sanitize_text_field($role);
+                // Only add if role exists in WordPress
+                if (in_array($sanitized_role, $valid_role_keys, true)) {
+                    $allowed_roles[] = $sanitized_role;
+                }
+            }
+            
             Tabesh_AI_Config::set('allowed_roles', $allowed_roles);
         } else {
             Tabesh_AI_Config::set('allowed_roles', array());
