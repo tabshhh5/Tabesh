@@ -241,6 +241,13 @@ final class Tabesh {
 	public $product_pricing;
 
 	/**
+	 * React Dashboard handler
+	 *
+	 * @var Tabesh_React_Dashboard
+	 */
+	public $react_dashboard;
+
+	/**
 	 * Cache for settings to avoid redundant database queries
 	 *
 	 * @var array
@@ -319,6 +326,8 @@ final class Tabesh {
 		$this->firewall = new Tabesh_Doomsday_Firewall();
 		// Initialize Product Pricing handler
 		$this->product_pricing = new Tabesh_Product_Pricing();
+		// Initialize React Dashboard handler
+		$this->react_dashboard = new Tabesh_React_Dashboard();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -2277,7 +2286,8 @@ final class Tabesh {
 		add_shortcode( 'tabesh_order_form_slider', array( $this->order_form_slider, 'render_order_form_slider' ) );
 		add_shortcode( 'tabesh_user_orders', array( $this->user, 'render_user_orders' ) );
 		add_shortcode( 'tabesh_staff_panel', array( $this->staff, 'render_staff_panel' ) );
-		add_shortcode( 'tabesh_admin_dashboard', array( $this->admin, 'render_admin_dashboard' ) );
+		// Use React dashboard instead of legacy PHP template
+		add_shortcode( 'tabesh_admin_dashboard', array( $this->react_dashboard, 'render_dashboard' ) );
 		add_shortcode( 'tabesh_file_upload', array( $this, 'render_file_upload' ) );
 		add_shortcode( 'tabesh_upload_manager', array( $this->upload, 'render_upload_manager' ) );
 		add_shortcode( 'tabesh_admin_order_form', array( $this->admin_order_form, 'render' ) );

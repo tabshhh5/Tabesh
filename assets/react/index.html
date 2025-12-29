@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabesh Admin Dashboard</title>
+    
+    <!-- WordPress Dashicons (for development) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dashicons@0.9.0/css/dashicons.min.css">
+    
+    <!-- Persian Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="tabesh-admin-dashboard-root"></div>
+    
+    <!-- Mock WordPress config for development -->
+    <script>
+      window.tabeshConfig = {
+        nonce: 'dev-nonce-12345',
+        restUrl: 'http://localhost:8080/wp-json/tabesh/v1',
+        restNamespace: 'tabesh/v1',
+        currentUserId: 1,
+        currentUserRole: 'administrator',
+        isAdmin: true,
+        canEditOrders: true,
+        avatarUrl: 'https://via.placeholder.com/40',
+        userName: 'مدیر سیستم',
+        userEmail: 'admin@example.com',
+      };
+    </script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
