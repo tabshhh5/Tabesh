@@ -51,23 +51,6 @@ $admin = $tabesh->admin;
 
                 <table class="form-table">
                     <tr>
-                        <th><label for="use_react_dashboard">نوع داشبورد مدیریت</label></th>
-                        <td>
-                            <select id="use_react_dashboard" name="use_react_dashboard" class="regular-text">
-                                <option value="0" <?php selected($admin->get_setting('use_react_dashboard', '0'), '0'); ?>>
-                                    داشبورد PHP (پیش‌فرض - پیشنهاد می‌شود)
-                                </option>
-                                <option value="1" <?php selected($admin->get_setting('use_react_dashboard', '0'), '1'); ?>>
-                                    داشبورد React (آزمایشی)
-                                </option>
-                            </select>
-                            <p class="description">
-                                <strong>توجه:</strong> داشبورد React هنوز در مرحله آزمایشی است. 
-                                برای استفاده از تمام قابلیت‌ها از داشبورد PHP استفاده کنید.
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
                         <th><label for="min_quantity">حداقل تیراژ</label></th>
                         <td>
                             <input type="number" id="min_quantity" name="min_quantity" 

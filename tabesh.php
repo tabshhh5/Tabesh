@@ -1010,8 +1010,6 @@ final class Tabesh {
 			// General File Upload Settings.
 			'file_upload_max_size'                     => '52428800',   // 50 MB in bytes (general default).
 			'file_upload_allowed_types'                => json_encode( array( 'pdf', 'jpg', 'jpeg', 'png', 'psd', 'doc', 'docx', 'zip', 'rar' ) ),
-			// Dashboard Settings.
-			'use_react_dashboard'                      => '0',  // Use React dashboard (0 = PHP template, 1 = React).
 		);
 
 		// Add SMS status notifications for all order statuses dynamically

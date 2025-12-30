@@ -53,14 +53,6 @@ class Tabesh_React_Dashboard {
 			return;
 		}
 
-		// Check if React dashboard is enabled in settings.
-		$use_react_dashboard = Tabesh()->get_setting( 'use_react_dashboard', '0' );
-
-		// If React dashboard is not enabled, don't load React assets.
-		if ( '1' !== $use_react_dashboard ) {
-			return;
-		}
-
 		// Enqueue built React app.
 		$dist_path = TABESH_PLUGIN_DIR . 'assets/dist/admin-dashboard/';
 		$dist_url  = TABESH_PLUGIN_URL . 'assets/dist/admin-dashboard/';
@@ -140,53 +132,17 @@ class Tabesh_React_Dashboard {
 			return '<div class="tabesh-access-denied">' . esc_html__( 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.', 'tabesh' ) . '</div>';
 		}
 
-		// Check if React dashboard is enabled in settings.
-		$use_react_dashboard = Tabesh()->get_setting( 'use_react_dashboard', '0' );
-
-		// If React dashboard is not enabled, use PHP template.
-		if ( '1' !== $use_react_dashboard ) {
-			return $this->render_php_dashboard();
-		}
-
 		// Check if React build exists.
 		$dist_path = TABESH_PLUGIN_DIR . 'assets/dist/admin-dashboard/admin-dashboard.js';
 		if ( ! file_exists( $dist_path ) ) {
-			// Log error if debug mode is enabled.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'Tabesh: React dashboard build files not found. Falling back to PHP template.' );
-			}
-			// Fallback to PHP template if React build doesn't exist.
-			return $this->render_php_dashboard();
+			return '<div class="tabesh-build-error">' .
+				esc_html__( 'داشبورد React هنوز ساخته نشده است. ', 'tabesh' ) .
+				( defined( 'WP_DEBUG' ) && WP_DEBUG ?
+					'<br><code>cd assets/react && npm run build</code>' : '' ) .
+				'</div>';
 		}
 
 		// Return root div for React to mount.
 		return '<div id="tabesh-admin-dashboard-root"></div>';
-	}
-
-	/**
-	 * Render PHP dashboard template (fallback)
-	 *
-	 * @return string
-	 */
-	private function render_php_dashboard() {
-		// Validate template file exists.
-		$template_path = TABESH_PLUGIN_DIR . 'templates/admin/shortcode-admin-dashboard.php';
-
-		if ( ! file_exists( $template_path ) ) {
-			// Log error if debug mode is enabled.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'Tabesh: PHP dashboard template file not found at ' . $template_path );
-			}
-			return '<div class="tabesh-error">' .
-				'<p>' . esc_html__( 'خطا: فایل قالب داشبورد یافت نشد.', 'tabesh' ) . '</p>' .
-				'<p>' . esc_html__( 'Error: Dashboard template file not found.', 'tabesh' ) . '</p>' .
-				'</div>';
-		}
-
-		// Load the PHP template using output buffering.
-		// Note: The template file includes its own permission checks and ABSPATH validation.
-		ob_start();
-		include $template_path;
-		return ob_get_clean();
 	}
 }
