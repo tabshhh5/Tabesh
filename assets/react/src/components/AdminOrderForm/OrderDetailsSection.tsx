@@ -4,7 +4,7 @@
  * Contains all order specification fields
  */
 import React, { useEffect } from 'react'
-import { Input, Select } from '@/components/UI'
+import { Input } from '@/components/UI'
 import type { OrderFormData, FormConfig } from '@/types/orderForm'
 
 interface OrderDetailsSectionProps {
@@ -64,11 +64,12 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
           <label htmlFor="book-size">
             قطع <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="book-size"
             value={formData.book_size || ''}
             onChange={(e) => onChange('book_size', e.target.value)}
             required
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.book_sizes.map((size) => (
@@ -76,18 +77,19 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {size}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="paper-type">
             نوع کاغذ <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="paper-type"
             value={formData.paper_type || ''}
             onChange={(e) => onChange('paper_type', e.target.value)}
             required
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {Object.keys(formConfig.paper_types).map((type) => (
@@ -95,19 +97,20 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {type}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="paper-weight">
             گرماژ <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="paper-weight"
             value={formData.paper_weight || ''}
             onChange={(e) => onChange('paper_weight', e.target.value)}
             required
             disabled={!formData.paper_type}
+            className="tabesh-aof-select"
           >
             <option value="">
               {formData.paper_type ? 'انتخاب...' : 'ابتدا نوع کاغذ'}
@@ -117,18 +120,19 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {weight}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="print-type">
             نوع چاپ <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="print-type"
             value={formData.print_type || ''}
             onChange={(e) => onChange('print_type', e.target.value)}
             required
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.print_types.map((type) => (
@@ -136,18 +140,19 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {type}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="binding-type">
             صحافی <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="binding-type"
             value={formData.binding_type || ''}
             onChange={(e) => onChange('binding_type', e.target.value)}
             required
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.binding_types.map((type) => (
@@ -155,18 +160,19 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {type}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="license-type">
             مجوز <span className="req">*</span>
           </label>
-          <Select
+          <select
             id="license-type"
             value={formData.license_type || ''}
             onChange={(e) => onChange('license_type', e.target.value)}
             required
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.license_types.map((type) => (
@@ -174,7 +180,7 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {type}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
       </div>
       
@@ -246,10 +252,11 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
         
         <div className="aof-field">
           <label htmlFor="cover-paper-weight">گرماژ جلد</label>
-          <Select
+          <select
             id="cover-paper-weight"
             value={formData.cover_paper_weight || ''}
             onChange={(e) => onChange('cover_paper_weight', e.target.value)}
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.cover_paper_weights.map((weight) => (
@@ -257,15 +264,16 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {weight}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
         
         <div className="aof-field">
           <label htmlFor="lamination-type">سلفون</label>
-          <Select
+          <select
             id="lamination-type"
             value={formData.lamination_type || ''}
             onChange={(e) => onChange('lamination_type', e.target.value)}
+            className="tabesh-aof-select"
           >
             <option value="">انتخاب...</option>
             {formConfig.lamination_types.map((type) => (
@@ -273,7 +281,7 @@ export const OrderDetailsSection: React.FC<OrderDetailsSectionProps> = ({
                 {type}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
       </div>
       

@@ -14,7 +14,7 @@ import type { FilterOptions } from '@/types'
 
 export const Dashboard: React.FC = () => {
   const { theme, toggleTheme } = useTheme()
-  const { showNotification } = useNotifications()
+  const { addNotification } = useNotifications()
   const [filters, setFilters] = useState<Partial<FilterOptions>>({
     sortBy: 'newest',
   })
@@ -24,8 +24,8 @@ export const Dashboard: React.FC = () => {
     setFilters({ sortBy: 'newest' })
   }
 
-  const handleOrderSuccess = (orderId: number, orderNumber: string) => {
-    showNotification('success', `سفارش ${orderNumber} با موفقیت ثبت شد`)
+  const handleOrderSuccess = (_orderId: number, orderNumber: string) => {
+    addNotification('success', `سفارش ${orderNumber} با موفقیت ثبت شد`)
     setIsOrderFormOpen(false)
     // Optionally refresh orders table
   }
@@ -77,7 +77,7 @@ export const Dashboard: React.FC = () => {
         isOpen={isOrderFormOpen}
         onClose={() => setIsOrderFormOpen(false)}
         title="ثبت سفارش جدید"
-        size="large"
+        size="lg"
       >
         <AdminOrderForm
           onSuccess={handleOrderSuccess}

@@ -15,7 +15,7 @@ interface CustomerSectionProps {
 }
 
 export const CustomerSection: React.FC<CustomerSectionProps> = ({ formData, onChange }) => {
-  const { showNotification } = useNotifications()
+  const { addNotification } = useNotifications()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Customer[]>([])
@@ -43,7 +43,7 @@ export const CustomerSection: React.FC<CustomerSectionProps> = ({ formData, onCh
     if (response.success && response.data) {
       setSearchResults(response.data)
     } else {
-      showNotification('error', response.error || 'خطا در جستجو')
+      addNotification('error', response.error || 'خطا در جستجو')
       setSearchResults([])
     }
     
@@ -59,14 +59,14 @@ export const CustomerSection: React.FC<CustomerSectionProps> = ({ formData, onCh
   
   const handleCreateCustomer = async () => {
     if (!formData.new_mobile || !formData.new_first_name || !formData.new_last_name) {
-      showNotification('error', 'لطفاً تمام فیلدها را پر کنید')
+      addNotification('error', 'لطفاً تمام فیلدها را پر کنید')
       return
     }
     
     // Validate mobile format
     const mobilePattern = /^09[0-9]{9}$/
     if (!mobilePattern.test(formData.new_mobile)) {
-      showNotification('error', 'فرمت شماره موبایل نامعتبر است')
+      addNotification('error', 'فرمت شماره موبایل نامعتبر است')
       return
     }
     
@@ -78,14 +78,14 @@ export const CustomerSection: React.FC<CustomerSectionProps> = ({ formData, onCh
     })
     
     if (response.success && response.data) {
-      showNotification('success', 'کاربر با موفقیت ایجاد شد')
+      addNotification('success', 'کاربر با موفقیت ایجاد شد')
       setSelectedCustomer(response.data)
       onChange('user_id', response.data.ID)
       
       // Show registration SMS option
       onChange('send_registration_sms', true)
     } else {
-      showNotification('error', response.error || 'خطا در ایجاد کاربر')
+      addNotification('error', response.error || 'خطا در ایجاد کاربر')
     }
     
     setIsCreatingCustomer(false)

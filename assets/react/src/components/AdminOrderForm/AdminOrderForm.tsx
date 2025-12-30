@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNotifications } from '@/contexts/NotificationsContext'
 import { adminOrderFormService } from '@/services/adminOrderForm'
-import { Button, Input, Select, Loading, Modal } from '@/components/UI'
+import { Button, Loading } from '@/components/UI'
 import { CustomerSection } from './CustomerSection'
 import { OrderDetailsSection } from './OrderDetailsSection'
 import { PriceFooter } from './PriceFooter'
@@ -19,7 +19,7 @@ interface AdminOrderFormProps {
 }
 
 export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCancel }) => {
-  const { showNotification } = useNotifications()
+  const { addNotification } = useNotifications()
   
   // Form configuration
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
@@ -55,7 +55,7 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
         quantity: response.data!.min_quantity,
       }))
     } else {
-      showNotification('error', response.error || 'خطا در بارگذاری تنظیمات فرم')
+      addNotification('error', response.error || 'خطا در بارگذاری تنظیمات فرم')
     }
     
     setIsLoadingConfig(false)
@@ -71,7 +71,7 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
   const handleCalculatePrice = async () => {
     // Validate required fields
     if (!validateRequiredFields()) {
-      showNotification('error', 'لطفاً تمام فیلدهای الزامی را پر کنید')
+      addNotification('error', 'لطفاً تمام فیلدهای الزامی را پر کنید')
       return
     }
     
@@ -80,9 +80,9 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
     
     if (response.success && response.data) {
       setPriceData(response.data)
-      showNotification('success', 'قیمت با موفقیت محاسبه شد')
+      addNotification('success', 'قیمت با موفقیت محاسبه شد')
     } else {
-      showNotification('error', response.error || 'خطا در محاسبه قیمت')
+      addNotification('error', response.error || 'خطا در محاسبه قیمت')
     }
     
     setIsCalculating(false)
@@ -124,12 +124,12 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
     
     // Validate
     if (!validateRequiredFields()) {
-      showNotification('error', 'لطفاً تمام فیلدهای الزامی را پر کنید')
+      addNotification('error', 'لطفاً تمام فیلدهای الزامی را پر کنید')
       return
     }
     
     if (!formData.user_id) {
-      showNotification('error', 'لطفاً یک مشتری را انتخاب یا ایجاد کنید')
+      addNotification('error', 'لطفاً یک مشتری را انتخاب یا ایجاد کنید')
       return
     }
     
@@ -137,7 +137,7 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
     const response = await adminOrderFormService.submitOrder(formData as OrderFormData)
     
     if (response.success && response.data) {
-      showNotification('success', 'سفارش با موفقیت ثبت شد')
+      addNotification('success', 'سفارش با موفقیت ثبت شد')
       
       if (onSuccess) {
         onSuccess(response.data.order_id, response.data.order_number)
@@ -146,7 +146,7 @@ export const AdminOrderForm: React.FC<AdminOrderFormProps> = ({ onSuccess, onCan
       // Reset form
       resetForm()
     } else {
-      showNotification('error', response.error || 'خطا در ثبت سفارش')
+      addNotification('error', response.error || 'خطا در ثبت سفارش')
     }
     
     setIsSubmitting(false)
