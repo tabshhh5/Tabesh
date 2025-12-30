@@ -22,8 +22,7 @@ Thumbs.db
 # Build artifacts
 /dist/
 /build/
-# Allow React admin dashboard build
-!/assets/dist/admin-dashboard/
+/assets/dist/
 /assets/react/dist/
 
 # Logs

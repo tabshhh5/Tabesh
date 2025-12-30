@@ -328,8 +328,6 @@ final class Tabesh {
 		$this->product_pricing = new Tabesh_Product_Pricing();
 		// Initialize React Dashboard handler
 		$this->react_dashboard = new Tabesh_React_Dashboard();
-		// Initialize React Dashboard API handler
-		$this->react_dashboard_api = new Tabesh_React_Dashboard_API();
 
 		// Register REST API routes
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );

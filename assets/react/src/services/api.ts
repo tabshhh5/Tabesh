@@ -63,7 +63,7 @@ class ApiClient {
         data: response.data,
       }
     } catch (error) {
-      return error as ApiResponse<T>
+      return error as ApiResponse<null>
     }
   }
 
@@ -75,7 +75,7 @@ class ApiClient {
         data: response.data,
       }
     } catch (error) {
-      return error as ApiResponse<T>
+      return error as ApiResponse<null>
     }
   }
 
@@ -87,7 +87,7 @@ class ApiClient {
         data: response.data,
       }
     } catch (error) {
-      return error as ApiResponse<T>
+      return error as ApiResponse<null>
     }
   }
 
@@ -99,7 +99,7 @@ class ApiClient {
         data: response.data,
       }
     } catch (error) {
-      return error as ApiResponse<T>
+      return error as ApiResponse<null>
     }
   }
 
