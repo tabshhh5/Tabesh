@@ -2398,10 +2398,11 @@ final class Tabesh {
 			'tabesh-order-form-v2',
 			'tabeshOrderFormV2',
 			array(
-				'apiUrl'         => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
-				'userOrdersUrl'  => home_url( '/user-orders/' ), // Default redirect after order submission
-				'i18n'           => array(
+				'apiUrl'        => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'         => wp_create_nonce( 'wp_rest' ),
+				'userOrdersUrl' => home_url( '/user-orders/' ), // Default redirect after order submission.
+				'licenseTypes'  => $this->get_setting( 'license_types', array() ),
+				'i18n'          => array(
 					'loading'       => __( 'در حال بارگذاری...', 'tabesh' ),
 					'calculating'   => __( 'در حال محاسبه قیمت...', 'tabesh' ),
 					'submitting'    => __( 'در حال ثبت سفارش...', 'tabesh' ),
@@ -2436,10 +2437,10 @@ final class Tabesh {
 			'tabesh-order-form-slider',
 			'tabeshOrderFormV2',  // Keep same name for compatibility
 			array(
-				'apiUrl'         => rest_url( TABESH_REST_NAMESPACE ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
-				'userOrdersUrl'  => home_url( '/user-orders/' ),
-				'i18n'           => array(
+				'apiUrl'        => rest_url( TABESH_REST_NAMESPACE ),
+				'nonce'         => wp_create_nonce( 'wp_rest' ),
+				'userOrdersUrl' => home_url( '/user-orders/' ),
+				'i18n'          => array(
 					'loading'       => __( 'در حال بارگذاری...', 'tabesh' ),
 					'calculating'   => __( 'در حال محاسبه قیمت...', 'tabesh' ),
 					'submitting'    => __( 'در حال ثبت سفارش...', 'tabesh' ),
@@ -2593,7 +2594,7 @@ final class Tabesh {
 				// Get pricing matrix directly from engine
 				global $wpdb;
 				$table_settings = $wpdb->prefix . 'tabesh_settings';
-				
+
 				// CRITICAL FIX: Use base64_encode to match save_pricing_matrix() method
 				$safe_key    = base64_encode( $book_size );
 				$setting_key = 'pricing_matrix_' . $safe_key;
@@ -2647,7 +2648,7 @@ final class Tabesh {
 								// CRITICAL FIX: With per-weight restrictions, we need to check each weight individually.
 								// Only include weights that have at least one allowed print type.
 								$available_weights = array();
-								
+
 								foreach ( array_keys( $weights_data ) as $weight ) {
 									// Get forbidden print types for this specific weight
 									$forbidden_for_weight = $forbidden_print_types[ $paper_type ][ $weight ] ?? array();
@@ -2661,7 +2662,7 @@ final class Tabesh {
 										$available_weights[] = $weight;
 									}
 								}
-								
+
 								// Only include this paper type if it has at least one available weight
 								if ( ! empty( $available_weights ) ) {
 									$v2_pricing_matrices[ $book_size ]['paper_types'][ $paper_type ] = $available_weights;

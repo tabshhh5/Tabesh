@@ -316,6 +316,17 @@ $quantity_step = Tabesh()->get_setting( 'quantity_step', 10 );
 							<p class="loading-text"><?php echo esc_html__( 'در حال بارگذاری...', 'tabesh' ); ?></p>
 						</div>
 					</div>
+
+					<div class="form-group">
+						<label for="license_type_wizard" class="form-label">
+							<?php echo esc_html__( 'نوع مجوز', 'tabesh' ); ?>
+							<span class="required">*</span>
+						</label>
+						<select id="license_type_wizard" name="license_type" class="form-control" required>
+							<option value=""><?php echo esc_html__( 'در حال بارگذاری...', 'tabesh' ); ?></option>
+						</select>
+						<span class="form-hint"><?php echo esc_html__( 'آیا مجوز انتشار دارید؟', 'tabesh' ); ?></span>
+					</div>
 				</div>
 			</div>
 

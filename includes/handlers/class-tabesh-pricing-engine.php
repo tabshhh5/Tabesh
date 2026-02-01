@@ -282,6 +282,7 @@ class Tabesh_Pricing_Engine {
 		$print_type   = sanitize_text_field( $params['print_type'] ?? '' );
 		$binding_type = sanitize_text_field( $params['binding_type'] ?? '' );
 		$cover_weight = sanitize_text_field( $params['cover_paper_weight'] ?? $params['cover_weight'] ?? '' );
+		$license_type = sanitize_text_field( $params['license_type'] ?? '' );
 
 		// Validate and sanitize numeric inputs - prevent null/NaN
 		$page_count_color = intval( $params['page_count_color'] ?? 0 );
@@ -473,6 +474,21 @@ class Tabesh_Pricing_Engine {
 		// Step 5: Get cover cost for this book size
 		$cover_cost = $this->get_cover_cost( $pricing_matrix );
 
+		// Step 5.1: Get license cost if license type is provided
+		$license_cost = 0;
+		if ( ! empty( $license_type ) ) {
+			$license_cost = floatval( $pricing_matrix['license_costs'][ $license_type ] ?? 0 );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log(
+					sprintf(
+						'Tabesh Pricing Engine V2: License cost for "%s": %s',
+						$license_type,
+						$license_cost
+					)
+				);
+			}
+		}
+
 		// Step 5.5: Validate extras are allowed for this binding type
 		$forbidden_extras = $pricing_matrix['restrictions']['forbidden_extras'][ $binding_type ] ?? array();
 		foreach ( $extras as $extra ) {
@@ -498,12 +514,13 @@ class Tabesh_Pricing_Engine {
 
 		// Step 7: Calculate production cost per book (WITHOUT variable extras)
 		// Variable extras are already calculated for total quantity, so they're added separately
+		// License cost is applied once per order, not per book
 		$production_cost_per_book = $total_pages_cost + $cover_cost + $binding_cost;
 
-		// Step 8: Calculate subtotal (quantity multiplication + extras)
-		// First multiply per-book cost by quantity, then add fixed and variable extras
+		// Step 8: Calculate subtotal (quantity multiplication + extras + license)
+		// First multiply per-book cost by quantity, then add fixed extras, variable extras, and license cost
 		$subtotal_before_extras = $production_cost_per_book * $quantity;
-		$subtotal               = $subtotal_before_extras + $fixed_extras_cost + $variable_extras_cost;
+		$subtotal               = $subtotal_before_extras + $fixed_extras_cost + $variable_extras_cost + $license_cost;
 
 		// Step 9: Apply quantity discounts
 		$discount_info        = $this->calculate_discount( $quantity, $subtotal );
@@ -558,6 +575,7 @@ class Tabesh_Pricing_Engine {
 				'total_pages_cost'     => $total_pages_cost,
 				'cover_cost'           => $cover_cost,
 				'binding_cost'         => $binding_cost,
+				'license_cost'         => $license_cost,
 				'fixed_extras_cost'    => $fixed_extras_cost,
 				'variable_extras_cost' => $variable_extras_cost,
 				'total_extras_cost'    => $fixed_extras_cost + $variable_extras_cost,
@@ -1191,6 +1209,10 @@ class Tabesh_Pricing_Engine {
 					'300' => 4000,
 					'350' => 4500,
 				),
+			),
+			'license_costs'        => array(
+				'دارم'  => 0,
+				'ندارم' => 0,
 			),
 			'extras_costs'         => array(
 				'لب گرد' => array(

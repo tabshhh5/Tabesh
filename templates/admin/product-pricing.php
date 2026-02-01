@@ -88,6 +88,10 @@ $configured_binding_types  = $get_binding_types->invoke( $this );
 $configured_extra_services = $get_extra_services->invoke( $this );
 $configured_cover_weights  = $get_cover_weights->invoke( $this );
 
+// Get license types from settings for license pricing section
+$configured_license_types = Tabesh()->get_setting( 'license_types', array() );
+$configured_license_types = is_array( $configured_license_types ) ? $configured_license_types : array();
+
 // Extract paper type names and all possible weights.
 $paper_types_names = array_keys( $configured_paper_types );
 $all_weights       = array();
@@ -334,10 +338,57 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 				</div>
 			</div>
 
-
-			<!-- Section 3: Extras -->
+			<!-- Section 3: License Costs -->
+			<?php if ( ! empty( $configured_license_types ) ) : ?>
 			<div class="pricing-section">
-				<h3><?php esc_html_e( '۳. خدمات اضافی', 'tabesh' ); ?></h3>
+				<h3><?php esc_html_e( '۳. هزینه مجوز', 'tabesh' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'تعیین هزینه برای هر نوع مجوز (در صورت داشتن مجوز)', 'tabesh' ); ?>
+				</p>
+
+				<table class="pricing-table pricing-table-compact">
+					<thead>
+						<tr>
+							<th class="col-license-type"><?php esc_html_e( 'نوع مجوز', 'tabesh' ); ?></th>
+							<th class="col-license-price"><?php esc_html_e( 'هزینه (تومان)', 'tabesh' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $configured_license_types as $license_type ) : ?>
+							<?php
+							$license_cost = $pricing_matrix['license_costs'][ $license_type ] ?? 0;
+							?>
+							<tr>
+								<td class="license-type-cell">
+									<span class="license-badge"><?php echo esc_html( $license_type ); ?></span>
+								</td>
+								<td class="price-input-cell">
+									<input type="number" 
+											name="license_costs[<?php echo esc_attr( $license_type ); ?>]" 
+											value="<?php echo esc_attr( $license_cost ); ?>" 
+											step="100" 
+											min="0" 
+											class="price-input"
+											placeholder="0">
+									<small class="help-text"><?php esc_html_e( 'هزینه ثابت برای این نوع مجوز', 'tabesh' ); ?></small>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+
+				<div class="notice notice-info inline" style="margin-top: 15px;">
+					<p>
+						<strong><?php esc_html_e( '💡 نکته:', 'tabesh' ); ?></strong>
+						<?php esc_html_e( 'هزینه مجوز یک هزینه ثابت است که در صورت انتخاب نوع مجوز توسط مشتری به قیمت نهایی اضافه می‌شود. برای مجوزهایی که هزینه ندارند (مثل "ندارم") مقدار را 0 قرار دهید.', 'tabesh' ); ?>
+					</p>
+				</div>
+			</div>
+			<?php endif; ?>
+
+			<!-- Section 4: Extras -->
+			<div class="pricing-section">
+				<h3><?php esc_html_e( '۴. خدمات اضافی', 'tabesh' ); ?></h3>
 				<p class="description">
 					<?php esc_html_e( 'تنظیم قیمت برای خدمات اضافی و مجاز بودن آن‌ها برای هر نوع صحافی', 'tabesh' ); ?>
 				</p>
@@ -448,9 +499,9 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 				</div>
 			</div>
 
-			<!-- Section 4: Profit Margin -->
+			<!-- Section 5: Profit Margin -->
 			<div class="pricing-section">
-				<h3><?php esc_html_e( '۴. حاشیه سود', 'tabesh' ); ?></h3>
+				<h3><?php esc_html_e( '۵. حاشیه سود', 'tabesh' ); ?></h3>
 				<table class="pricing-table">
 					<tbody>
 						<tr>
@@ -470,9 +521,9 @@ $v2_enabled = $this->pricing_engine->is_enabled();
 				</table>
 			</div>
 
-			<!-- Section 5: Quantity Constraints -->
+			<!-- Section 6: Quantity Constraints -->
 			<div class="pricing-section">
-				<h3><?php esc_html_e( '۵. محدودیت‌های تیراژ', 'tabesh' ); ?></h3>
+				<h3><?php esc_html_e( '۶. محدودیت‌های تیراژ', 'tabesh' ); ?></h3>
 				<p class="description">
 					<?php esc_html_e( 'تعیین حداقل، حداکثر و گام تغییر تیراژ برای این قطع کتاب', 'tabesh' ); ?>
 				</p>

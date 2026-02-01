@@ -25,6 +25,7 @@
 		binding_type: '',
 		cover_weight: '',
 		extras: [],
+		license_type: '',
 		notes: '',
 		calculated_price: null
 	};
@@ -101,6 +102,7 @@
 			formState.binding_type = bindingType;
 			loadCoverWeights();
 			loadExtras();
+			loadLicenseTypes();
 		});
 
 		$('#cover_weight_wizard').on('change', function() {
@@ -109,6 +111,10 @@
 
 		$(document).on('change', '#extras_container_wizard input[type="checkbox"]', function() {
 			updateExtrasState();
+		});
+
+		$('#license_type_wizard').on('change', function() {
+			formState.license_type = $(this).val();
 		});
 
 		$('#notes_wizard').on('input', function() {
@@ -580,6 +586,60 @@
 	}
 
 	/**
+	 * Load license types from settings
+	 */
+	function loadLicenseTypes() {
+		// License types come from plugin settings, not from API restrictions
+		// So we can get them from localized data if available
+		if (tabeshOrderFormV2.licenseTypes && tabeshOrderFormV2.licenseTypes.length > 0) {
+			populateLicenseTypes(tabeshOrderFormV2.licenseTypes);
+		} else {
+			// Fallback: Load from API
+			$.ajax({
+				url: tabeshOrderFormV2.apiUrl + '/get-settings',
+				method: 'GET',
+				headers: {
+					'X-WP-Nonce': tabeshOrderFormV2.nonce
+				},
+				success: function(response) {
+					if (response.success && response.data && response.data.license_types) {
+						populateLicenseTypes(response.data.license_types);
+					} else {
+						// Default fallback
+						populateLicenseTypes(['دارم', 'ندارم']);
+					}
+				},
+				error: function() {
+					// Default fallback
+					populateLicenseTypes(['دارم', 'ندارم']);
+				}
+			});
+		}
+	}
+
+	/**
+	 * Populate license types dropdown
+	 */
+	function populateLicenseTypes(licenseTypes) {
+		const $select = $('#license_type_wizard');
+		$select.empty();
+		$select.append('<option value="">انتخاب کنید...</option>');
+
+		if (!licenseTypes || licenseTypes.length === 0) {
+			$select.append('<option value="" disabled>هیچ نوع مجوزی تعریف نشده است</option>');
+			return;
+		}
+
+		licenseTypes.forEach(function(licenseType) {
+			$select.append(
+				$('<option></option>')
+					.val(licenseType)
+					.text(licenseType)
+			);
+		});
+	}
+
+	/**
 	 * Calculate price
 	 */
 	function calculatePrice() {
@@ -603,7 +663,7 @@
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
-			license_type: 'دارم',
+			license_type: formState.license_type,
 			extras: formState.extras
 		};
 
@@ -665,6 +725,10 @@
 			{ label: 'گرماژ جلد', value: formState.cover_weight + ' گرم' }
 		];
 
+		if (formState.license_type) {
+			items.push({ label: 'نوع مجوز', value: formState.license_type });
+		}
+
 		if (formState.extras.length > 0) {
 			items.push({ label: 'خدمات اضافی', value: formState.extras.join('، ') });
 		}
@@ -710,7 +774,7 @@
 			binding_type: formState.binding_type,
 			cover_paper_weight: formState.cover_weight,
 			cover_weight: formState.cover_weight,
-			license_type: 'دارم',
+			license_type: formState.license_type,
 			lamination_type: 'براق',
 			extras: formState.extras,
 			notes: formState.notes
